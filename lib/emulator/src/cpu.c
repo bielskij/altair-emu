@@ -292,7 +292,7 @@ static _U8 _h_lxi(Cpu *cpu, _U8 opcode) {
 	return 10;
 }
 #else
-static void _h_lxi(Cpu *cpu, _U8 opcode) {
+static void _h_lxi(Cpu *cpu) {
 	switch (cpu->cycle) {
 		case 1:
 			if (cpu->state == 4) {

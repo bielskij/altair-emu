@@ -31,41 +31,9 @@
 
 #define MEM_SIZE (64 * 1024)
 
-struct _IO {
-	_U8 reserved;
-};
-
-struct _Memory {
-	_U8 space[MEM_SIZE];
-};
-
-
-static struct _Memory _mem;
-static struct _IO     _io;
-
 static Cpu _cpu;
+static _U8 _memory[MEM_SIZE];
 
-
-_U8  IO_read_byte(IO io, _U8 address) {
-	DBG(("CALL <- [%#02x]", address));
-
-	return 0;
-}
-
-
-void IO_write_byte(IO io, _U8 address, _U8 data) {
-	DBG(("CALL %#02x -> [%#02x (%c)]", address, data, data));
-}
-
-
-extern _U8  memory_read_byte(Memory memory, _U16 address) {
-	return memory->space[address];
-}
-
-
-extern void memory_write_byte(Memory memory, _U16 address, _U8 data) {
-	memory->space[address] = data;
-}
 
 
 static _U8 _loadHex(char *path) {
@@ -80,7 +48,7 @@ static _U8 _loadHex(char *path) {
 			size_t n;
 
 			while (getline(&line, &n, fd) > 0) {
-				ihex_line_to_binary(line, _mem.space, sizeof(_mem.space));
+				ihex_line_to_binary(line, _memory, sizeof(_memory));
 
 				free(line);
 				line = NULL;
@@ -94,23 +62,23 @@ static _U8 _loadHex(char *path) {
 }
 
 
-static void _dumpMemory(Memory mem) {
+static void _dumpMemory(_U8 *mem, _U32 memSize) {
 	_U32 i = 0;
 	_U8 j;
 
 	const _U8 lineLength = 32;
 
-	for (i = 0; i < sizeof(mem->space); i += lineLength) {
+	for (i = 0; i < memSize; i += lineLength) {
 		printf("%04x:", i);
 
 		for (j = 0; j < lineLength; j++) {
-			printf(" %02x", mem->space[i + j]);
+			printf(" %02x", mem[i + j]);
 		}
 
 		printf("   ");
 
 		for (j = 0; j < lineLength; j++) {
-			char c = mem->space[i + j];
+			char c = mem[i + j];
 
 			if (! isalnum(c)) {
 				c = '.';
@@ -128,15 +96,47 @@ int main(int argc, char *argv[]) {
 	DBG(("START"));
 
 	// Clear memory
-	memset(_mem.space, 0, sizeof(_mem.space));
+	memset(_memory, 0, sizeof(_memory));
 
 	if (argc > 1) {
 		_loadHex(argv[1]);
 	}
 
-	cpu_init(&_cpu, &_mem, &_io);
+	cpu_init(&_cpu);
 	cpu_reset(&_cpu);
 
+	_U8 cycles = 0;
+
+	while (1) {
+
+		if (_cpu.cycleType == 0 && _cpu.cycle == 1 && _cpu.state == 1) {
+			DBG(("Last instruction cycles: %u", cycles));
+			cycles = 0;
+		}
+
+		// p1
+		cpu_phase(&_cpu);
+
+//		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
+//			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
+//			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
+//		));
+
+		// Read from memory
+		if (_cpu.pins.DBIN) {
+			_cpu.pins.DATA = _memory[_cpu.pins.ADDRESS];
+		}
+
+		// p2
+		cpu_phase(&_cpu);
+
+		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
+			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
+			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
+		));
+
+		cycles++;
+	}
 	cpu_loop(&_cpu);
 //	_dumpMemory(&_mem);
 }

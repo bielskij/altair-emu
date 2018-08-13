@@ -38,9 +38,6 @@
 #define FLAG_CLEAR(__cpu, __flag)  BIT_CLEAR(__cpu->PSW.r.b.l, __flag)
 #define FLAG_TOGGLE(__cpu, __flag) BIT_TOGGLE(__cpu->PSW.r.b.l, __flag)
 
-#define PC_INC(__cpu, __val) {__cpu->PC += __val;}
-#define FETCH_OFFSET(__cpu, __offset) memory_read_byte(__cpu->memory, __cpu->PC + __offset)
-
 #define SET_PAIR_HB(__pair, __h) { (__pair).r.b.h = (__h); }
 #define SET_PAIR_LB(__pair, __l) { (__pair).r.b.l = (__l); }
 #define SET_PAIR_B(__pair, __h, __l) { (__pair).r.b.h = __h; (__pair).r.b.l = (__l);}
@@ -59,8 +56,8 @@
 #define GET_E(__cpu)(__cpu->D.r.b.l)
 #define GET_H(__cpu)(__cpu->H.r.b.h)
 #define GET_L(__cpu)(__cpu->H.r.b.l)
-#define GET_Z(__cpu)(__cpu->W.r.b.h)
-#define GET_W(__cpu)(__cpu->W.r.b.l)
+#define GET_W(__cpu)(__cpu->W.r.b.h)
+#define GET_Z(__cpu)(__cpu->W.r.b.l)
 
 #define SET_A(__cpu, __val){__cpu->PSW.r.b.h = __val; }
 #define SET_B(__cpu, __val){__cpu->B.r.b.h = __val; }
@@ -69,8 +66,8 @@
 #define SET_E(__cpu, __val){__cpu->D.r.b.l = __val; }
 #define SET_H(__cpu, __val){__cpu->H.r.b.h = __val; }
 #define SET_L(__cpu, __val){__cpu->H.r.b.l = __val; }
-#define SET_Z(__cpu, __val){__cpu->W.r.b.h = __val; }
-#define SET_W(__cpu, __val){__cpu->W.r.b.l = __val; }
+#define SET_W(__cpu, __val){__cpu->W.r.b.h = __val; }
+#define SET_Z(__cpu, __val){__cpu->W.r.b.l = __val; }
 
 #define STATUS_FLAG_INTA  0x01
 #define STATUS_FLAG_WO    0x02
@@ -94,6 +91,10 @@
 
 #define ALU_OP_NONE 0
 #define ALU_OP_AND  1
+#define ALU_OP_OR   2
+#define ALU_OP_XOR  3
+#define ALU_OP_ADD  4
+#define ALU_OP_SUB  5
 
 #if defined(REPORT_OPCODES)
 #define DECLARE_OPCODE(__value, __handler, __name) {_opHandlers[__value] = __handler; _opcodesNames[__value] = __name;}
@@ -241,7 +242,7 @@ static _U8 _flagsSub(Cpu *cpu, _U8 leftOp, _U8 rightOp, _U8 subCarry, _U8 preser
 }
 
 
-static __inline _cpu_next_instruction(Cpu *cpu, _U16 address) {
+static __inline void _cpu_next_instruction(Cpu *cpu, _U16 address) {
 	cpu->ir              = 0;
 	cpu->irCallback      = NULL;
 	cpu->cycle           = 1;
@@ -250,11 +251,19 @@ static __inline _cpu_next_instruction(Cpu *cpu, _U16 address) {
 	cpu->internalAddress = address;
 }
 
-static __inline _cpu_next_cycle(Cpu *cpu, _U8 cycleType, _U16 address) {
+static __inline void _cpu_next_cycle(Cpu *cpu, _U8 cycleType, _U16 address) {
 	cpu->cycle           = cpu->cycle + 1;
 	cpu->state           = 1;
 	cpu->cycleType       = cycleType;
 	cpu->internalAddress = address;
+}
+
+static __inline void _alu_op(Cpu *cpu, _U8 op, _U8 delay, _U8 copyAccu, _U8 includeCarry, _U8 preserveCarry) {
+	cpu->ALUOP            = op;
+	cpu->ALUDEL           = delay;
+	cpu->ALUcarry         = includeCarry;
+	cpu->ALUpreserveCarry = preserveCarry;
+	cpu->ALUcopyAccu      = copyAccu;
 }
 
 #if 0
@@ -445,74 +454,68 @@ static _U8 _h_movrM(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 1);
 	return 7;
 }
+#endif
+static void _h_movrr(Cpu *cpu) {
+	if (cpu->state == 4) {
+		switch (cpu->ir & 0x7) {
+			case 0x00: cpu->TMP = GET_B(cpu); break;
+			case 0x01: cpu->TMP = GET_C(cpu); break;
+			case 0x02: cpu->TMP = GET_D(cpu); break;
+			case 0x03: cpu->TMP = GET_E(cpu); break;
+			case 0x04: cpu->TMP = GET_H(cpu); break;
+			case 0x05: cpu->TMP = GET_L(cpu); break;
+			case 0x07: cpu->TMP = GET_A(cpu); break;
+		}
 
-static _U8 _h_movrr(Cpu *cpu, _U8 opcode) {
-	switch (opcode & 0x3f) {
-		case 0x00: SET_B(cpu, GET_B(cpu)); break;
-		case 0x01: SET_B(cpu, GET_C(cpu)); break;
-		case 0x02: SET_B(cpu, GET_D(cpu)); break;
-		case 0x03: SET_B(cpu, GET_E(cpu)); break;
-		case 0x04: SET_B(cpu, GET_H(cpu)); break;
-		case 0x05: SET_B(cpu, GET_L(cpu)); break;
-		case 0x07: SET_B(cpu, GET_A(cpu)); break;
-		case 0x08: SET_C(cpu, GET_B(cpu)); break;
-		case 0x09: SET_C(cpu, GET_C(cpu)); break;
-		case 0x0a: SET_C(cpu, GET_D(cpu)); break;
-		case 0x0b: SET_C(cpu, GET_E(cpu)); break;
-		case 0x0c: SET_C(cpu, GET_H(cpu)); break;
-		case 0x0d: SET_C(cpu, GET_L(cpu)); break;
-		case 0x0f: SET_C(cpu, GET_A(cpu)); break;
-		case 0x10: SET_D(cpu, GET_B(cpu)); break;
-		case 0x11: SET_D(cpu, GET_C(cpu)); break;
-		case 0x12: SET_D(cpu, GET_D(cpu)); break;
-		case 0x13: SET_D(cpu, GET_E(cpu)); break;
-		case 0x14: SET_D(cpu, GET_H(cpu)); break;
-		case 0x15: SET_D(cpu, GET_L(cpu)); break;
-		case 0x17: SET_D(cpu, GET_A(cpu)); break;
-		case 0x18: SET_E(cpu, GET_B(cpu)); break;
-		case 0x19: SET_E(cpu, GET_C(cpu)); break;
-		case 0x1a: SET_E(cpu, GET_D(cpu)); break;
-		case 0x1b: SET_E(cpu, GET_E(cpu)); break;
-		case 0x1c: SET_E(cpu, GET_H(cpu)); break;
-		case 0x1d: SET_E(cpu, GET_L(cpu)); break;
-		case 0x1f: SET_E(cpu, GET_A(cpu)); break;
-		case 0x20: SET_H(cpu, GET_B(cpu)); break;
-		case 0x21: SET_H(cpu, GET_C(cpu)); break;
-		case 0x22: SET_H(cpu, GET_D(cpu)); break;
-		case 0x23: SET_H(cpu, GET_E(cpu)); break;
-		case 0x24: SET_H(cpu, GET_H(cpu)); break;
-		case 0x25: SET_H(cpu, GET_L(cpu)); break;
-		case 0x27: SET_H(cpu, GET_A(cpu)); break;
-		case 0x28: SET_L(cpu, GET_B(cpu)); break;
-		case 0x29: SET_L(cpu, GET_C(cpu)); break;
-		case 0x2a: SET_L(cpu, GET_D(cpu)); break;
-		case 0x2b: SET_L(cpu, GET_E(cpu)); break;
-		case 0x2c: SET_L(cpu, GET_H(cpu)); break;
-		case 0x2d: SET_L(cpu, GET_L(cpu)); break;
-		case 0x2f: SET_L(cpu, GET_A(cpu)); break;
-		case 0x38: SET_A(cpu, GET_B(cpu)); break;
-		case 0x39: SET_A(cpu, GET_C(cpu)); break;
-		case 0x3a: SET_A(cpu, GET_D(cpu)); break;
-		case 0x3b: SET_A(cpu, GET_E(cpu)); break;
-		case 0x3c: SET_A(cpu, GET_H(cpu)); break;
-		case 0x3d: SET_A(cpu, GET_L(cpu)); break;
-		case 0x3f: SET_A(cpu, GET_A(cpu)); break;
+	} else if (cpu->state == 5) {
+		switch (cpu->ir & 0x38) {
+			case 0x00: SET_B(cpu, cpu->TMP); break;
+			case 0x08: SET_C(cpu, cpu->TMP); break;
+			case 0x10: SET_D(cpu, cpu->TMP); break;
+			case 0x18: SET_E(cpu, cpu->TMP); break;
+			case 0x20: SET_H(cpu, cpu->TMP); break;
+			case 0x28: SET_L(cpu, cpu->TMP); break;
+			case 0x38: SET_A(cpu, cpu->TMP); break;
+		}
+
+		_cpu_next_instruction(cpu, cpu->PC);
 	}
-
-	PC_INC(cpu, 1);
-	return 5;
 }
 
-static _U8 _h_ori(Cpu *cpu, _U8 opcode) {
-	_U8 result = GET_A(cpu) | FETCH_OFFSET(cpu, 1);
+static void _logicI(Cpu *cpu, _U8 op) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				cpu->ACT = GET_A(cpu);
 
-	_flagsLogic(cpu, result);
-	SET_A(cpu, result);
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
 
-	PC_INC(cpu, 2);
-	return 7;
+		case 2:
+			if (cpu->state == 3) {
+				cpu->TMP = GET_Z(cpu);
+
+				_alu_op(cpu, op, 2, 1, 0, 0);
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+	}
 }
 
+static void _h_ori(Cpu *cpu) {
+	_logicI(cpu, ALU_OP_OR);
+}
+
+static void _h_ani(Cpu *cpu) {
+	_logicI(cpu, ALU_OP_AND);
+}
+
+static void _h_xri(Cpu *cpu) {
+	_logicI(cpu, ALU_OP_XOR);
+}
+
+#if 0
 static _U8 _h_xra(Cpu *cpu, _U8 opcode) {
 	_U8 ret = 4;
 
@@ -540,17 +543,9 @@ static _U8 _h_xra(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 1);
 	return ret;
 }
+#endif
 
-static _U8 _h_xri(Cpu *cpu, _U8 opcode) {
-	_U8 result = GET_A(cpu) ^ FETCH_OFFSET(cpu, 1);
-
-	_flagsLogic(cpu, result);
-	SET_A(cpu, result);
-
-	PC_INC(cpu, 2);
-	return 7;
-}
-
+#if 0
 static _U8 _h_ora(Cpu *cpu, _U8 opcode) {
 	_U8 ret = 4;
 
@@ -610,81 +605,58 @@ static _U8 _h_dcx(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 1);
 	return 5;
 }
+#endif
 
-static _U8 _h_inr(Cpu *cpu, _U8 opcode) {
-	_U8 ret = 5;
+static void _inrDcr(Cpu *cpu, _U8 inc) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				cpu->TMP = 1;
 
-	_U8 left;
+				switch (cpu->ir & 0x38) {
+					case 0x00: cpu->ACT = GET_B(cpu); break;
+					case 0x08: cpu->ACT = GET_C(cpu); break;
+					case 0x10: cpu->ACT = GET_D(cpu); break;
+					case 0x18: cpu->ACT = GET_E(cpu); break;
+					case 0x20: cpu->ACT = GET_H(cpu); break;
+					case 0x28: cpu->ACT = GET_L(cpu); break;
+					case 0x38: cpu->ACT = GET_A(cpu); break;
+					default:
+						break;
+				}
 
-	switch (opcode & 0x38) {
-		case 0x00: left = GET_B(cpu); break;
-		case 0x10: left = GET_D(cpu); break;
-		case 0x20: left = GET_H(cpu); break;
-		case 0x30: left = memory_read_byte(cpu->memory, GET_PAIR_W(cpu->H)); break;
-		case 0x08: left = GET_C(cpu); break;
-		case 0x18: left = GET_E(cpu); break;
-		case 0x28: left = GET_L(cpu); break;
-		case 0x38: left = GET_A(cpu); break;
-		default:
-			left = 0;
-	}
+				_alu_op(cpu, inc ? ALU_OP_ADD : ALU_OP_SUB, 1, 0, 0, 1);
 
-	left = _flagsAdd(cpu, left, 1, 0, 1);
+			} else if (cpu->state == 5) {
+				switch (cpu->ir & 0x38) {
+					case 0x00: SET_B(cpu, cpu->ACT); break;
+					case 0x08: SET_C(cpu, cpu->ACT); break;
+					case 0x10: SET_D(cpu, cpu->ACT); break;
+					case 0x18: SET_E(cpu, cpu->ACT); break;
+					case 0x20: SET_H(cpu, cpu->ACT); break;
+					case 0x28: SET_L(cpu, cpu->ACT); break;
+					case 0x38: SET_A(cpu, cpu->ACT); break;
+					default:
+						break;
+				}
 
-	switch (opcode & 0x38) {
-		case 0x00: SET_B(cpu, left); break;
-		case 0x10: SET_D(cpu, left); break;
-		case 0x20: SET_H(cpu, left); break;
-		case 0x30: memory_write_byte(cpu->memory, GET_PAIR_W(cpu->H), left); ret = 10; break;
-		case 0x08: SET_C(cpu, left); break;
-		case 0x18: SET_E(cpu, left); break;
-		case 0x28: SET_L(cpu, left); break;
-		case 0x38: SET_A(cpu, left); break;
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+
 		default:
 			break;
 	}
-
-	PC_INC(cpu, 1);
-	return ret;
 }
 
-static _U8 _h_dcrc(Cpu *cpu, _U8 opcode) {
-	_U8 ret = 5;
-
-	_U8 left;
-
-	switch (opcode & 0x38) {
-		case 0x00: left = GET_B(cpu); break;
-		case 0x10: left = GET_D(cpu); break;
-		case 0x20: left = GET_H(cpu); break;
-		case 0x30: left = memory_read_byte(cpu->memory, GET_PAIR_W(cpu->H)); break;
-		case 0x08: left = GET_C(cpu); break;
-		case 0x18: left = GET_E(cpu); break;
-		case 0x28: left = GET_L(cpu); break;
-		case 0x38: left = GET_A(cpu); break;
-		default:
-			left = 0;
-	}
-
-	left = _flagsSub(cpu, left, 1, 0, 1);
-
-	switch (opcode & 0x38) {
-		case 0x00: SET_B(cpu, left); break;
-		case 0x10: SET_D(cpu, left); break;
-		case 0x20: SET_H(cpu, left); break;
-		case 0x30: memory_write_byte(cpu->memory, GET_PAIR_W(cpu->H), left); ret = 10; break;
-		case 0x08: SET_C(cpu, left); break;
-		case 0x18: SET_E(cpu, left); break;
-		case 0x28: SET_L(cpu, left); break;
-		case 0x38: SET_A(cpu, left); break;
-		default:
-			break;
-	}
-
-	PC_INC(cpu, 1);
-	return ret;
+static void _h_inr(Cpu *cpu) {
+	_inrDcr(cpu, 1);
 }
 
+static void _h_dcrc(Cpu *cpu) {
+	_inrDcr(cpu, 0);
+}
+#if 0
 static _U8 _h_hlt(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 1);
 
@@ -720,44 +692,6 @@ static _U8 _h_ana(Cpu *cpu, _U8 opcode) {
 }
 #endif
 
-#if 0
-static _U8 _h_ani(Cpu *cpu, _U8 opcode) {
-	SET_A(cpu, GET_A(cpu) & FETCH_OFFSET(cpu, 1));
-
-	_flagsLogic(cpu, GET_A(cpu));
-
-	PC_INC(cpu, 2);
-	return 7;
-}
-#else
-static void _h_ani(Cpu *cpu) {
-	switch (cpu->cycle) {
-		case 1:
-			if (cpu->state == 4) {
-				cpu->ACT = GET_A(cpu);
-
-				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
-			}
-			break;
-
-		case 2:
-			if (cpu->state == 3) {
-				cpu->TMP   = GET_Z(cpu);
-				cpu->ALUOP = ALU_OP_AND;
-
-				_cpu_next_instruction(cpu, cpu->PC);
-			}
-			break;
-	}
-}
-#endif
-
-#if 0
-static _U8 _h_jmp(Cpu *cpu, _U8 opcode) {
-	return _jumpCond(cpu, opcode, 1);
-}
-#else
-
 static void _h_jmp(Cpu *cpu) {
 	switch (cpu->cycle) {
 		case 1:
@@ -782,7 +716,6 @@ static void _h_jmp(Cpu *cpu) {
 			break;
 	}
 }
-#endif
 
 static void _h_jcnd(Cpu *cpu) {
 	switch (cpu->cycle) {
@@ -857,38 +790,162 @@ static _U8 _callCond(Cpu *cpu, _U8 cond) {
 
 	return ret;
 }
+#endif
 
-static _U8 _h_cc(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, FLAG_IS_SET(cpu, FLAG_CARRY));
+static void _call(Cpu *cpu, _U8 cond) {
+	if (cond) {
+		switch (cpu->cycle) {
+			case 3:
+			case 4:
+				if (cpu->state == 3) {
+					RegPair ret;
+
+					ret.r.w = cpu->PC;
+
+					if (cpu->cycle == 3) {
+						cpu->internalData = GET_PAIR_HB(ret);
+					} else {
+						cpu->internalData = GET_PAIR_LB(ret);
+					}
+					_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+				}
+				break;
+
+			case 5:
+				if (cpu->state == 3) {
+					_cpu_next_instruction(cpu, GET_PAIR_W(cpu->W));
+				}
+		}
+
+	} else {
+		_cpu_next_instruction(cpu, cpu->PC);
+	}
 }
 
-static _U8 _h_cnc(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, ! FLAG_IS_SET(cpu, FLAG_CARRY));
+static void _h_ccnd(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 5) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 2:
+			if (cpu->state == 3) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 3:
+			if (cpu->state == 3) {
+				_U8 jump = 0;
+
+				switch (cpu->ir & 0x38) {
+					case 0x00: jump = ! FLAG_IS_SET(cpu, FLAG_ZERO);   break;
+					case 0x08: jump =   FLAG_IS_SET(cpu, FLAG_ZERO);   break;
+					case 0x10: jump = ! FLAG_IS_SET(cpu, FLAG_CARRY);  break;
+					case 0x18: jump =   FLAG_IS_SET(cpu, FLAG_CARRY);  break;
+					case 0x20: jump = ! FLAG_IS_SET(cpu, FLAG_PARITY); break;
+					case 0x28: jump =   FLAG_IS_SET(cpu, FLAG_PARITY); break;
+					case 0x30: jump = ! FLAG_IS_SET(cpu, FLAG_SIGN);   break;
+					case 0x38: jump =   FLAG_IS_SET(cpu, FLAG_SIGN);   break;
+				}
+
+				_call(cpu, jump);
+			}
+			break;
+
+		case 4:
+		case 5:
+			_call(cpu, 1);
+			break;
+
+		default:
+			break;
+	}
 }
 
-static _U8 _h_cz(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, FLAG_IS_SET(cpu, FLAG_ZERO));
+static void _h_call(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 5) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 2:
+			if (cpu->state == 3) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 3:
+			if (cpu->state == 3) {
+				_call(cpu, 1);
+			}
+			break;
+
+		case 4:
+		case 5:
+			_call(cpu, 1);
+			break;
+	}
 }
 
-static _U8 _h_cnz(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, ! FLAG_IS_SET(cpu, FLAG_ZERO));
+static void _ret(Cpu *cpu, _U8 cond) {
+	if (cond) {
+		switch (cpu->cycle) {
+			case 1:
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+				break;
+
+			case 2:
+				if (cpu->state == 3) {
+					_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+				}
+				break;
+
+			case 3:
+				if (cpu->state == 3) {
+					_cpu_next_instruction(cpu, GET_PAIR_W(cpu->W));
+				}
+				break;
+		}
+
+	} else {
+		_cpu_next_instruction(cpu, cpu->PC);
+	}
 }
 
-static _U8 _h_cpe(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, FLAG_IS_SET(cpu, FLAG_PARITY));
+static void _h_retCond(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 5) {
+				_U8 jump = 0;
+
+				switch (cpu->ir & 0x38) {
+					case 0x00: jump = ! FLAG_IS_SET(cpu, FLAG_ZERO);   break;
+					case 0x08: jump =   FLAG_IS_SET(cpu, FLAG_ZERO);   break;
+					case 0x10: jump = ! FLAG_IS_SET(cpu, FLAG_CARRY);  break;
+					case 0x18: jump =   FLAG_IS_SET(cpu, FLAG_CARRY);  break;
+					case 0x20: jump = ! FLAG_IS_SET(cpu, FLAG_PARITY); break;
+					case 0x28: jump =   FLAG_IS_SET(cpu, FLAG_PARITY); break;
+					case 0x30: jump = ! FLAG_IS_SET(cpu, FLAG_SIGN);   break;
+					case 0x38: jump =   FLAG_IS_SET(cpu, FLAG_SIGN);   break;
+				}
+
+				_ret(cpu, jump);
+			}
+			break;
+
+		case 2:
+		case 3:
+			_ret(cpu, 1);
+			break;
+	}
 }
 
-static _U8 _h_cpo(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, ! FLAG_IS_SET(cpu, FLAG_PARITY));
-}
-
-static _U8 _h_cm(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, FLAG_IS_SET(cpu, FLAG_SIGN));
-}
-
-static _U8 _h_cp(Cpu *cpu, _U8 opcode) {
-	return _callCond(cpu, ! FLAG_IS_SET(cpu, FLAG_SIGN));
-}
+#if 0
 
 static void _ret(Cpu *cpu) {
 	RegPair pair;
@@ -1156,42 +1213,69 @@ static _U8 _h_daa(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 1);
 	return 4;
 }
+#endif
 
-static _U8 _h_adi(Cpu *cpu, _U8 opcode) {
-	SET_A(cpu, _flagsAdd(cpu, GET_A(cpu), FETCH_OFFSET(cpu, 1), 0, 0));
+static void _addSub(Cpu *cpu, _U8 operation, _U8 carry) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				cpu->ACT = GET_A(cpu);
 
-	PC_INC(cpu, 2);
-	return 7;
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 2:
+			if (cpu->state == 3) {
+				cpu->TMP = GET_Z(cpu);
+
+				_alu_op(cpu, operation, 2, 1, carry, 0);
+
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+	}
 }
 
-static _U8 _h_sbi(Cpu *cpu, _U8 opcode) {
-	SET_A(cpu, _flagsSub(cpu, GET_A(cpu), FETCH_OFFSET(cpu, 1), 1, 0));
-
-	PC_INC(cpu, 2);
-	return 7;
+static void _h_adi(Cpu *cpu) {
+	_addSub(cpu, ALU_OP_ADD, 0);
 }
 
-static _U8 _h_sui(Cpu *cpu, _U8 opcode) {
-	SET_A(cpu, _flagsSub(cpu, GET_A(cpu), FETCH_OFFSET(cpu, 1), 0, 0));
-
-	PC_INC(cpu, 2);
-	return 7;
+static void _h_aci(Cpu *cpu) {
+	_addSub(cpu, ALU_OP_ADD, 1);
 }
 
-static _U8 _h_aci(Cpu *cpu, _U8 opcode) {
-	SET_A(cpu, _flagsAdd(cpu, GET_A(cpu), FETCH_OFFSET(cpu, 1), 1, 0));
-
-	PC_INC(cpu, 2);
-	return 7;
+static void _h_sui(Cpu *cpu) {
+	_addSub(cpu, ALU_OP_SUB, 0);
 }
 
-static _U8 _h_cpi(Cpu *cpu, _U8 opcode) {
-	_flagsSub(cpu, GET_A(cpu), FETCH_OFFSET(cpu, 1), 0, 0);
-
-	PC_INC(cpu, 2);
-	return 7;
+static void _h_sbi(Cpu *cpu) {
+	_addSub(cpu, ALU_OP_SUB, 1);
 }
 
+static void _h_cpi(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				cpu->ACT = GET_A(cpu);
+
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
+			break;
+
+		case 2:
+			if (cpu->state == 3) {
+				cpu->TMP = GET_Z(cpu);
+
+				_alu_op(cpu, ALU_OP_SUB, 2, 0, 0, 0);
+
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+	}
+}
+
+#if 0
 static _U8 _h_cmp(Cpu *cpu, _U8 opcode) {
 	_U8 ret = 4;
 
@@ -1214,28 +1298,38 @@ static _U8 _h_cmp(Cpu *cpu, _U8 opcode) {
 	return ret;
 }
 
-static _U8 _h_mvi(Cpu *cpu, _U8 opcode) {
-	_U8 data   = FETCH_OFFSET(cpu, 1);
-	_U8 cycles = 7;
-
-	switch (opcode & 0x38) {
-		case 0x00: SET_B(cpu, data); break;
-		case 0x10: SET_D(cpu, data); break;
-		case 0x20: SET_H(cpu, data); break;
-		case 0x30:
-			memory_write_byte(cpu->memory, GET_PAIR_W(cpu->H), data);
-			cycles = 10;
+#endif
+static void _h_mvi(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ, cpu->PC);
+			}
 			break;
-		case 0x08: SET_C(cpu, data); break;
-		case 0x18: SET_E(cpu, data); break;
-		case 0x28: SET_L(cpu, data); break;
-		case 0x38: SET_A(cpu, data); break;
+
+		case 2:
+			if (cpu->state == 3) {
+				_U8 data = GET_Z(cpu);
+
+				switch (cpu->ir & 0x38) {
+					case 0x00: SET_B(cpu, data); break;
+					case 0x08: SET_C(cpu, data); break;
+					case 0x10: SET_D(cpu, data); break;
+					case 0x18: SET_E(cpu, data); break;
+					case 0x20: SET_H(cpu, data); break;
+					case 0x28: SET_L(cpu, data); break;
+					case 0x38: SET_A(cpu, data); break;
+				}
+
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+
+		default:
+			break;
 	}
-
-	PC_INC(cpu, 2);
-	return cycles;
 }
-
+#if 0
 static _U8 _h_stc(Cpu *cpu, _U8 opcode) {
 	FLAG_SET(cpu, FLAG_CARRY);
 
@@ -1329,10 +1423,16 @@ void cpu_init(Cpu *cpu) {
 	// second bit is always set to one
 	FLAG_SET(cpu, 0x02);
 
-	cpu->PC             = 0;
-	cpu->ticks          = 0;
-	cpu->readCycleCount = 0;
-	cpu->ALUOP          = ALU_OP_NONE;
+	cpu->PC               = 0;
+	cpu->ticks            = 0;
+	cpu->readCycleCount   = 1;
+	cpu->ALUOP            = ALU_OP_NONE;
+	cpu->ALUDEL           = 0;
+	cpu->ALUcarry         = 0;
+	cpu->ALUpreserveCarry = 0;
+
+	// PIO
+	cpu->pins.WR = 1;
 
 	_cpu_next_instruction(cpu, cpu->PC);
 
@@ -1384,23 +1484,23 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0x2b, _h_dcx, "DCX H");
 //		DECLARE_OPCODE(0x3b, _h_dcx, "DCX SP");
 //
-//		DECLARE_OPCODE(0x04, _h_inr, "INR B");
-//		DECLARE_OPCODE(0x14, _h_inr, "INR D");
-//		DECLARE_OPCODE(0x24, _h_inr, "INR H");
+		DECLARE_OPCODE(0x04, _h_inr, "INR B");
+		DECLARE_OPCODE(0x14, _h_inr, "INR D");
+		DECLARE_OPCODE(0x24, _h_inr, "INR H");
 //		DECLARE_OPCODE(0x34, _h_inr, "INR M");
-//		DECLARE_OPCODE(0x0c, _h_inr, "INR C");
-//		DECLARE_OPCODE(0x1c, _h_inr, "INR E");
-//		DECLARE_OPCODE(0x2c, _h_inr, "INR L");
-//		DECLARE_OPCODE(0x3c, _h_inr, "INR A");
-//
-//		DECLARE_OPCODE(0x05, _h_dcrc, "DCR B");
-//		DECLARE_OPCODE(0x15, _h_dcrc, "DCR D");
-//		DECLARE_OPCODE(0x25, _h_dcrc, "DCR H");
+		DECLARE_OPCODE(0x0c, _h_inr, "INR C");
+		DECLARE_OPCODE(0x1c, _h_inr, "INR E");
+		DECLARE_OPCODE(0x2c, _h_inr, "INR L");
+		DECLARE_OPCODE(0x3c, _h_inr, "INR A");
+
+		DECLARE_OPCODE(0x05, _h_dcrc, "DCR B");
+		DECLARE_OPCODE(0x15, _h_dcrc, "DCR D");
+		DECLARE_OPCODE(0x25, _h_dcrc, "DCR H");
 //		DECLARE_OPCODE(0x35, _h_dcrc, "DCR M");
-//		DECLARE_OPCODE(0x0d, _h_dcrc, "DCR C");
-//		DECLARE_OPCODE(0x1d, _h_dcrc, "DCR E");
-//		DECLARE_OPCODE(0x2d, _h_dcrc, "DCR L");
-//		DECLARE_OPCODE(0x3d, _h_dcrc, "DCR A");
+		DECLARE_OPCODE(0x0d, _h_dcrc, "DCR C");
+		DECLARE_OPCODE(0x1d, _h_dcrc, "DCR E");
+		DECLARE_OPCODE(0x2d, _h_dcrc, "DCR L");
+		DECLARE_OPCODE(0x3d, _h_dcrc, "DCR A");
 //
 //		DECLARE_OPCODE(0x46, _h_movrM, "MOV B,M");
 //		DECLARE_OPCODE(0x4e, _h_movrM, "MOV C,M");
@@ -1417,64 +1517,64 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0x75, _h_movMr, "MOV M,L");
 //		DECLARE_OPCODE(0x77, _h_movMr, "MOV M,A");
 //
-//		DECLARE_OPCODE(0x40, _h_movrr, "MOV B,B");
-//		DECLARE_OPCODE(0x41, _h_movrr, "MOV B,C");
-//		DECLARE_OPCODE(0x42, _h_movrr, "MOV B,D");
-//		DECLARE_OPCODE(0x43, _h_movrr, "MOV B,E");
-//		DECLARE_OPCODE(0x44, _h_movrr, "MOV B,H");
-//		DECLARE_OPCODE(0x45, _h_movrr, "MOV B,L");
-//		DECLARE_OPCODE(0x47, _h_movrr, "MOV B,A");
-//		DECLARE_OPCODE(0x48, _h_movrr, "MOV C,B");
-//		DECLARE_OPCODE(0x49, _h_movrr, "MOV C,C");
-//		DECLARE_OPCODE(0x4a, _h_movrr, "MOV C,D");
-//		DECLARE_OPCODE(0x4b, _h_movrr, "MOV C,E");
-//		DECLARE_OPCODE(0x4c, _h_movrr, "MOV C,H");
-//		DECLARE_OPCODE(0x4d, _h_movrr, "MOV C,L");
-//		DECLARE_OPCODE(0x4f, _h_movrr, "MOV C,A");
-//		DECLARE_OPCODE(0x50, _h_movrr, "MOV D,B");
-//		DECLARE_OPCODE(0x51, _h_movrr, "MOV D,C");
-//		DECLARE_OPCODE(0x52, _h_movrr, "MOV D,D");
-//		DECLARE_OPCODE(0x53, _h_movrr, "MOV D,E");
-//		DECLARE_OPCODE(0x54, _h_movrr, "MOV D,H");
-//		DECLARE_OPCODE(0x55, _h_movrr, "MOV D,L");
-//		DECLARE_OPCODE(0x57, _h_movrr, "MOV D,A");
-//		DECLARE_OPCODE(0x58, _h_movrr, "MOV E,B");
-//		DECLARE_OPCODE(0x59, _h_movrr, "MOV E,C");
-//		DECLARE_OPCODE(0x5a, _h_movrr, "MOV E,D");
-//		DECLARE_OPCODE(0x5b, _h_movrr, "MOV E,E");
-//		DECLARE_OPCODE(0x5c, _h_movrr, "MOV E,H");
-//		DECLARE_OPCODE(0x5d, _h_movrr, "MOV E,L");
-//		DECLARE_OPCODE(0x5f, _h_movrr, "MOV E,A");
-//		DECLARE_OPCODE(0x60, _h_movrr, "MOV H,B");
-//		DECLARE_OPCODE(0x61, _h_movrr, "MOV H,C");
-//		DECLARE_OPCODE(0x62, _h_movrr, "MOV H,D");
-//		DECLARE_OPCODE(0x63, _h_movrr, "MOV H,E");
-//		DECLARE_OPCODE(0x64, _h_movrr, "MOV H,H");
-//		DECLARE_OPCODE(0x65, _h_movrr, "MOV H,L");
-//		DECLARE_OPCODE(0x67, _h_movrr, "MOV H,A");
-//		DECLARE_OPCODE(0x68, _h_movrr, "MOV L,B");
-//		DECLARE_OPCODE(0x69, _h_movrr, "MOV L,C");
-//		DECLARE_OPCODE(0x6a, _h_movrr, "MOV L,D");
-//		DECLARE_OPCODE(0x6b, _h_movrr, "MOV L,E");
-//		DECLARE_OPCODE(0x6c, _h_movrr, "MOV L,H");
-//		DECLARE_OPCODE(0x6d, _h_movrr, "MOV L,L");
-//		DECLARE_OPCODE(0x6f, _h_movrr, "MOV L,A");
-//		DECLARE_OPCODE(0x78, _h_movrr, "MOV A,B");
-//		DECLARE_OPCODE(0x79, _h_movrr, "MOV A,C");
-//		DECLARE_OPCODE(0x7a, _h_movrr, "MOV A,D");
-//		DECLARE_OPCODE(0x7b, _h_movrr, "MOV A,E");
-//		DECLARE_OPCODE(0x7c, _h_movrr, "MOV A,H");
-//		DECLARE_OPCODE(0x7d, _h_movrr, "MOV A,L");
-//		DECLARE_OPCODE(0x7f, _h_movrr, "MOV A,A");
+		DECLARE_OPCODE(0x40, _h_movrr, "MOV B,B");
+		DECLARE_OPCODE(0x41, _h_movrr, "MOV B,C");
+		DECLARE_OPCODE(0x42, _h_movrr, "MOV B,D");
+		DECLARE_OPCODE(0x43, _h_movrr, "MOV B,E");
+		DECLARE_OPCODE(0x44, _h_movrr, "MOV B,H");
+		DECLARE_OPCODE(0x45, _h_movrr, "MOV B,L");
+		DECLARE_OPCODE(0x47, _h_movrr, "MOV B,A");
+		DECLARE_OPCODE(0x48, _h_movrr, "MOV C,B");
+		DECLARE_OPCODE(0x49, _h_movrr, "MOV C,C");
+		DECLARE_OPCODE(0x4a, _h_movrr, "MOV C,D");
+		DECLARE_OPCODE(0x4b, _h_movrr, "MOV C,E");
+		DECLARE_OPCODE(0x4c, _h_movrr, "MOV C,H");
+		DECLARE_OPCODE(0x4d, _h_movrr, "MOV C,L");
+		DECLARE_OPCODE(0x4f, _h_movrr, "MOV C,A");
+		DECLARE_OPCODE(0x50, _h_movrr, "MOV D,B");
+		DECLARE_OPCODE(0x51, _h_movrr, "MOV D,C");
+		DECLARE_OPCODE(0x52, _h_movrr, "MOV D,D");
+		DECLARE_OPCODE(0x53, _h_movrr, "MOV D,E");
+		DECLARE_OPCODE(0x54, _h_movrr, "MOV D,H");
+		DECLARE_OPCODE(0x55, _h_movrr, "MOV D,L");
+		DECLARE_OPCODE(0x57, _h_movrr, "MOV D,A");
+		DECLARE_OPCODE(0x58, _h_movrr, "MOV E,B");
+		DECLARE_OPCODE(0x59, _h_movrr, "MOV E,C");
+		DECLARE_OPCODE(0x5a, _h_movrr, "MOV E,D");
+		DECLARE_OPCODE(0x5b, _h_movrr, "MOV E,E");
+		DECLARE_OPCODE(0x5c, _h_movrr, "MOV E,H");
+		DECLARE_OPCODE(0x5d, _h_movrr, "MOV E,L");
+		DECLARE_OPCODE(0x5f, _h_movrr, "MOV E,A");
+		DECLARE_OPCODE(0x60, _h_movrr, "MOV H,B");
+		DECLARE_OPCODE(0x61, _h_movrr, "MOV H,C");
+		DECLARE_OPCODE(0x62, _h_movrr, "MOV H,D");
+		DECLARE_OPCODE(0x63, _h_movrr, "MOV H,E");
+		DECLARE_OPCODE(0x64, _h_movrr, "MOV H,H");
+		DECLARE_OPCODE(0x65, _h_movrr, "MOV H,L");
+		DECLARE_OPCODE(0x67, _h_movrr, "MOV H,A");
+		DECLARE_OPCODE(0x68, _h_movrr, "MOV L,B");
+		DECLARE_OPCODE(0x69, _h_movrr, "MOV L,C");
+		DECLARE_OPCODE(0x6a, _h_movrr, "MOV L,D");
+		DECLARE_OPCODE(0x6b, _h_movrr, "MOV L,E");
+		DECLARE_OPCODE(0x6c, _h_movrr, "MOV L,H");
+		DECLARE_OPCODE(0x6d, _h_movrr, "MOV L,L");
+		DECLARE_OPCODE(0x6f, _h_movrr, "MOV L,A");
+		DECLARE_OPCODE(0x78, _h_movrr, "MOV A,B");
+		DECLARE_OPCODE(0x79, _h_movrr, "MOV A,C");
+		DECLARE_OPCODE(0x7a, _h_movrr, "MOV A,D");
+		DECLARE_OPCODE(0x7b, _h_movrr, "MOV A,E");
+		DECLARE_OPCODE(0x7c, _h_movrr, "MOV A,H");
+		DECLARE_OPCODE(0x7d, _h_movrr, "MOV A,L");
+		DECLARE_OPCODE(0x7f, _h_movrr, "MOV A,A");
 //
-//		DECLARE_OPCODE(0x06, _h_mvi,   "MVI B,d8");
-//		DECLARE_OPCODE(0x16, _h_mvi,   "MVI D,d8");
-//		DECLARE_OPCODE(0x26, _h_mvi,   "MVI H,d8");
+		DECLARE_OPCODE(0x06, _h_mvi,   "MVI B,d8");
+		DECLARE_OPCODE(0x16, _h_mvi,   "MVI D,d8");
+		DECLARE_OPCODE(0x26, _h_mvi,   "MVI H,d8");
 //		DECLARE_OPCODE(0x36, _h_mvi,   "MVI M,d8");
-//		DECLARE_OPCODE(0x0e, _h_mvi,   "MVI C,d8");
-//		DECLARE_OPCODE(0x1e, _h_mvi,   "MVI E,d8");
-//		DECLARE_OPCODE(0x2e, _h_mvi,   "MVI L,d8");
-//		DECLARE_OPCODE(0x3e, _h_mvi,   "MVI A,d8");
+		DECLARE_OPCODE(0x0e, _h_mvi,   "MVI C,d8");
+		DECLARE_OPCODE(0x1e, _h_mvi,   "MVI E,d8");
+		DECLARE_OPCODE(0x2e, _h_mvi,   "MVI L,d8");
+		DECLARE_OPCODE(0x3e, _h_mvi,   "MVI A,d8");
 //
 //		DECLARE_OPCODE(0xb0, _h_ora, "ORA B");
 //		DECLARE_OPCODE(0xb1, _h_ora, "ORA C");
@@ -1495,7 +1595,7 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0xa7, _h_ana,  "ANA A");
 //
 		DECLARE_OPCODE(0xe6, _h_ani,  "ANI d8");
-//		DECLARE_OPCODE(0xf6, _h_ori,  "ORI d8");
+		DECLARE_OPCODE(0xf6, _h_ori,  "ORI d8");
 //
 //		DECLARE_OPCODE(0xa8, _h_xra,  "XRA B");
 //		DECLARE_OPCODE(0xa9, _h_xra,  "XRA C");
@@ -1505,11 +1605,11 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0xad, _h_xra,  "XRA L");
 //		DECLARE_OPCODE(0xae, _h_xra,  "XRA M");
 //		DECLARE_OPCODE(0xaf, _h_xra,  "XRA A");
-//		DECLARE_OPCODE(0xee, _h_xri,  "XRI d8");
+		DECLARE_OPCODE(0xee, _h_xri,  "XRI d8");
 //
 //		DECLARE_OPCODE(0xd3, _h_out,  "OUT, d8");
 //		DECLARE_OPCODE(0x76, _h_hlt,  "HLT");
-//		DECLARE_OPCODE(0xcd, _h_call, "CALL a16");
+		DECLARE_OPCODE(0xcd, _h_call, "CALL a16");
 //		DECLARE_OPCODE(0xeb, _h_xchg, "XCHG");
 //
 		DECLARE_OPCODE(0xc3, _h_jmp,  "JMP a16");
@@ -1521,28 +1621,28 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0xfa, _h_jcnd, "JM  a16");
 		DECLARE_OPCODE(0xc2, _h_jcnd, "JNZ a16");
 		DECLARE_OPCODE(0xe2, _h_jcnd, "JPO a16");
-//		DECLARE_OPCODE(0xdc, _h_cc,   "CC  a16");
-//		DECLARE_OPCODE(0xe4, _h_cpo,  "CPO a16");
-//		DECLARE_OPCODE(0xfc, _h_cm,   "CM  a16");
-//		DECLARE_OPCODE(0xc4, _h_cnz,  "CNZ a16");
-//		DECLARE_OPCODE(0xd4, _h_cnc,  "CNC a16");
-//		DECLARE_OPCODE(0xec, _h_cpe,  "CPE a16");
-//		DECLARE_OPCODE(0xf4, _h_cp,   "CP  a16");
-//		DECLARE_OPCODE(0xcc, _h_cz,   "CZ  a16");
-//
-//		DECLARE_OPCODE(0xe0, _h_rpo,  "RPO");
-//		DECLARE_OPCODE(0xe8, _h_rpe,  "RPE");
-//		DECLARE_OPCODE(0xf0, _h_rp,   "RP");
-//		DECLARE_OPCODE(0xf8, _h_rm,   "RM");
-//		DECLARE_OPCODE(0xd0, _h_rnc,  "RNC");
-//		DECLARE_OPCODE(0xd8, _h_rc,   "RC");
-//		DECLARE_OPCODE(0xc0, _h_rnz,  "RNZ");
-//		DECLARE_OPCODE(0xc8, _h_rz,   "RZ");
-//
-//		DECLARE_OPCODE(0xde, _h_sbi,  "SBI");
-//		DECLARE_OPCODE(0xd6, _h_sui,  "SUI");
-//		DECLARE_OPCODE(0xce, _h_aci,  "ACI");
-//		DECLARE_OPCODE(0xfe, _h_cpi,  "CPI");
+		DECLARE_OPCODE(0xdc, _h_ccnd, "CC  a16");
+		DECLARE_OPCODE(0xe4, _h_ccnd, "CPO a16");
+		DECLARE_OPCODE(0xfc, _h_ccnd, "CM  a16");
+		DECLARE_OPCODE(0xc4, _h_ccnd, "CNZ a16");
+		DECLARE_OPCODE(0xd4, _h_ccnd, "CNC a16");
+		DECLARE_OPCODE(0xec, _h_ccnd, "CPE a16");
+		DECLARE_OPCODE(0xf4, _h_ccnd, "CP  a16");
+		DECLARE_OPCODE(0xcc, _h_ccnd, "CZ  a16");
+
+		DECLARE_OPCODE(0xe0, _h_retCond, "RPO");
+		DECLARE_OPCODE(0xe8, _h_retCond, "RPE");
+		DECLARE_OPCODE(0xf0, _h_retCond, "RP");
+		DECLARE_OPCODE(0xf8, _h_retCond, "RM");
+		DECLARE_OPCODE(0xd0, _h_retCond, "RNC");
+		DECLARE_OPCODE(0xd8, _h_retCond, "RC");
+		DECLARE_OPCODE(0xc0, _h_retCond, "RNZ");
+		DECLARE_OPCODE(0xc8, _h_retCond, "RZ");
+
+		DECLARE_OPCODE(0xde, _h_sbi,  "SBI");
+		DECLARE_OPCODE(0xd6, _h_sui,  "SUI");
+		DECLARE_OPCODE(0xce, _h_aci,  "ACI");
+		DECLARE_OPCODE(0xfe, _h_cpi,  "CPI");
 //
 //		DECLARE_OPCODE(0xb8, _h_cmp,  "CMP B");
 //		DECLARE_OPCODE(0xb9, _h_cmp,  "CMP C");
@@ -1553,7 +1653,7 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0xbe, _h_cmp,  "CMP M");
 //		DECLARE_OPCODE(0xbf, _h_cmp,  "CMP A");
 //
-//		DECLARE_OPCODE(0xc6, _h_adi,  "ADI");
+		DECLARE_OPCODE(0xc6, _h_adi,  "ADI");
 //
 //		DECLARE_OPCODE(0x80, _h_add,  "ADD B");
 //		DECLARE_OPCODE(0x81, _h_add,  "ADD C");
@@ -1633,8 +1733,11 @@ void cpu_phase(Cpu *cpu) {
 		switch (cpu->state) {
 			case 1:
 				{
-					if (cpu->cycleType != CYCLE_TYPE_MEMORY_READ) {
-						cpu->readCycleCount = 0;
+					if (
+						(cpu->cycleType != CYCLE_TYPE_MEMORY_READ) &&
+						(cpu->cycleType != CYCLE_TYPE_STACK_READ)
+					) {
+						cpu->readCycleCount = 1;
 					}
 				}
 				break;
@@ -1651,9 +1754,12 @@ void cpu_phase(Cpu *cpu) {
 							abort();
 						}
 
-						DBG(("OPCODE: %s", _opcodesNames[cpu->pins.DATA]));
+						DBG(("OPCODE: %s (ADDR: %04x)", _opcodesNames[cpu->pins.DATA], cpu->pins.ADDRESS));
 
-					} else if (cpu->cycleType == CYCLE_TYPE_MEMORY_READ) {
+					} else if (
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
+					) {
 						if (cpu->readCycleCount == 1) {
 							SET_Z(cpu, cpu->pins.DATA);
 
@@ -1663,6 +1769,26 @@ void cpu_phase(Cpu *cpu) {
 
 						// Increase reg offset fot memory read
 						cpu->readCycleCount++;
+
+					} else if (
+						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
+					) {
+						if (cpu->cycleType == CYCLE_TYPE_STACK_WRITE) {
+							DEC_PAIR_W(cpu->SP);
+
+							// Update address on internal bus
+							cpu->internalAddress = GET_PAIR_W(cpu->SP);
+
+						} else {
+							ERR(("NOT IMPLEMENTED!"));
+							abort();
+						}
+
+						cpu->pins.ADDRESS = cpu->internalAddress;
+						cpu->pins.DATA    = cpu->internalData;
+
+						cpu->pins.WR = 0;
 					}
 				}
 				break;
@@ -1670,19 +1796,51 @@ void cpu_phase(Cpu *cpu) {
 
 	} else {
 		// phase2
+		if (cpu->ALUOP != ALU_OP_NONE) {
+			if (! --cpu->ALUDEL) {
+				switch (cpu->ALUOP) {
+					case ALU_OP_AND:
+						cpu->ACT = cpu->ACT & cpu->TMP;
+						_flagsLogic(cpu, cpu->ACT);
+						break;
+
+					case ALU_OP_OR:
+						cpu->ACT = cpu->ACT | cpu->TMP;
+						_flagsLogic(cpu, cpu->ACT);
+						break;
+
+					case ALU_OP_XOR:
+						cpu->ACT = cpu->ACT ^ cpu->TMP;
+						_flagsLogic(cpu, cpu->ACT);
+						break;
+
+					case ALU_OP_ADD:
+						cpu->ACT = _flagsAdd(cpu, cpu->ACT, cpu->TMP, cpu->ALUcarry, cpu->ALUpreserveCarry);
+						break;
+
+					case ALU_OP_SUB:
+						cpu->ACT = _flagsSub(cpu, cpu->ACT, cpu->TMP, cpu->ALUcarry, cpu->ALUpreserveCarry);
+						break;
+				}
+
+				if (cpu->ALUcopyAccu) {
+					SET_A(cpu, cpu->ACT);
+				}
+
+				cpu->ALUOP            = ALU_OP_NONE;
+				cpu->ALUcarry         = 0;
+				cpu->ALUpreserveCarry = 0;
+				cpu->ALUcopyAccu      = 0;
+			}
+		}
+
 		switch (cpu->state) {
 			case 1:
 				{
-					// ALU operation
-					if (cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) {
-						if (cpu->ALUOP == ALU_OP_AND) {
-							cpu->ACT = cpu->ACT & cpu->TMP;
-						}
-					}
-
 					if (
 						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ)
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
 					) {
 						cpu->pins.ADDRESS = cpu->internalAddress;
 					}
@@ -1694,20 +1852,10 @@ void cpu_phase(Cpu *cpu) {
 
 			case 2:
 				{
-					// ALU flags and copy
-					if (cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) {
-						if (cpu->ALUOP == ALU_OP_AND) {
-							_flagsLogic(cpu, cpu->ACT);
-
-							SET_A(cpu, cpu->ACT);
-
-							cpu->ALUOP = ALU_OP_NONE;
-						}
-					}
-
 					if (
 						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ)
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
 					) {
 						cpu->pins.DBIN = 1;
 
@@ -1723,9 +1871,20 @@ void cpu_phase(Cpu *cpu) {
 				{
 					if (
 						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ)
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
 					) {
 						cpu->pins.DBIN = 0;
+
+						if (cpu->cycleType == CYCLE_TYPE_STACK_READ) {
+							INC_PAIR_W(cpu->SP);
+						}
+
+					} else if (
+						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
+					) {
+						cpu->pins.WR = 1;
 					}
 				}
 				break;

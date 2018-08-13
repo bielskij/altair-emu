@@ -114,6 +114,12 @@ int main(int argc, char *argv[]) {
 			cycles = 0;
 		}
 
+		if (! _cpu.pins.WR) {
+			_memory[_cpu.pins.ADDRESS] = _cpu.pins.DATA;
+
+			DBG(("MEM[%04x] <- %02x", _cpu.pins.ADDRESS, _cpu.pins.DATA));
+		}
+
 		// p1
 		cpu_phase(&_cpu);
 
@@ -125,15 +131,17 @@ int main(int argc, char *argv[]) {
 		// Read from memory
 		if (_cpu.pins.DBIN) {
 			_cpu.pins.DATA = _memory[_cpu.pins.ADDRESS];
+
+			DBG(("MEM[%04x] -> %02x", _cpu.pins.ADDRESS, _cpu.pins.DATA));
 		}
 
 		// p2
 		cpu_phase(&_cpu);
 
-		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
-			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
-			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
-		));
+//		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
+//			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
+//			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
+//		));
 
 		cycles++;
 	}

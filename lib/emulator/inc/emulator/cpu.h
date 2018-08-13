@@ -61,6 +61,12 @@ struct _Cpu {
 	_U8 ACT; // temporary accumulator
 	_U8 TMP; // temporary register
 	_U8 ALUOP; // ALU pending operation
+	_U8 ALUDEL; // ALU operation delay
+
+	// ALU internal flags
+	_U8 ALUcarry:1; // include carry in arithmetic operation
+	_U8 ALUpreserveCarry:1; // preserve carry during arithmetic operation
+	_U8 ALUcopyAccu:1; // Copy result to accumulator
 
 	struct {
 		// Output
@@ -69,6 +75,7 @@ struct _Cpu {
 		_U8 SYNC  : 1;
 		_U8 INTE  : 1;
 		_U8 DBIN  : 1;
+		_U8 WR    : 1;
 
 		// Input
 		_U8 READY : 1;
@@ -90,6 +97,7 @@ struct _Cpu {
 
 	// Status of internal address bus, used for delayed jumps
 	_U16 internalAddress;
+	_U8  internalData;
 
 	// Instruction register - holds current opcode
 	_U8            ir;

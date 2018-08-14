@@ -638,31 +638,32 @@ static _U8 _h_out(Cpu *cpu, _U8 opcode) {
 	PC_INC(cpu, 2);
 	return 10;
 }
-
-static _U8 _h_inx(Cpu *cpu, _U8 opcode) {
-	switch (opcode & 0x30) {
-		case 0x00: INC_PAIR_W(cpu->B);  break;
-		case 0x10: INC_PAIR_W(cpu->D);  break;
-		case 0x20: INC_PAIR_W(cpu->H);  break;
-		case 0x30: INC_PAIR_W(cpu->SP); break;
-	}
-
-	PC_INC(cpu, 1);
-	return 5;
-}
-
-static _U8 _h_dcx(Cpu *cpu, _U8 opcode) {
-	switch (opcode & 0x30) {
-		case 0x00: DEC_PAIR_W(cpu->B);  break;
-		case 0x10: DEC_PAIR_W(cpu->D);  break;
-		case 0x20: DEC_PAIR_W(cpu->H);  break;
-		case 0x30: DEC_PAIR_W(cpu->SP); break;
-	}
-
-	PC_INC(cpu, 1);
-	return 5;
-}
 #endif
+static void _h_inx(Cpu *cpu) {
+	if (cpu->state == 5) {
+		switch (cpu->ir & 0x30) {
+			case 0x00: INC_PAIR_W(cpu->B);  break;
+			case 0x10: INC_PAIR_W(cpu->D);  break;
+			case 0x20: INC_PAIR_W(cpu->H);  break;
+			case 0x30: INC_PAIR_W(cpu->SP); break;
+		}
+
+		_cpu_next_instruction(cpu, cpu->PC);
+	}
+}
+
+static void _h_dcx(Cpu *cpu) {
+	if (cpu->state == 5) {
+		switch (cpu->ir & 0x30) {
+			case 0x00: DEC_PAIR_W(cpu->B);  break;
+			case 0x10: DEC_PAIR_W(cpu->D);  break;
+			case 0x20: DEC_PAIR_W(cpu->H);  break;
+			case 0x30: DEC_PAIR_W(cpu->SP); break;
+		}
+
+		_cpu_next_instruction(cpu, cpu->PC);
+	}
+}
 
 static void _inrDcr(Cpu *cpu, _U8 inc) {
 	switch (cpu->cycle) {
@@ -1508,16 +1509,16 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0xe3, _h_xthl, "XTHL");
 //		DECLARE_OPCODE(0xe9, _h_pchl, "PCHL");
 //
-//		DECLARE_OPCODE(0x03, _h_inx, "INX B");
-//		DECLARE_OPCODE(0x13, _h_inx, "INX D");
-//		DECLARE_OPCODE(0x23, _h_inx, "INX H");
-//		DECLARE_OPCODE(0x33, _h_inx, "INX SP");
-//
-//		DECLARE_OPCODE(0x0b, _h_dcx, "DCX B");
-//		DECLARE_OPCODE(0x1b, _h_dcx, "DCX D");
-//		DECLARE_OPCODE(0x2b, _h_dcx, "DCX H");
-//		DECLARE_OPCODE(0x3b, _h_dcx, "DCX SP");
-//
+		DECLARE_OPCODE(0x03, _h_inx, "INX B");
+		DECLARE_OPCODE(0x13, _h_inx, "INX D");
+		DECLARE_OPCODE(0x23, _h_inx, "INX H");
+		DECLARE_OPCODE(0x33, _h_inx, "INX SP");
+
+		DECLARE_OPCODE(0x0b, _h_dcx, "DCX B");
+		DECLARE_OPCODE(0x1b, _h_dcx, "DCX D");
+		DECLARE_OPCODE(0x2b, _h_dcx, "DCX H");
+		DECLARE_OPCODE(0x3b, _h_dcx, "DCX SP");
+
 		DECLARE_OPCODE(0x04, _h_inr,  "INR B");
 		DECLARE_OPCODE(0x14, _h_inr,  "INR D");
 		DECLARE_OPCODE(0x24, _h_inr,  "INR H");

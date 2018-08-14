@@ -1009,87 +1009,130 @@ static void _h_retCond(Cpu *cpu) {
 	}
 }
 
-#if 0
+static void _h_push(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				switch (cpu->ir & 0x30) {
+					case 0x00: cpu->internalData = GET_PAIR_HB(cpu->B);   break;
+					case 0x10: cpu->internalData = GET_PAIR_HB(cpu->D);   break;
+					case 0x20: cpu->internalData = GET_PAIR_HB(cpu->H);   break;
+					case 0x30: cpu->internalData = GET_PAIR_HB(cpu->PSW); break;
+				}
 
-static void _push(Cpu *cpu, RegPair *pair) {
-	DEC_PAIR_W(cpu->SP);
-	memory_write_byte(cpu->memory, GET_PAIR_W(cpu->SP), GET_PAIR_HB(*pair));
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-	DEC_PAIR_W(cpu->SP);
-	memory_write_byte(cpu->memory, GET_PAIR_W(cpu->SP), GET_PAIR_LB(*pair));
-}
+		case 2:
+			if (cpu->state == 3) {
+				switch (cpu->ir & 0x30) {
+					case 0x00: cpu->internalData = GET_PAIR_LB(cpu->B);   break;
+					case 0x10: cpu->internalData = GET_PAIR_LB(cpu->D);   break;
+					case 0x20: cpu->internalData = GET_PAIR_LB(cpu->H);   break;
+					case 0x30: cpu->internalData = GET_PAIR_LB(cpu->PSW); break;
+				}
 
-static _U8 _h_push(Cpu *cpu, _U8 opcode) {
-	RegPair pair;
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-	switch (opcode & 0x30) {
-		case 0x00: COPY_PAIR_W(pair, cpu->B);   break;
-		case 0x10: COPY_PAIR_W(pair, cpu->D);   break;
-		case 0x20: COPY_PAIR_W(pair, cpu->H);   break;
-		case 0x30: COPY_PAIR_W(pair, cpu->PSW); break;
+		case 3:
+			if (cpu->state == 3) {
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
 	}
-
-	_push(cpu, &pair);
-
-	PC_INC(cpu, 1);
-	return 11;
 }
 
-static void _pop(Cpu *cpu, RegPair *pair) {
-	SET_PAIR_LB(*pair, memory_read_byte(cpu->memory, GET_PAIR_W(cpu->SP)));
-	INC_PAIR_W(cpu->SP);
+static void _h_pop(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-	SET_PAIR_HB(*pair, memory_read_byte(cpu->memory, GET_PAIR_W(cpu->SP)));
-	INC_PAIR_W(cpu->SP);
-}
+		case 2:
+			if (cpu->state == 3) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-static _U8 _h_pop(Cpu *cpu, _U8 opcode) {
-	RegPair pair;
+		case 3:
+			if (cpu->state == 3) {
+				switch (cpu->ir & 0x30) {
+					case 0x00: COPY_PAIR_W(cpu->B,   cpu->W); break;
+					case 0x10: COPY_PAIR_W(cpu->D,   cpu->W); break;
+					case 0x20: COPY_PAIR_W(cpu->H,   cpu->W); break;
+					case 0x30: COPY_PAIR_W(cpu->PSW, cpu->W); break;
+				}
 
-	_pop(cpu, &pair);
-
-	switch (opcode & 0x30) {
-		case 0x00: COPY_PAIR_W(cpu->B,   pair); break;
-		case 0x10: COPY_PAIR_W(cpu->D,   pair); break;
-		case 0x20: COPY_PAIR_W(cpu->H,   pair); break;
-		case 0x30: COPY_PAIR_W(cpu->PSW, pair); break;
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
 	}
-
-	PC_INC(cpu, 1);
-	return 11;
 }
 
-static _U8 _h_sphl(Cpu *cpu, _U8 opcode) {
-	COPY_PAIR_W(cpu->SP, cpu->H);
+static void _h_sphl(Cpu *cpu) {
+	if (cpu->state == 5) {
+		COPY_PAIR_W(cpu->SP, cpu->H);
 
-	PC_INC(cpu, 1);
-	return 5;
+		_cpu_next_instruction(cpu, cpu->PC);
+	}
 }
 
-static _U8 _h_xthl(Cpu *cpu, _U8 opcode) {
-	RegPair tmp;
+static void _h_xthl(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-	_pop(cpu, &tmp);
-	_push(cpu, &cpu->H);
-	COPY_PAIR_W(cpu->H, tmp);
+		case 2:
+			if (cpu->state == 3) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_READ, GET_PAIR_W(cpu->SP));
+			}
+			break;
 
-	PC_INC(cpu, 1);
-	return 18;
+		case 3:
+			if (cpu->state == 3) {
+				cpu->internalData = GET_H(cpu);
+
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+			}
+			break;
+
+		case 4:
+			if (cpu->state == 3) {
+				cpu->internalData = GET_L(cpu);
+
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+			}
+			break;
+
+		case 5:
+			if (cpu->state == 5) {
+				COPY_PAIR_W(cpu->H, cpu->W);
+
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+	}
 }
 
-static _U8 _h_pchl(Cpu *cpu, _U8 opcode) {
-	cpu->PC = GET_PAIR_W(cpu->H);
-	return 5;
+static void _h_pchl(Cpu *cpu) {
+	if (cpu->state == 5) {
+		_cpu_next_instruction(cpu, GET_PAIR_W(cpu->H));
+	}
 }
-#endif
 
 static void _h_xchg(Cpu *cpu) {
 	if (cpu->state == 4) {
-		RegPair tmp;
-
-		COPY_PAIR_W(tmp, cpu->H);
+		COPY_PAIR_W(cpu->W, cpu->H);
 		COPY_PAIR_W(cpu->H, cpu->D);
-		COPY_PAIR_W(cpu->D, tmp);
+		COPY_PAIR_W(cpu->D, cpu->W);
 
 		_cpu_next_instruction(cpu, cpu->PC);
 	}
@@ -1530,20 +1573,20 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0x1a, _h_ldax, "LDAX D");
 		DECLARE_OPCODE(0x2a, _h_lhld, "LHLD a16");
 
-//		DECLARE_OPCODE(0xc5, _h_push, "PUSH B");
-//		DECLARE_OPCODE(0xd5, _h_push, "PUSH D");
-//		DECLARE_OPCODE(0xe5, _h_push, "PUSH H");
-//		DECLARE_OPCODE(0xf5, _h_push, "PUSH PSW");
-//
-//		DECLARE_OPCODE(0xc1, _h_pop, "POP B");
-//		DECLARE_OPCODE(0xd1, _h_pop, "POP D");
-//		DECLARE_OPCODE(0xe1, _h_pop, "POP H");
-//		DECLARE_OPCODE(0xf1, _h_pop, "POP PSW");
-//
-//		DECLARE_OPCODE(0xf9, _h_sphl, "SPHL");
-//		DECLARE_OPCODE(0xe3, _h_xthl, "XTHL");
-//		DECLARE_OPCODE(0xe9, _h_pchl, "PCHL");
-//
+		DECLARE_OPCODE(0xc5, _h_push, "PUSH B");
+		DECLARE_OPCODE(0xd5, _h_push, "PUSH D");
+		DECLARE_OPCODE(0xe5, _h_push, "PUSH H");
+		DECLARE_OPCODE(0xf5, _h_push, "PUSH PSW");
+
+		DECLARE_OPCODE(0xc1, _h_pop, "POP B");
+		DECLARE_OPCODE(0xd1, _h_pop, "POP D");
+		DECLARE_OPCODE(0xe1, _h_pop, "POP H");
+		DECLARE_OPCODE(0xf1, _h_pop, "POP PSW");
+
+		DECLARE_OPCODE(0xf9, _h_sphl, "SPHL");
+		DECLARE_OPCODE(0xe3, _h_xthl, "XTHL");
+		DECLARE_OPCODE(0xe9, _h_pchl, "PCHL");
+
 		DECLARE_OPCODE(0x03, _h_inx, "INX B");
 		DECLARE_OPCODE(0x13, _h_inx, "INX D");
 		DECLARE_OPCODE(0x23, _h_inx, "INX H");
@@ -1586,7 +1629,7 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0x74, _h_movMr, "MOV M,H");
 		DECLARE_OPCODE(0x75, _h_movMr, "MOV M,L");
 		DECLARE_OPCODE(0x77, _h_movMr, "MOV M,A");
-//
+
 		DECLARE_OPCODE(0x40, _h_movrr, "MOV B,B");
 		DECLARE_OPCODE(0x41, _h_movrr, "MOV B,C");
 		DECLARE_OPCODE(0x42, _h_movrr, "MOV B,D");
@@ -1681,7 +1724,7 @@ void cpu_init(Cpu *cpu) {
 //		DECLARE_OPCODE(0x76, _h_hlt,  "HLT");
 		DECLARE_OPCODE(0xcd, _h_call, "CALL a16");
 		DECLARE_OPCODE(0xeb, _h_xchg, "XCHG");
-//
+
 		DECLARE_OPCODE(0xc3, _h_jmp,  "JMP a16");
 		DECLARE_OPCODE(0xca, _h_jcnd, "JZ  a16");
 		DECLARE_OPCODE(0xd2, _h_jcnd, "JNC a16");
@@ -1733,7 +1776,7 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0x85, _h_add,  "ADD L");
 		DECLARE_OPCODE(0x86, _h_addM, "ADD M");
 		DECLARE_OPCODE(0x87, _h_add,  "ADD A");
-//
+
 		DECLARE_OPCODE(0x88, _h_adc,  "ADC B");
 		DECLARE_OPCODE(0x89, _h_adc,  "ADC C");
 		DECLARE_OPCODE(0x8a, _h_adc,  "ADC D");

@@ -68,6 +68,8 @@ struct _Cpu {
 	_U8 ALUpreserveCarry:1; // preserve carry during arithmetic operation
 	_U8 ALUcopyAccu:1; // Copy result to accumulator
 
+	_U8 readOpcode:1;
+
 	struct {
 		// Output
 		_U8 WAIT  : 1;

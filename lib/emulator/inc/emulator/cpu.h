@@ -20,9 +20,6 @@
 
 #include "common/types.h"
 
-#include "emulator/memory.h"
-#include "emulator/io.h"
-
 #define FLAG_SIGN   ((_U8)0x80)
 #define FLAG_ZERO   ((_U8)0x40)
 #define FLAG_AC     ((_U8)0x10)
@@ -77,7 +74,7 @@ struct _Cpu {
 		_U8 SYNC  : 1;
 		_U8 INTE  : 1;
 		_U8 DBIN  : 1;
-		_U8 WR    : 1;
+		_U8 _WR    : 1;
 
 		// Input
 		_U8 READY : 1;
@@ -90,8 +87,6 @@ struct _Cpu {
 		_U16 ADDRESS;
 	} pins;
 
-	// 1 on phase1, 0 on phase2 clk
-	_U8  p1;
 	// clock ticks
 	_U32 ticks;
 	// Holds read cycle number in a row
@@ -116,7 +111,7 @@ struct _Cpu {
 
 void cpu_init(Cpu *cpu);
 
-void cpu_phase(Cpu *cpu);
+void cpu_phase(Cpu *cpu, _U8 p1);
 
 void cpu_tick(Cpu *cpu);
 

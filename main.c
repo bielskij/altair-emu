@@ -23,18 +23,40 @@
 #include "common/utils/ihex.h"
 
 #include "emulator/cpu.h"
-#include "emulator/memory.h"
-#include "emulator/io.h"
+#include "emulator/altair/mainBoard.h"
+#include "emulator/altair/module/cpu.h"
+#include "emulator/altair/module/sram.h"
 
 #define DEBUG_LEVEL 5
 #include "common/debug.h"
 
-#define MEM_SIZE (64 * 1024)
 
-static Cpu _cpu;
+#define MEM_SIZE (48 * 1024)
+
 static _U8 _memory[MEM_SIZE];
 
+Cpu          cpu;
+AltairModule cpuModule;
 
+AltairSramParameter sramAParameters;
+AltairModule        sramAModule;
+AltairSramParameter sramBParameters;
+AltairModule        sramBModule;
+AltairSramParameter sramCParameters;
+AltairModule        sramCModule;
+
+
+static _U8 _sramRead(_U16 addr) {
+	DBG(("%02x = [R](%04x)", _memory[addr], addr));
+
+	return _memory[addr];
+}
+
+static void _sramWrite(_U16 addr, _U8 val) {
+	DBG(("%02x = [W](%04x)", val, addr));
+
+	_memory[addr] = val;
+}
 
 static _U8 _loadHex(char *path) {
 	_U8 ret = 0;
@@ -60,6 +82,61 @@ static _U8 _loadHex(char *path) {
 
 	return ret;
 }
+
+int main(int argc, char *argv[]) {
+	altair_mainBoard_initialize();
+
+	// Modules
+
+	// CPU
+	{
+		altair_module_cpu_init(&cpuModule, &cpu);
+
+		altair_mainBoard_addModule(&cpuModule);
+	}
+
+	// SRAM
+	{
+		sramAParameters.bank          = 0;
+		sramAParameters.readCallback  = _sramRead;
+		sramAParameters.writeCallback = _sramWrite;
+
+		altair_module_sram_init(&sramAModule, &sramAParameters);
+
+		sramBParameters.bank          = 1;
+		sramBParameters.readCallback  = _sramRead;
+		sramBParameters.writeCallback = _sramWrite;
+
+		altair_module_sram_init(&sramBModule, &sramBParameters);
+
+		sramCParameters.bank          = 2;
+		sramCParameters.readCallback  = _sramRead;
+		sramCParameters.writeCallback = _sramWrite;
+
+		altair_module_sram_init(&sramCModule, &sramCParameters);
+
+		altair_mainBoard_addModule(&sramAModule);
+		altair_mainBoard_addModule(&sramBModule);
+		altair_mainBoard_addModule(&sramCModule);
+	}
+
+	// Clear memory
+	memset(_memory, 0, sizeof(_memory));
+
+	// Load image
+	if (argc > 1) {
+		_loadHex(argv[1]);
+	}
+
+	while (1) {
+		altair_mainBoard_tick();
+	}
+
+	return 0;
+}
+
+
+#if 0
 
 
 static void _dumpMemory(_U8 *mem, _U32 memSize) {
@@ -148,3 +225,4 @@ int main(int argc, char *argv[]) {
 	cpu_loop(&_cpu);
 //	_dumpMemory(&_mem);
 }
+#endif

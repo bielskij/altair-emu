@@ -1,0 +1,48 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Jaroslaw Bielski (bielski.j@gmail.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
+#include "emulator/altair/module/sram.h"
+
+#define DEBUG_LEVEL 5
+#include "common/debug.h"
+
+static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+	AltairSramParameter *params = (AltairSramParameter *) privateData;
+
+	if (phase1) {
+		if (busState->SMEMR && busState->PDBIN) {
+			if (
+				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
+			) {
+				busState->DI = params->readCallback(busState->A);
+			}
+
+		} else if (busState->MWRT) {
+			if (
+				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
+			) {
+				params->writeCallback(busState->A, busState->DO);
+			}
+		}
+	}
+}
+
+
+void altair_module_sram_init(AltairModule *module, AltairSramParameter *parameters) {
+	module->clockCallback = _onTick;
+	module->privateData   = parameters;
+}

@@ -1138,7 +1138,7 @@ static void _h_xchg(Cpu *cpu) {
 	}
 }
 
-static _addSubM(Cpu *cpu, _U8 op, _U8 carry) {
+static void _addSubM(Cpu *cpu, _U8 op, _U8 carry) {
 	switch (cpu->cycle) {
 		case 1:
 			if (cpu->state == 4) {
@@ -1544,7 +1544,7 @@ void cpu_init(Cpu *cpu) {
 	cpu->ALUpreserveCarry = 0;
 
 	// PIO
-	cpu->pins.WR = 1;
+	cpu->pins._WR = 1;
 
 	_cpu_next_instruction(cpu, cpu->PC);
 
@@ -1840,8 +1840,8 @@ static _U8 _statusBitsPerCycle[] = {
 	STATUS_FLAG_INTA | STATUS_FLAG_WO | STATUS_FLAG_HLTA | STATUS_FLAG_M1 // HALT + INT ACK
 };
 
-void cpu_phase(Cpu *cpu) {
-	if (cpu->p1) {
+void cpu_phase(Cpu *cpu, _U8 p1) {
+	if (p1) {
 		// phase1
 		switch (cpu->state) {
 			case 1:
@@ -1857,35 +1857,7 @@ void cpu_phase(Cpu *cpu) {
 
 			case 3:
 				{
-					if (cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) {
-						cpu->ir         = cpu->pins.DATA;
-						cpu->irCallback = _opHandlers[cpu->ir];
-
-						if (cpu->irCallback == NULL) {
-							ERR(("Opcode %02x is not implemented!", cpu->pins.DATA));
-
-							abort();
-						}
-
-						DBG(("OPCODE: %s (ADDR: %04x)", _opcodesNames[cpu->pins.DATA], cpu->pins.ADDRESS));
-
-					} else if (
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
-						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
-					) {
-						// Increase reg offset fot memory read (cyclic)
-						if (cpu->readCycleCount == 1) {
-							SET_Z(cpu, cpu->pins.DATA);
-
-							cpu->readCycleCount = 2;
-
-						} else {
-							SET_W(cpu, cpu->pins.DATA);
-
-							cpu->readCycleCount = 1;
-						}
-
-					} else if (
+					if (
 						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
 						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
 					) {
@@ -1899,7 +1871,7 @@ void cpu_phase(Cpu *cpu) {
 						cpu->pins.ADDRESS = cpu->internalAddress;
 						cpu->pins.DATA    = cpu->internalData;
 
-						cpu->pins.WR = 0;
+						cpu->pins._WR = 0;
 					}
 				}
 				break;
@@ -2046,22 +2018,47 @@ void cpu_phase(Cpu *cpu) {
 
 			case 3:
 				{
-					if (
-						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
+					if (cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) {
+						cpu->ir         = cpu->pins.DATA;
+						cpu->irCallback = _opHandlers[cpu->ir];
+
+						if (cpu->irCallback == NULL) {
+							ERR(("Opcode %02x is not implemented!", cpu->pins.DATA));
+
+							abort();
+						}
+
+						DBG(("OPCODE: %s (ADDR: %04x)", _opcodesNames[cpu->pins.DATA], cpu->pins.ADDRESS));
+
+						cpu->pins.DBIN = 0;
+
+					} else if (
 						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
 						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
 					) {
-						cpu->pins.DBIN = 0;
+						// Increase reg offset fot memory read (cyclic)
+						if (cpu->readCycleCount == 1) {
+							SET_Z(cpu, cpu->pins.DATA);
+
+							cpu->readCycleCount = 2;
+
+						} else {
+							SET_W(cpu, cpu->pins.DATA);
+
+							cpu->readCycleCount = 1;
+						}
 
 						if (cpu->cycleType == CYCLE_TYPE_STACK_READ) {
 							INC_PAIR_W(cpu->SP);
 						}
 
+						cpu->pins.DBIN = 0;
+
 					} else if (
 						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
 						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
 					) {
-						cpu->pins.WR = 1;
+						cpu->pins._WR = 1;
 					}
 				}
 				break;
@@ -2076,7 +2073,7 @@ void cpu_phase(Cpu *cpu) {
 		cpu->ticks++;
 	}
 
-	if (! cpu->p1) {
+	if (! p1) {
 		_U8 currentState = cpu->state;
 
 		if (cpu->irCallback) {
@@ -2093,13 +2090,11 @@ void cpu_phase(Cpu *cpu) {
 			}
 		}
 	}
-
-	cpu->p1 = !cpu->p1;
 }
 
 void cpu_state(Cpu *cpu) {
-	cpu_phase(cpu); // phase1
-	cpu_phase(cpu); // phase2
+	cpu_phase(cpu, 1); // phase1
+	cpu_phase(cpu, 0); // phase2
 }
 
 void cpu_cycle(Cpu *cpu) {

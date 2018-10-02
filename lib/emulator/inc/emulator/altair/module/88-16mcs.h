@@ -14,16 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-
-#ifndef EMULATOR_ALTAIR_MAINBOARD_H_
-#define EMULATOR_ALTAIR_MAINBOARD_H_
+/*
+ * It is an abstract implementation of 16KB SRAM memory module (88-16MCS)
+ */
+#ifndef EMULATOR_ALTAIR_MODULE_8816MCS_H_
+#define EMULATOR_ALTAIR_MODULE_8816MCS_H_
 
 #include "emulator/altair/module.h"
 
-void altair_mainBoard_initialize();
+typedef _U8  (*Altair8816mcsReadCallback)(_U16 address);
+typedef void (*Altair8816mcsWriteCallback)(_U16 address, _U8 data);
 
-void altair_mainBoard_addModule(AltairModule *module);
+typedef struct _Altair8816mcsParameters {
+	Altair8816mcsReadCallback  readCallback;
+	Altair8816mcsWriteCallback writeCallback;
 
-void altair_mainBoard_tick();
+	// Alternative to original switch on the module board, defines address offset of the card memory.
+	// 0:     0 - 16383
+	// 1: 16384 - 32767
+	// 2: 32768 - 49151
+	// 3: 49152 - 65535
+	_U8 bank;
+} Altair8816mcsParameter;
 
-#endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */
+void altair_module_8816mcs_init(AltairModule *module, Altair8816mcsParameter *parameters);
+
+#endif /* EMULATOR_ALTAIR_MODULE_8816MCS_H_ */

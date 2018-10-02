@@ -14,29 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-/*
- * It is an abstract implementation of 16KB SRAM memory module (88-16MCS)
- */
-#ifndef EMULATOR_ALTAIR_MODULE_SRAM_H_
-#define EMULATOR_ALTAIR_MODULE_SRAM_H_
 
-#include "emulator/altair/module.h"
+#ifndef ARCH_ARCH_H_
+#define ARCH_ARCH_H_
 
-typedef _U8  (*AltairSramReadCallback)(_U16 address);
-typedef void (*AltairSramWriteCallback)(_U16 address, _U8 data);
+#include "common/types.h"
 
-typedef struct _AltairSramParameters {
-	AltairSramReadCallback  readCallback;
-	AltairSramWriteCallback writeCallback;
 
-	// Alternative to original switch on the module board, defines address offset of the card memory.
-	// 0:     0 - 16383
-	// 1: 16384 - 32767
-	// 2: 32768 - 49151
-	// 3: 49152 - 65535
-	_U8 bank;
-} AltairSramParameter;
+void arch_initialize(void);
 
-void altair_module_sram_init(AltairModule *module, AltairSramParameter *parameters);
+void arch_loadHex(char *path);
 
-#endif /* EMULATOR_ALTAIR_MODULE_SRAM_H_ */
+#endif /* ARCH_ARCH_H_ */

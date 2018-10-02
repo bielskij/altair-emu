@@ -15,15 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef EMULATOR_ALTAIR_MAINBOARD_H_
-#define EMULATOR_ALTAIR_MAINBOARD_H_
+#ifndef ARCH_MODULE_H_
+#define ARCH_MODULE_H_
 
-#include "emulator/altair/module.h"
+#include "emulator/altair/module/88-2sio.h"
 
-void altair_mainBoard_initialize();
 
-void altair_mainBoard_addModule(AltairModule *module);
+void arch_initialize(void);
 
-void altair_mainBoard_tick();
+AltairModule *arch_create_module_882Sio(_U8 port);
 
-#endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */
+AltairModule *arch_create_module_8816Mcs(_U8 bank);
+
+
+#endif /* ARCH_MODULE_H_ */

@@ -15,15 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef EMULATOR_ALTAIR_MAINBOARD_H_
-#define EMULATOR_ALTAIR_MAINBOARD_H_
+#include "emulator/altair/module/88-16mcs.h"
 
-#include "emulator/altair/module.h"
+#define DEBUG_LEVEL 5
+#include "common/debug.h"
 
-void altair_mainBoard_initialize();
+static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+	Altair8816mcsParameter *params = (Altair8816mcsParameter *) privateData;
 
-void altair_mainBoard_addModule(AltairModule *module);
+	if (phase1) {
+		if (busState->SMEMR && busState->PDBIN) {
+			if (
+				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
+			) {
+				busState->DI = params->readCallback(busState->A);
+			}
 
-void altair_mainBoard_tick();
+		} else if (busState->MWRT) {
+			if (
+				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
+			) {
+				params->writeCallback(busState->A, busState->DO);
+			}
+		}
+	}
+}
 
-#endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */
+
+void altair_module_8816mcs_init(AltairModule *module, Altair8816mcsParameter *parameters) {
+	module->clockCallback = _onTick;
+	module->privateData   = parameters;
+}

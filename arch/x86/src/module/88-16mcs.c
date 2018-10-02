@@ -15,34 +15,54 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include "emulator/altair/module/sram.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "arch/module.h"
+
+#include "emulator/altair/module/88-16mcs.h"
 
 #define DEBUG_LEVEL 5
 #include "common/debug.h"
 
-static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
-	AltairSramParameter *params = (AltairSramParameter *) privateData;
 
-	if (phase1) {
-		if (busState->SMEMR && busState->PDBIN) {
-			if (
-				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
-			) {
-				busState->DI = params->readCallback(busState->A);
-			}
+#define MEM_SIZE (64 * 1024)
 
-		} else if (busState->MWRT) {
-			if (
-				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
-			) {
-				params->writeCallback(busState->A, busState->DO);
-			}
-		}
-	}
+static _U8 _memory[MEM_SIZE];
+
+
+static _U8 _sramRead(_U16 addr) {
+	DBG(("%02x = [R](%04x)", _memory[addr], addr));
+
+	return _memory[addr];
 }
 
 
-void altair_module_sram_init(AltairModule *module, AltairSramParameter *parameters) {
-	module->clockCallback = _onTick;
-	module->privateData   = parameters;
+static void _sramWrite(_U16 addr, _U8 val) {
+	DBG(("%02x = [W](%04x)", val, addr));
+
+	_memory[addr] = val;
+}
+
+
+AltairModule *arch_create_module_8816Mcs(_U8 bank) {
+	AltairModule *ret = malloc(sizeof(AltairModule));
+
+	{
+		Altair8816mcsParameter *parameters = malloc(sizeof(Altair8816mcsParameter));
+
+		parameters->bank          = bank;
+		parameters->readCallback  = _sramRead;
+		parameters->writeCallback = _sramWrite;
+
+		altair_module_8816mcs_init(ret, parameters);
+	}
+
+	return ret;
+}
+
+
+void internal_sram_getMemory(_U8 **memory, _U32 *memorySize) {
+	*memory     = _memory;
+	*memorySize = MEM_SIZE;
 }

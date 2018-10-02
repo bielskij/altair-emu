@@ -15,15 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef EMULATOR_ALTAIR_MAINBOARD_H_
-#define EMULATOR_ALTAIR_MAINBOARD_H_
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "emulator/altair/module.h"
+#include "common/utils/ihex.h"
 
-void altair_mainBoard_initialize();
+#include "module/internal.h"
+#include "arch/arch.h"
 
-void altair_mainBoard_addModule(AltairModule *module);
 
-void altair_mainBoard_tick();
+static _U8 _loadHex(char *path, _U8 *memory, _U16 memorySize) {
+	_U8 ret = 0;
 
-#endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */
+	{
+		FILE *fd = fopen(path, "rb");
+		if (fd) {
+			char *line = NULL;
+			size_t n;
+
+			while (getline(&line, &n, fd) > 0) {
+				ihex_line_to_binary(line, memory, memorySize);
+
+				free(line);
+				line = NULL;
+			}
+
+			fclose(fd);
+		}
+	}
+
+	return ret;
+}
+
+
+void arch_initialize(void) {
+
+}
+
+
+void arch_loadHex(char *path) {
+	_U8 *memory;
+	_U32 memorySize;
+
+	internal_sram_getMemory(&memory, &memorySize);
+
+	_loadHex(path, memory, memorySize);
+}

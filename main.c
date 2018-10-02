@@ -25,95 +25,18 @@
 #include "emulator/cpu.h"
 #include "emulator/altair/mainBoard.h"
 #include "emulator/altair/module/cpu.h"
-#include "emulator/altair/module/sram.h"
-#include "lib/emulator/inc/emulator/altair/module/88-2sio.h"
+#include "emulator/altair/module/88-16mcs.h"
+
+#include "arch/arch.h"
+#include "arch/module.h"
 
 #define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 
-#define MEM_SIZE (64 * 1024)
-
-static _U8 _memory[MEM_SIZE];
-
 Cpu          cpu;
 AltairModule cpuModule;
 
-AltairSramParameter sramAParameters;
-AltairModule        sramAModule;
-AltairSramParameter sramBParameters;
-AltairModule        sramBModule;
-AltairSramParameter sramCParameters;
-AltairModule        sramCModule;
-AltairSramParameter sramDParameters;
-AltairModule        sramDModule;
-
-Altair882SioParameters _882sioParameters;
-AltairModule           _882sioModule;
-
-
-static _U8 _sramRead(_U16 addr) {
-	DBG(("%02x = [R](%04x)", _memory[addr], addr));
-
-	return _memory[addr];
-}
-
-
-static void _sramWrite(_U16 addr, _U8 val) {
-	DBG(("%02x = [W](%04x)", val, addr));
-
-	_memory[addr] = val;
-}
-
-
-static void _882SioStatusRegCallback(_U8 port, Altair882SioStatusRegister *reg) {
-	LOG(("SIO STATUS[%02x]", port));
-}
-
-
-static void _882SioControlRegCallback(_U8 port, Altair882SioControlRegister *reg) {
-	LOG(("SIO CONTROL[%02x]", port));
-}
-
-
-static _U8  _882SioInputDataCallback (_U8 port) {
-	_U8 ret = 0;
-
-	LOG(("SIO INPUT[%02x] <- %02x (%c)", port, ret, ret));
-
-	return ret;
-}
-
-
-static void _882SioOutputDataCallback(_U8 port, _U8 data) {
-	LOG(("SIO OUTPUT[%02x] -> %02x (%c)", port, data, data));
-}
-
-
-static _U8 _loadHex(char *path) {
-	_U8 ret = 0;
-
-	DBG(("Opening file: %s", path));
-
-	{
-		FILE *fd = fopen(path, "rb");
-		if (fd) {
-			char *line = NULL;
-			size_t n;
-
-			while (getline(&line, &n, fd) > 0) {
-				ihex_line_to_binary(line, _memory, sizeof(_memory));
-
-				free(line);
-				line = NULL;
-			}
-
-			fclose(fd);
-		}
-	}
-
-	return ret;
-}
 
 int main(int argc, char *argv[]) {
 	altair_mainBoard_initialize();
@@ -129,56 +52,27 @@ int main(int argc, char *argv[]) {
 
 	// SRAM
 	{
-		// Clear memory
-		memset(_memory, 0, sizeof(_memory));
+		altair_mainBoard_addModule(
+			arch_create_module_8816Mcs(0)
+		);
 
-		sramAParameters.bank          = 0;
-		sramAParameters.readCallback  = _sramRead;
-		sramAParameters.writeCallback = _sramWrite;
+		altair_mainBoard_addModule(
+			arch_create_module_8816Mcs(1)
+		);
 
-		altair_module_sram_init(&sramAModule, &sramAParameters);
-
-		sramBParameters.bank          = 1;
-		sramBParameters.readCallback  = _sramRead;
-		sramBParameters.writeCallback = _sramWrite;
-
-		altair_module_sram_init(&sramBModule, &sramBParameters);
-
-		sramCParameters.bank          = 2;
-		sramCParameters.readCallback  = _sramRead;
-		sramCParameters.writeCallback = _sramWrite;
-
-		altair_module_sram_init(&sramCModule, &sramCParameters);
-
-		sramDParameters.bank          = 3;
-		sramDParameters.readCallback  = _sramRead;
-		sramDParameters.writeCallback = _sramWrite;
-
-		altair_module_sram_init(&sramDModule, &sramDParameters);
-
-		altair_mainBoard_addModule(&sramAModule);
-		altair_mainBoard_addModule(&sramBModule);
-		altair_mainBoard_addModule(&sramCModule);
-		altair_mainBoard_addModule(&sramDModule);
+		altair_mainBoard_addModule(
+			arch_create_module_8816Mcs(2)
+		);
 	}
 
 	// 2sio
-	{
-		_882sioParameters.address = 0x10;
-
-		_882sioParameters.controlRegCallback = _882SioControlRegCallback;
-		_882sioParameters.inputDataCallback  = _882SioInputDataCallback;
-		_882sioParameters.outputDataCallback = _882SioOutputDataCallback;
-		_882sioParameters.statusRegCallback  = _882SioStatusRegCallback;
-
-		altair_module_882sio_init(&_882sioModule, &_882sioParameters);
-
-		altair_mainBoard_addModule(&_882sioModule);
-	}
+	altair_mainBoard_addModule(
+		arch_create_module_882Sio(4)
+	);
 
 	// Load image
 	if (argc > 1) {
-		_loadHex(argv[1]);
+		arch_loadHex(argv[1]);
 	}
 
 	while (1) {

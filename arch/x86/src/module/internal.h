@@ -15,15 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef EMULATOR_ALTAIR_MAINBOARD_H_
-#define EMULATOR_ALTAIR_MAINBOARD_H_
+#ifndef ARCH_X86_SRC_MODULE_INTERNAL_H_
+#define ARCH_X86_SRC_MODULE_INTERNAL_H_
 
-#include "emulator/altair/module.h"
+void internal_sram_getMemory(_U8 **memory, _U32 *memorySize);
 
-void altair_mainBoard_initialize();
-
-void altair_mainBoard_addModule(AltairModule *module);
-
-void altair_mainBoard_tick();
-
-#endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */
+#endif /* ARCH_X86_SRC_MODULE_INTERNAL_H_ */

@@ -32,6 +32,7 @@ static void _onClock(_U8 phase1, S100Bus *busState, void *privateData) {
 
 	cpu_phase(core, phase1);
 
+	busState->PINTE = core->pins.INTE;
 	busState->PDBIN = core->pins.DBIN;
 	busState->PSYNC = core->pins.SYNC;
 	busState->_PWR  = core->pins._WR;
@@ -51,7 +52,7 @@ static void _onClock(_U8 phase1, S100Bus *busState, void *privateData) {
 
 	busState->A = core->pins.ADDRESS;
 
-	if (busState->MWRT) {
+	if (busState->MWRT || ! busState->_PWR) {
 		busState->DO = core->pins.DATA;
 	}
 }

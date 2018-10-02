@@ -26,12 +26,13 @@
 #include "emulator/altair/mainBoard.h"
 #include "emulator/altair/module/cpu.h"
 #include "emulator/altair/module/sram.h"
+#include "lib/emulator/inc/emulator/altair/module/88-2sio.h"
 
-#define DEBUG_LEVEL 5
+#define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 
-#define MEM_SIZE (48 * 1024)
+#define MEM_SIZE (64 * 1024)
 
 static _U8 _memory[MEM_SIZE];
 
@@ -44,6 +45,11 @@ AltairSramParameter sramBParameters;
 AltairModule        sramBModule;
 AltairSramParameter sramCParameters;
 AltairModule        sramCModule;
+AltairSramParameter sramDParameters;
+AltairModule        sramDModule;
+
+Altair882SioParameters _882sioParameters;
+AltairModule           _882sioModule;
 
 
 static _U8 _sramRead(_U16 addr) {
@@ -52,11 +58,37 @@ static _U8 _sramRead(_U16 addr) {
 	return _memory[addr];
 }
 
+
 static void _sramWrite(_U16 addr, _U8 val) {
 	DBG(("%02x = [W](%04x)", val, addr));
 
 	_memory[addr] = val;
 }
+
+
+static void _882SioStatusRegCallback(_U8 port, Altair882SioStatusRegister *reg) {
+	LOG(("SIO STATUS[%02x]", port));
+}
+
+
+static void _882SioControlRegCallback(_U8 port, Altair882SioControlRegister *reg) {
+	LOG(("SIO CONTROL[%02x]", port));
+}
+
+
+static _U8  _882SioInputDataCallback (_U8 port) {
+	_U8 ret = 0;
+
+	LOG(("SIO INPUT[%02x] <- %02x (%c)", port, ret, ret));
+
+	return ret;
+}
+
+
+static void _882SioOutputDataCallback(_U8 port, _U8 data) {
+	LOG(("SIO OUTPUT[%02x] -> %02x (%c)", port, data, data));
+}
+
 
 static _U8 _loadHex(char *path) {
 	_U8 ret = 0;
@@ -97,6 +129,9 @@ int main(int argc, char *argv[]) {
 
 	// SRAM
 	{
+		// Clear memory
+		memset(_memory, 0, sizeof(_memory));
+
 		sramAParameters.bank          = 0;
 		sramAParameters.readCallback  = _sramRead;
 		sramAParameters.writeCallback = _sramWrite;
@@ -115,13 +150,31 @@ int main(int argc, char *argv[]) {
 
 		altair_module_sram_init(&sramCModule, &sramCParameters);
 
+		sramDParameters.bank          = 3;
+		sramDParameters.readCallback  = _sramRead;
+		sramDParameters.writeCallback = _sramWrite;
+
+		altair_module_sram_init(&sramDModule, &sramDParameters);
+
 		altair_mainBoard_addModule(&sramAModule);
 		altair_mainBoard_addModule(&sramBModule);
 		altair_mainBoard_addModule(&sramCModule);
+		altair_mainBoard_addModule(&sramDModule);
 	}
 
-	// Clear memory
-	memset(_memory, 0, sizeof(_memory));
+	// 2sio
+	{
+		_882sioParameters.address = 0x10;
+
+		_882sioParameters.controlRegCallback = _882SioControlRegCallback;
+		_882sioParameters.inputDataCallback  = _882SioInputDataCallback;
+		_882sioParameters.outputDataCallback = _882SioOutputDataCallback;
+		_882sioParameters.statusRegCallback  = _882SioStatusRegCallback;
+
+		altair_module_882sio_init(&_882sioModule, &_882sioParameters);
+
+		altair_mainBoard_addModule(&_882sioModule);
+	}
 
 	// Load image
 	if (argc > 1) {
@@ -166,63 +219,5 @@ static void _dumpMemory(_U8 *mem, _U32 memSize) {
 
 		printf("\n");
 	}
-}
-
-
-int main(int argc, char *argv[]) {
-	DBG(("START"));
-
-	// Clear memory
-	memset(_memory, 0, sizeof(_memory));
-
-	if (argc > 1) {
-		_loadHex(argv[1]);
-	}
-
-	cpu_init(&_cpu);
-	cpu_reset(&_cpu);
-
-	_U8 cycles = 0;
-
-	while (1) {
-
-		if (_cpu.cycleType == 0 && _cpu.cycle == 1 && _cpu.state == 1) {
-			DBG(("Last instruction cycles: %u", cycles));
-			cycles = 0;
-		}
-
-		if (! _cpu.pins.WR) {
-			_memory[_cpu.pins.ADDRESS] = _cpu.pins.DATA;
-
-			DBG(("MEM[%04x] <- %02x", _cpu.pins.ADDRESS, _cpu.pins.DATA));
-		}
-
-		// p1
-		cpu_phase(&_cpu);
-
-//		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
-//			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
-//			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
-//		));
-
-		// Read from memory
-		if (_cpu.pins.DBIN) {
-			_cpu.pins.DATA = _memory[_cpu.pins.ADDRESS];
-
-			DBG(("MEM[%04x] -> %02x", _cpu.pins.ADDRESS, _cpu.pins.DATA));
-		}
-
-		// p2
-		cpu_phase(&_cpu);
-
-//		DBG(("T: %u, P1: %u, CYCLE: %u, TYPE: %u, STATE: %u, SYNC: %u, DBIN: %u, DATA: %02x, ADDRESS: %04x, PC: %04x",
-//			_cpu.ticks, _cpu.p1, _cpu.cycle, _cpu.cycleType, _cpu.state, _cpu.pins.SYNC,
-//			_cpu.pins.DBIN, _cpu.pins.DATA, _cpu.pins.ADDRESS, _cpu.PC
-//		));
-
-		cycles++;
-	}
-	cpu_loop(&_cpu);
-//	_dumpMemory(&_mem);
 }
 #endif

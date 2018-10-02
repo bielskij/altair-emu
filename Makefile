@@ -18,6 +18,7 @@ all: init
 		lib/emulator/src/altair/mainBoard.c \
 		lib/emulator/src/altair/module/cpu.c \
 		lib/emulator/src/altair/module/sram.c \
+		lib/emulator/src/altair/module/88-2sio.c \
 		\
 		lib/common/src/common/utils/ihex.c \
 		\

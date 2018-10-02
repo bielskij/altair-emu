@@ -1524,6 +1524,62 @@ static void _h_ral(Cpu *cpu) {
 	_rtX(cpu, 0, 1);
 }
 
+static void _h_di(Cpu *cpu) {
+	if (cpu->state == 4) {
+		cpu->pins.INTE = 0;
+
+		_cpu_next_instruction(cpu,  cpu->PC);
+	}
+}
+
+static void _h_out(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+			if (cpu->state == 4) {
+				_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ_OPCODE, cpu->PC);
+			}
+			break;
+
+		case 2:
+			if (cpu->state == 3) {
+				cpu->internalData = GET_A(cpu);
+
+				_cpu_next_cycle(cpu, CYCLE_TYPE_OUTPUT_WRITE, ((_U16)GET_Z(cpu) << 8) | GET_Z(cpu));
+			}
+			break;
+
+		case 3:
+			if (cpu->state == 3) {
+				_cpu_next_instruction(cpu, cpu->PC);
+			}
+			break;
+	}
+}
+
+static void _h_in(Cpu *cpu) {
+	switch (cpu->cycle) {
+	case 1:
+		if (cpu->state == 4) {
+			_cpu_next_cycle(cpu, CYCLE_TYPE_MEMORY_READ_OPCODE, cpu->PC);
+		}
+		break;
+
+	case 2:
+		if (cpu->state == 3) {
+			cpu->internalData    = GET_A(cpu);
+
+			_cpu_next_cycle(cpu, CYCLE_TYPE_INPUT_READ, ((_U16)GET_Z(cpu) << 8) | GET_Z(cpu));
+		}
+		break;
+
+	case 3:
+		if (cpu->state == 3) {
+			_cpu_next_instruction(cpu, cpu->PC);
+		}
+		break;
+	}
+}
+
 void cpu_init(Cpu *cpu) {
 	SET_PAIR_W(cpu->PSW, 0);
 	SET_PAIR_W(cpu->B,   0);
@@ -1544,7 +1600,9 @@ void cpu_init(Cpu *cpu) {
 	cpu->ALUpreserveCarry = 0;
 
 	// PIO
-	cpu->pins._WR = 1;
+	cpu->pins._WR  = 1;
+	// TODO: verify what is default value after reset
+	cpu->pins.INTE = 1;
 
 	_cpu_next_instruction(cpu, cpu->PC);
 
@@ -1720,7 +1778,9 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0xaf, _h_xra,  "XRA A");
 		DECLARE_OPCODE(0xee, _h_xri,  "XRI d8");
 
-//		DECLARE_OPCODE(0xd3, _h_out,  "OUT, d8");
+		DECLARE_OPCODE(0xf3, _h_di,   "DI");
+		DECLARE_OPCODE(0xd3, _h_out,  "OUT, d8");
+		DECLARE_OPCODE(0xdb, _h_in,   "IN, d8");
 //		DECLARE_OPCODE(0x76, _h_hlt,  "HLT");
 		DECLARE_OPCODE(0xcd, _h_call, "CALL a16");
 		DECLARE_OPCODE(0xeb, _h_xchg, "XCHG");
@@ -1825,6 +1885,7 @@ void cpu_init(Cpu *cpu) {
 
 void cpu_reset(Cpu *cpu) {
 	cpu->pins.RESET = 1;
+	cpu->pins.INTE  = 1;
 }
 
 static _U8 _statusBitsPerCycle[] = {
@@ -1858,8 +1919,9 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 			case 3:
 				{
 					if (
-						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
+						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE)  ||
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE) ||
+						(cpu->cycleType == CYCLE_TYPE_OUTPUT_WRITE)
 					) {
 						if (cpu->cycleType == CYCLE_TYPE_STACK_WRITE) {
 							DEC_PAIR_W(cpu->SP);
@@ -1983,7 +2045,8 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 					if (
 						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
 						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
-						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_INPUT_READ)
 					) {
 						cpu->pins.ADDRESS = cpu->internalAddress;
 					}
@@ -2000,7 +2063,8 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 					if (
 						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
 						(cpu->cycleType == CYCLE_TYPE_MEMORY_READ) ||
-						(cpu->cycleType == CYCLE_TYPE_STACK_READ)
+						(cpu->cycleType == CYCLE_TYPE_STACK_READ) ||
+						(cpu->cycleType == CYCLE_TYPE_INPUT_READ)
 					) {
 						cpu->pins.DBIN = 1;
 
@@ -2055,8 +2119,16 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 						cpu->pins.DBIN = 0;
 
 					} else if (
+						cpu->cycleType == CYCLE_TYPE_INPUT_READ
+					) {
+						SET_A(cpu, cpu->pins.DATA);
+
+						cpu->pins.DBIN = 0;
+
+					} else if (
 						(cpu->cycleType == CYCLE_TYPE_STACK_WRITE) ||
-						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE)
+						(cpu->cycleType == CYCLE_TYPE_MEMORY_WRITE) ||
+						(cpu->cycleType == CYCLE_TYPE_OUTPUT_WRITE)
 					) {
 						cpu->pins._WR = 1;
 					}

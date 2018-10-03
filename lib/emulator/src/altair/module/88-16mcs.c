@@ -17,7 +17,7 @@
 
 #include "emulator/altair/module/88-16mcs.h"
 
-#define DEBUG_LEVEL 5
+#define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {

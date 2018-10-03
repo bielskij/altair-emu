@@ -33,13 +33,43 @@ static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
 	Altair882SioParameters *params = (Altair882SioParameters *) privateData;
 
 	if (phase1) {
+		_U8 address = busState->A >> 8;
+
 		if (busState->SOUT && ! busState->_PWR) {
-			DBG(("--------------------- OUT %u, addr: %04x, data: %02x", busState->_PWR, busState->A, busState->DO));
+			if ((address >= params->address) && (address < params->address + 4)) {
+				_U8 port = address - params->address;
+
+				if (port & 0x01) {
+					params->outputDataCallback(port / 2, busState->DO, params->callbackData);
+
+				} else {
+					// TODO:
+				}
+			}
 
 		} else if (busState->SINP && busState->PDBIN) {
-			busState->DI = 0x00;
+			if ((address >= params->address) && (address < params->address + 4)) {
+				_U8 port = address - params->address;
 
-			DBG(("--------------------- IN %u, addr: %04x, data: %02x", busState->PDBIN, busState->A, busState->DI));
+				if (port & 0x01) {
+					busState->DI = params->inputDataCallback(port / 2, params->callbackData);
+
+				} else {
+					Altair882SioStatusRegister status;
+
+					params->statusRegCallback(port / 2, &status, params->callbackData);
+
+					busState->DI = 0;
+					if (status.RDRF) busState->DI |= 0x01;
+					if (status.TDRE) busState->DI |= 0x02;
+					if (status._DCD) busState->DI |= 0x04;
+					if (status._CTS) busState->DI |= 0x08;
+					if (status.FE  ) busState->DI |= 0x10;
+					if (status.OVRN) busState->DI |= 0x20;
+					if (status.PE  ) busState->DI |= 0x40;
+					if (status.IRQ ) busState->DI |= 0x80;
+				}
+			}
 		}
 	}
 }

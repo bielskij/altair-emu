@@ -14,6 +14,8 @@ CFLAGS += -Ilib/common/inc -Ilib/emulator/inc -Iarch/inc -Iarch/$(ARCH)/inc
 # Altair 8800b
 CFLAGS += -DALTAIR_MODULES_COUNT=8
 
+LDFLAGS += -lutil
+
 all: init
 	$(CC) $(CFLAGS) -o $(DIR_OUT)/emulator.elf \
 		lib/emulator/src/cpu.c \
@@ -28,7 +30,8 @@ all: init
 		arch/$(ARCH)/src/module/88-2sio.c \
 		arch/$(ARCH)/src/module/88-16mcs.c \
 		\
-		main.c
+		main.c \
+		$(LDFLAGS)
 		
 init:
 	mkdir -p $(DIR_OUT)

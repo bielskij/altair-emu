@@ -15,21 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef ARCH_MODULE_H_
-#define ARCH_MODULE_H_
-
-#include "emulator/altair/module/88-2sio.h"
-#include "emulator/altair/module/88-16mcs.h"
 #include "emulator/altair/module/88-pmc.h"
 
 
-void arch_initialize(void);
+static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+	Altair88PmcParameters *params = (Altair88PmcParameters *) privateData;
 
-AltairModule *arch_create_module_882Sio(_U8 port);
+	if (phase1) {
+		if (busState->SMEMR && busState->PDBIN) {
+			_U8 patternValue = busState->A >> 11;
+			if (patternValue == params->addressPattern) {
+				_U8 address = (busState->A);
+				_U8 bank    = (busState->A >> 8) & 0x07;
 
-AltairModule *arch_create_module_8816Mcs(_U8 bank);
+				busState->DI = params->readCallback(bank, address, params->callbackData);
+			}
+		}
+	}
+}
 
-AltairModule *arch_create_module_88Pmc(_U8 addressPattern);
 
-
-#endif /* ARCH_MODULE_H_ */
+void altair_module_88pmc_init(AltairModule *module, Altair88PmcParameters *params) {
+	module->clockCallback = _onTick;
+	module->privateData   = params;
+}

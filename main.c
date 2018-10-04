@@ -70,6 +70,11 @@ int main(int argc, char *argv[]) {
 		arch_create_module_882Sio(4)
 	);
 
+	// prom
+	altair_mainBoard_addModule(
+		arch_create_module_88Pmc(0x1f)
+	);
+
 	// Load image
 	if (argc > 1) {
 		arch_loadHex(argv[1]);

@@ -1,0 +1,10 @@
+All examples was downloaded from:
+  http://deramp.com/downloads/altair/software/?C=N;O=D
+
+- CPUDIAG: Diagnoses CPU regarding supported opcodes. It uses CP/M bios vectors to display log messages trough serial port.
+- ECHO:    Simple echo program (for 2SIO only)
+- SIOECHO: Simple echo program (for SIO only)
+- HELLO:   Hello world program (port 1)
+
+- PROM:
+  - MDBL: Minidisk bootloader, load address FF00h, port 0x10 (2SIO), 0x00 (SIO)

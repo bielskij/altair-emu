@@ -2092,7 +2092,7 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 							abort();
 						}
 
-						DBG(("OPCODE: %s (ADDR: %04x)", _opcodesNames[cpu->pins.DATA], cpu->pins.ADDRESS));
+						DBG(("[PC: %04x] OPCODE: %s (ADDR: %04x)", cpu->PC, _opcodesNames[cpu->pins.DATA], cpu->pins.ADDRESS));
 
 						cpu->pins.DBIN = 0;
 

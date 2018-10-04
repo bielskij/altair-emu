@@ -15,21 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef ARCH_MODULE_H_
-#define ARCH_MODULE_H_
-
-#include "emulator/altair/module/88-2sio.h"
-#include "emulator/altair/module/88-16mcs.h"
-#include "emulator/altair/module/88-pmc.h"
+#ifndef EMULATOR_ALTAIR_MODULE_88_PMC_H_
+#define EMULATOR_ALTAIR_MODULE_88_PMC_H_
 
 
-void arch_initialize(void);
-
-AltairModule *arch_create_module_882Sio(_U8 port);
-
-AltairModule *arch_create_module_8816Mcs(_U8 bank);
-
-AltairModule *arch_create_module_88Pmc(_U8 addressPattern);
+#include "emulator/altair/module.h"
 
 
-#endif /* ARCH_MODULE_H_ */
+typedef _U8(*Altair88PmcReadCallback)(_U8 promNumber, _U8 address, void *callbackData);
+
+typedef struct _Altair88PmcParameters {
+	_U8                     addressPattern; // The highest 5 bits of address
+	Altair88PmcReadCallback readCallback;
+	void                   *callbackData;
+} Altair88PmcParameters;
+
+
+void altair_module_88pmc_init(AltairModule *module, Altair88PmcParameters *params);
+
+#endif /* EMULATOR_ALTAIR_MODULE_88_PMC_H_ */

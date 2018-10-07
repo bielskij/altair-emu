@@ -24,6 +24,7 @@ all: init
 		lib/emulator/src/altair/module/88-16mcs.c \
 		lib/emulator/src/altair/module/88-2sio.c \
 		lib/emulator/src/altair/module/88-pmc.c \
+		lib/emulator/src/altair/module/88-mcs.c \
 		\
 		lib/common/src/common/utils/ihex.c \
 		\
@@ -31,6 +32,7 @@ all: init
 		arch/$(ARCH)/src/module/88-2sio.c \
 		arch/$(ARCH)/src/module/88-16mcs.c \
 		arch/$(ARCH)/src/module/88-pmc.c \
+		arch/$(ARCH)/src/module/88-mcs.c \
 		\
 		main.c \
 		$(LDFLAGS)

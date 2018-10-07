@@ -15,9 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#include <stdlib.h>
+
 #include "arch/module.h"
 
-#define DEBUG_LEVEL 5
+#define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 

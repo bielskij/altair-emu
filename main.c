@@ -75,6 +75,11 @@ int main(int argc, char *argv[]) {
 		arch_create_module_88Pmc(0x1f)
 	);
 
+	// minidisk
+	altair_mainBoard_addModule(
+		arch_create_module_88mcs()
+	);
+
 	// Load image
 	if (argc > 1) {
 		arch_loadHex(argv[1]);

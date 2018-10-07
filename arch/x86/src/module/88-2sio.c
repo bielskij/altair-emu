@@ -194,7 +194,7 @@ static _U8  _882SioInputDataCallback (_U8 port, void *privateData) {
 		ret = 0;
 	}
 
-	ERR(("SIO INPUT[%02x] <- %02x (%c)", port, ret, ret));
+	LOG(("SIO INPUT[%02x] <- %02x (%c)", port, ret, ret));
 
 	return ret;
 }
@@ -203,7 +203,7 @@ static _U8  _882SioInputDataCallback (_U8 port, void *privateData) {
 static void _882SioOutputDataCallback(_U8 port, _U8 data, void *privateData) {
 	Sio882Data *ctx = (Sio882Data *) privateData;
 
-	ERR(("SIO OUTPUT[%02x] -> %02x (%c)", port, data, data));
+	LOG(("SIO OUTPUT[%02x] -> %02x (%c)", port, data, data));
 
 	write(ctx->ports[port]->ptyMasterFd, &data, 1);
 }

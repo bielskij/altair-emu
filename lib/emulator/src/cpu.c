@@ -17,7 +17,7 @@
 
 #include "emulator/cpu.h"
 
-#define DEBUG_LEVEL 5
+#define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 // ------------------ CONFIG ------------------
@@ -981,6 +981,12 @@ static void _ret(Cpu *cpu, _U8 cond) {
 	}
 }
 
+
+static void _h_ret(Cpu *cpu) {
+	_ret(cpu, 1);
+}
+
+
 static void _h_retCond(Cpu *cpu) {
 	switch (cpu->cycle) {
 		case 1:
@@ -1532,6 +1538,14 @@ static void _h_di(Cpu *cpu) {
 	}
 }
 
+static void _h_ei(Cpu *cpu) {
+	if (cpu->state == 4) {
+		cpu->pins.INTE = 1;
+
+		_cpu_next_instruction(cpu,  cpu->PC);
+	}
+}
+
 static void _h_out(Cpu *cpu) {
 	switch (cpu->cycle) {
 		case 1:
@@ -1779,6 +1793,7 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0xee, _h_xri,  "XRI d8");
 
 		DECLARE_OPCODE(0xf3, _h_di,   "DI");
+		DECLARE_OPCODE(0xfb, _h_ei,   "EI");
 		DECLARE_OPCODE(0xd3, _h_out,  "OUT, d8");
 		DECLARE_OPCODE(0xdb, _h_in,   "IN, d8");
 //		DECLARE_OPCODE(0x76, _h_hlt,  "HLT");
@@ -1811,6 +1826,7 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0xd8, _h_retCond, "RC");
 		DECLARE_OPCODE(0xc0, _h_retCond, "RNZ");
 		DECLARE_OPCODE(0xc8, _h_retCond, "RZ");
+		DECLARE_OPCODE(0xc9, _h_ret,     "RET");
 
 		DECLARE_OPCODE(0xde, _h_sbi,  "SBI");
 		DECLARE_OPCODE(0xd6, _h_sui,  "SUI");

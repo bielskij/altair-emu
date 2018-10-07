@@ -15,23 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef ARCH_MODULE_H_
-#define ARCH_MODULE_H_
+#include <stdlib.h>
 
-#include "emulator/altair/module/88-2sio.h"
-#include "emulator/altair/module/88-16mcs.h"
-#include "emulator/altair/module/88-pmc.h"
-#include "emulator/altair/module/88-mcs.h"
+#include "arch/module.h"
+
+#define DEBUG_LEVEL 5
+#include "common/debug.h"
 
 
-void arch_initialize(void);
+AltairModule *arch_create_module_88mcs() {
+	AltairModule *ret = malloc(sizeof(AltairModule));
 
-AltairModule *arch_create_module_882Sio(_U8 port);
+	{
+		Altair88McsParameters *params = malloc(sizeof(Altair88McsParameters));
 
-AltairModule *arch_create_module_8816Mcs(_U8 bank);
+		altair_module_88mcs_init(ret, params);
+	}
 
-AltairModule *arch_create_module_88Pmc(_U8 addressPattern);
-
-AltairModule *arch_create_module_88mcs();
-
-#endif /* ARCH_MODULE_H_ */
+	return ret;
+}

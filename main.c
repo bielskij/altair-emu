@@ -70,6 +70,11 @@ int main(int argc, char *argv[]) {
 		arch_create_module_882Sio(4)
 	);
 
+	// sio
+	altair_mainBoard_addModule(
+		arch_create_module_88Sio(0)
+	);
+
 	// prom
 	altair_mainBoard_addModule(
 		arch_create_module_88Pmc(0x1f)

@@ -15,25 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#ifndef ARCH_MODULE_H_
-#define ARCH_MODULE_H_
+#ifndef X86_SERIAL_H_
+#define X86_SERIAL_H_
 
-#include "emulator/altair/module/88-2sio.h"
-#include "emulator/altair/module/88-16mcs.h"
-#include "emulator/altair/module/88-pmc.h"
-#include "emulator/altair/module/88-mcs.h"
+#include <stdio.h>
+
+#include "common/types.h"
 
 
-void arch_initialize(void);
+typedef struct _SerialContext {
+	int   ptyMasterFd;
+	char  ptyPath[FILENAME_MAX];
+	pid_t xtermPid;
+} SerialContext;
 
-AltairModule *arch_create_module_882Sio(_U8 port);
 
-AltairModule *arch_create_module_88Sio(_U8 port);
+_U8  serial_open(SerialContext *ctx);
+void serial_close(SerialContext *ctx);
 
-AltairModule *arch_create_module_8816Mcs(_U8 bank);
+_U8 serial_canRead(SerialContext *ctx);
+_U8 serial_canWrite(SerialContext *ctx);
 
-AltairModule *arch_create_module_88Pmc(_U8 addressPattern);
+_U8  serial_readByte(SerialContext *ctx);
+void serial_writeByte(SerialContext *ctx, _U8 data);
 
-AltairModule *arch_create_module_88mcs();
 
-#endif /* ARCH_MODULE_H_ */
+#endif /* X86_SERIAL_H_ */

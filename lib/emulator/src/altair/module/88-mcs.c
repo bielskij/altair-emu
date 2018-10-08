@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include "emulator/altair/module/88-mcs.h"
 
-#define DEBUG_LEVEL 5
+#define DEBUG_LEVEL 1
 #include "common/debug.h"
 
 /*

@@ -41,6 +41,11 @@ typedef struct _Sio88Data {
 static void _88SioStatusRegCallback(Altair88SioStatusRegister *reg, void *privateData) {
 	Sio88Data *ctx = (Sio88Data *) privateData;
 
+	reg->DA  = 0;
+	reg->DO  = 0;
+	reg->FE  = 0;
+	reg->PE  = 0;
+	reg->ODR = 0;
 	reg->IDR = serial_canRead(&ctx->port);
 	reg->XBE = serial_canWrite(&ctx->port);
 }

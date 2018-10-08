@@ -90,43 +90,20 @@ int main(int argc, char *argv[]) {
 		arch_loadHex(argv[1]);
 	}
 
+	_U32 timeUs;
+	_U32 sleepUs = (TICKS_PER_LOOP * 1000000UL) / ALTAIR_F_CPU ;
+
 	while (1) {
-		altair_mainBoard_tick();
+		arch_timer_start();
+		{
+			altair_mainBoard_ticks(TICKS_PER_LOOP);
+		}
+		timeUs = arch_timer_stop();
+
+		if (timeUs < sleepUs) {
+			arch_waitUs(sleepUs - timeUs);
+		}
 	}
 
 	return 0;
 }
-
-
-#if 0
-
-
-static void _dumpMemory(_U8 *mem, _U32 memSize) {
-	_U32 i = 0;
-	_U8 j;
-
-	const _U8 lineLength = 32;
-
-	for (i = 0; i < memSize; i += lineLength) {
-		printf("%04x:", i);
-
-		for (j = 0; j < lineLength; j++) {
-			printf(" %02x", mem[i + j]);
-		}
-
-		printf("   ");
-
-		for (j = 0; j < lineLength; j++) {
-			char c = mem[i + j];
-
-			if (! isalnum(c)) {
-				c = '.';
-			}
-
-			printf("%c", c);
-		}
-
-		printf("\n");
-	}
-}
-#endif

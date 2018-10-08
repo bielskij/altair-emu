@@ -23,6 +23,13 @@
 
 void arch_initialize(void);
 
+// Starts internal timer (us resolution)
+void arch_timer_start();
+// Return time in us since start
+_U32 arch_timer_stop();
+
+void arch_waitUs(_U32 us);
+
 void arch_loadHex(char *path);
 
 #endif /* ARCH_ARCH_H_ */

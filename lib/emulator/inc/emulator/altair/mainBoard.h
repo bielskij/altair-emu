@@ -26,4 +26,6 @@ void altair_mainBoard_addModule(AltairModule *module);
 
 void altair_mainBoard_tick();
 
+void altair_mainBoard_ticks(_U32 ticksCount);
+
 #endif /* EMULATOR_ALTAIR_MAINBOARD_H_ */

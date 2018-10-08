@@ -13,6 +13,8 @@ CFLAGS += -Ilib/common/inc -Ilib/emulator/inc -Iarch/inc -Iarch/$(ARCH)/inc
 
 # Altair 8800b
 CFLAGS += -DALTAIR_MODULES_COUNT=16
+CFLAGS += -DALTAIR_F_CPU=2000000ULL
+CFLAGS += -DTICKS_PER_LOOP=80000ULL
 
 LDFLAGS += -lutil
 

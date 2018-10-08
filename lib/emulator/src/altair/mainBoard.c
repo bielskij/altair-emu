@@ -45,20 +45,17 @@ void altair_mainBoard_tick() {
 		i++;
 	}
 
-//	DBG(("P1: ADDR: %04x, DIN: %02x, DOUT: %02x (PDBIN: %u, WR: %u, SYNC: %u) SHLTA: %u, SINP: %u, SINTA: %u, SM1: %u, SMEMR: %u, SOUT: %u, SSTACK: %u, SWO: %u",
-//		_bus.A, _bus.DO, _bus.DI, _bus.PDBIN, _bus._PWR, _bus.PSYNC,
-//		_bus.SHLTA, _bus.SINP, _bus.SINTA, _bus.SM1, _bus.SMEMR, _bus.SOUT, _bus.SSTACK, _bus.SWO
-//	));
-
 	// phase2
 	i = 0;
 	while (_modules[i] != NULL) {
 		_modules[i]->clockCallback(FALSE, &_bus, _modules[i]->privateData);
 		i++;
 	}
+}
 
-//	DBG(("P2: ADDR: %04x, DIN: %02x, DOUT: %02x (PDBIN: %u, WR: %u, SYNC: %u) SHLTA: %u, SINP: %u, SINTA: %u, SM1: %u, SMEMR: %u, SOUT: %u, SSTACK: %u, SWO: %u",
-//		_bus.A, _bus.DO, _bus.DI, _bus.PDBIN, _bus._PWR, _bus.PSYNC,
-//		_bus.SHLTA, _bus.SINP, _bus.SINTA, _bus.SM1, _bus.SMEMR, _bus.SOUT, _bus.SSTACK, _bus.SWO
-//	));
+
+void altair_mainBoard_ticks(_U32 ticksCount) {
+	for (_U32 i = 0; i < ticksCount; i++) {
+		altair_mainBoard_tick();
+	}
 }

@@ -82,6 +82,11 @@ AltairModule *arch_create_module_88Sio(_U8 port) {
 		parameters->outputDataCallback = _88SioOutputDataCallback;
 		parameters->statusRegCallback  = _88SioStatusRegCallback;
 
+		parameters->intTroughIv  = FALSE;
+		parameters->intIvIdx     = 0;
+		parameters->intInEnable  = TRUE;
+		parameters->intOutEnable = FALSE;
+
 		{
 			Sio88Data *sioData = malloc(sizeof(Sio88Data));
 

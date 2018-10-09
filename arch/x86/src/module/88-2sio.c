@@ -45,6 +45,9 @@ static void _882SioStatusRegCallback(_U8 port, Altair882SioStatusRegister *reg, 
 
 	reg->RDRF = serial_canRead(&ctx->ports[port]);
 	reg->TDRE = serial_canWrite(&ctx->ports[port]);
+
+	reg->FE = 0;
+	reg->PE = 0;
 }
 
 

@@ -58,6 +58,17 @@ static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
 					if (! status.IDR) busState->DI |= 0x01;
 				}
 			}
+
+		} else {
+			if (params->intInEnable) {
+				Altair88SioStatusRegister status;
+
+				params->statusRegCallback(&status, params->callbackData);
+
+				if (status.IDR) {
+					busState->_PINT = FALSE;
+				}
+			}
 		}
 	}
 }

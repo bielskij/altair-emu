@@ -52,6 +52,11 @@ typedef struct _Altair88SioParameters {
 	Altair88SioInputDataCallback  inputDataCallback;
 	Altair88SioOutputDataCallback outputDataCallback;
 
+	_U8 intTroughIv  : 1;
+	_U8 intIvIdx     : 5;
+	_U8 intInEnable  : 1;
+	_U8 intOutEnable : 1;
+
 	void *callbackData;
 } Altair88SioParameters;
 

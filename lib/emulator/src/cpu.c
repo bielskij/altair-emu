@@ -259,6 +259,13 @@ static __inline void _cpu_next_instruction(Cpu *cpu, _U16 address) {
 	cpu->cycleType       = CYCLE_TYPE_INSTRUCTION_FETCH;
 	cpu->readOpcode      = 1;
 	cpu->internalAddress = address;
+
+	// Check interrupt
+	cpu->internalIntFf   = cpu->pins.INT && cpu->pins.INTE;
+	if (cpu->internalIntFf) {
+		cpu->readOpcode = 0;
+		cpu->cycleType  = CYCLE_TYPE_INT_ACK;
+	}
 }
 
 static __inline void _cpu_next_cycle(Cpu *cpu, _U8 cycleType, _U16 address) {
@@ -1546,6 +1553,38 @@ static void _h_ei(Cpu *cpu) {
 	}
 }
 
+
+static void _h_rst(Cpu *cpu) {
+	switch (cpu->cycle) {
+		case 1:
+		case 2:
+			// Put PC on stack
+			if (
+				((cpu->cycle == 1) && (cpu->state == 5)) ||
+				((cpu->cycle == 2) && (cpu->state == 3))
+			) {
+				RegPair ret;
+
+				ret.r.w = cpu->PC;
+
+				if (cpu->cycle == 1) {
+					cpu->internalData = GET_PAIR_HB(ret);
+				} else {
+					cpu->internalData = GET_PAIR_LB(ret);
+				}
+				_cpu_next_cycle(cpu, CYCLE_TYPE_STACK_WRITE, GET_PAIR_W(cpu->SP));
+			}
+			break;
+
+		case 3:
+			if (cpu->state == 3) {
+				_cpu_next_instruction(cpu, cpu->ir & 0x38);
+			}
+			break;
+	}
+}
+
+
 static void _h_out(Cpu *cpu) {
 	switch (cpu->cycle) {
 		case 1:
@@ -1615,8 +1654,8 @@ void cpu_init(Cpu *cpu) {
 
 	// PIO
 	cpu->pins._WR  = 1;
-	// TODO: verify what is default value after reset
-	cpu->pins.INTE = 1;
+	cpu->pins.INTE = 0;
+	cpu->pins.INT  = 0;
 
 	_cpu_next_instruction(cpu, cpu->PC);
 
@@ -1792,8 +1831,17 @@ void cpu_init(Cpu *cpu) {
 		DECLARE_OPCODE(0xaf, _h_xra,  "XRA A");
 		DECLARE_OPCODE(0xee, _h_xri,  "XRI d8");
 
-		DECLARE_OPCODE(0xf3, _h_di,   "DI");
-		DECLARE_OPCODE(0xfb, _h_ei,   "EI");
+		DECLARE_OPCODE(0xf3, _h_di,  "DI");
+		DECLARE_OPCODE(0xfb, _h_ei,  "EI");
+		DECLARE_OPCODE(0xc7, _h_rst, "RST 0");
+		DECLARE_OPCODE(0xcf, _h_rst, "RST 1");
+		DECLARE_OPCODE(0xd7, _h_rst, "RST 2");
+		DECLARE_OPCODE(0xdf, _h_rst, "RST 3");
+		DECLARE_OPCODE(0xe7, _h_rst, "RST 4");
+		DECLARE_OPCODE(0xef, _h_rst, "RST 5");
+		DECLARE_OPCODE(0xf7, _h_rst, "RST 6");
+		DECLARE_OPCODE(0xff, _h_rst, "RST 7");
+
 		DECLARE_OPCODE(0xd3, _h_out,  "OUT, d8");
 		DECLARE_OPCODE(0xdb, _h_in,   "IN, d8");
 //		DECLARE_OPCODE(0x76, _h_hlt,  "HLT");
@@ -1901,7 +1949,8 @@ void cpu_init(Cpu *cpu) {
 
 void cpu_reset(Cpu *cpu) {
 	cpu->pins.RESET = 1;
-	cpu->pins.INTE  = 1;
+	// TODO: Should be cleared in reset cycle
+//	cpu->pins.INTE  = 0;
 }
 
 static _U8 _statusBitsPerCycle[] = {
@@ -1929,6 +1978,16 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 					) {
 						cpu->readCycleCount = 1;
 					}
+				}
+				break;
+
+			case 2:
+				if (cpu->internalIntFf) {
+					// Clear INT flip-flop
+					cpu->internalIntFf = 0;
+
+					// Disable interrupts
+					cpu->pins.INTE     = 0;
 				}
 				break;
 
@@ -2091,14 +2150,17 @@ void cpu_phase(Cpu *cpu, _U8 p1) {
 
 					if (cpu->cycleType != CYCLE_TYPE_ALU_OPERATION) {
 						cpu->pins.SYNC = 0;
-						cpu->pins.DATA = 0;
+						cpu->pins.DATA = 0xff;
 					}
 				}
 				break;
 
 			case 3:
 				{
-					if (cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) {
+					if (
+						(cpu->cycleType == CYCLE_TYPE_INSTRUCTION_FETCH) ||
+						(cpu->cycleType == CYCLE_TYPE_INT_ACK)
+					) {
 						cpu->ir         = cpu->pins.DATA;
 						cpu->irCallback = _opHandlers[cpu->ir];
 

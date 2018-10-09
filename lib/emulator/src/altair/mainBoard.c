@@ -28,6 +28,8 @@ void altair_mainBoard_initialize() {
 	for (_U8 i = 0; i < ALTAIR_MODULES_COUNT; i++) {
 		_modules[i] = NULL;
 	}
+
+	_bus._PINT = 1;
 }
 
 

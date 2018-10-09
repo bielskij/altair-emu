@@ -82,8 +82,9 @@ struct _Cpu {
 		_U8 HOLD  : 1;
 		_U8 RESET : 1;
 
-		// Data & address bus, equal to 0 when tri-state
+		// Data bus, equal to 1 when tri-state (trough pull-up resistor)
 		_U8  DATA;
+		// Address bus, equal to 0 when tri-state
 		_U16 ADDRESS;
 	} pins;
 
@@ -95,6 +96,8 @@ struct _Cpu {
 	// Status of internal address bus, used for delayed jumps
 	_U16 internalAddress;
 	_U8  internalData;
+	_U8  internalIntFf;
+	_U8  internalHoldFf;
 
 	// Instruction register - holds current opcode
 	_U8            ir;

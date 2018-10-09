@@ -55,6 +55,8 @@ static void _onClock(_U8 phase1, S100Bus *busState, void *privateData) {
 	if (busState->MWRT || ! busState->_PWR) {
 		busState->DO = core->pins.DATA;
 	}
+
+	core->pins.INT = ! busState->_PINT;
 }
 
 

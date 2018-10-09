@@ -158,14 +158,26 @@ _U8 serial_open(SerialContext *ctx) {
 						break;
 					}
 
-					termOps.c_lflag &= ~(ECHO|ICANON|IEXTEN|ISIG);
-					termOps.c_iflag &= ~(BRKINT|ICRNL|INPCK|ISTRIP|IXON);
-					termOps.c_cflag &= ~(CSIZE|PARENB);
-					termOps.c_cflag |= CS8;
-					termOps.c_oflag &= ~(OPOST);
+					// settings taken from simh emulator
+					termOps.c_lflag = termOps.c_lflag & ~(ECHO | ICANON);
+					termOps.c_oflag = termOps.c_oflag & ~OPOST;
+					termOps.c_iflag = termOps.c_iflag & ~ICRNL;
 
-					termOps.c_cc[VMIN]  = 1;
-					termOps.c_cc[VTIME] = 0;
+					termOps.c_cc[VMIN]     = 1;
+					termOps.c_cc[VTIME]    = 0;
+
+					termOps.c_cc[VQUIT]    = 0;
+					termOps.c_cc[VERASE]   = 0;
+					termOps.c_cc[VKILL]    = 0;
+					termOps.c_cc[VEOF]     = 0;
+					termOps.c_cc[VEOL]     = 0;
+					termOps.c_cc[VSTART]   = 0;
+					termOps.c_cc[VSUSP]    = 0;
+					termOps.c_cc[VSTOP]    = 0;
+					termOps.c_cc[VREPRINT] = 0;
+					termOps.c_cc[VDISCARD] = 0;
+					termOps.c_cc[VWERASE]  = 0;
+					termOps.c_cc[VLNEXT]   = 0;
 
 					if (tcsetattr(slaveFd, TCSANOW, &termOps) != 0) {
 						ERR(("Unable to set terminal window size!"));
@@ -193,7 +205,7 @@ _U8 serial_open(SerialContext *ctx) {
 					}
 				}
 
-				execlp("xterm", "xterm", argLine, (char *) 0);
+				execlp("xterm", "xterm", "-bc", "-ti", "vt100", argLine, (char *) 0);
 
 				exit(1);
 			}

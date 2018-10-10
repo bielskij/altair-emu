@@ -39,19 +39,53 @@ void altair_mainBoard_addModule(AltairModule *module) {
 
 
 void altair_mainBoard_tick() {
+	AltairModule *m;
 	_U8 i = 0;
 
 	// phase1
 	while (_modules[i] != NULL) {
-		_modules[i]->clockCallback(TRUE, &_bus, _modules[i]->privateData);
-		i++;
+		m = _modules[i++];
+
+		if (m->clockCallback) {
+			m->clockCallback(TRUE, &_bus, m->privateData);
+		}
+
+		if (_bus.PDBIN) {
+			// Memory read
+			if (_bus.SMEMR) {
+				if (m->readMemoryCallback) {
+					m->readMemoryCallback(&_bus, m->privateData);
+				}
+
+			// IO read
+			} else if (_bus.SINP) {
+				if (m->readIoCallback) {
+					m->readIoCallback(&_bus, m->privateData);
+				}
+			}
+
+		// Memory write
+		} else if (_bus.MWRT) {
+			if (m->writeMemoryCallback) {
+				m->writeMemoryCallback(&_bus, m->privateData);
+			}
+
+		// IO write
+		} else if (_bus.SOUT && _bus._PWR) {
+			if (m->writeIoCallback) {
+				m->writeIoCallback(&_bus, m->privateData);
+			}
+		}
 	}
 
 	// phase2
 	i = 0;
 	while (_modules[i] != NULL) {
-		_modules[i]->clockCallback(FALSE, &_bus, _modules[i]->privateData);
-		i++;
+		m = _modules[i++];
+
+		if (m->clockCallback) {
+			m->clockCallback(FALSE, &_bus, m->privateData);
+		}
 	}
 }
 

@@ -59,78 +59,79 @@ FILE *diskFd = NULL;
 #define _sleepMS(_x) usleep(_x * 1000)
 #define _sleep() //_sleepMS(1)
 
-static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+
+static void _onWriteIo(S100Bus *bus, void *privateData) {
 	Altair88McsParameters *params = (Altair88McsParameters *) privateData;
 
-	if (phase1) {
-		_U8 address = busState->A >> 8;
+	_U8 data = bus->DO;
 
-		if (busState->SOUT && ! busState->_PWR) {
-			_U8 data = busState->DO;
+	switch (bus->A >> 8) {
+		case 0x08:
+			// Enable one from 4 drives
+			// D0, D1 - head is loaded when drive is enabled
+			// D2 - d6 not used
+			// D7 - 0 means enable drive
+			DBG(("OUT ENABLE: data: %u", data));
+			if ((data & 0x80) == 0) {
+				if (state == STATE_DISABLED) {
+					state = STATE_STARTING;
 
-			switch (address) {
-				case 0x08:
-					// Enable one from 4 drives
-					// D0, D1 - head is loaded when drive is enabled
-					// D2 - d6 not used
-					// D7 - 0 means enable drive
-					DBG(("OUT ENABLE: data: %u", data));
-					if ((data & 0x80) == 0) {
-						if (state == STATE_DISABLED) {
-							state = STATE_STARTING;
+					trackPosition  = TRACK_COUNT - 1;
+					sectorPosition = 0;
+					bytePosition   = 0;
+					stateCounter   = 0;
+					byteWrRd       = 0;
+				}
 
-							trackPosition  = TRACK_COUNT - 1;
-							sectorPosition = 0;
-							bytePosition   = 0;
-							stateCounter   = 0;
-							byteWrRd       = 0;
-						}
-
-					} else {
-						state = STATE_DISABLED;
-					}
-					break;
-
-				case 0x09:
-					{
-#define CONTROL_STEP_IN      0x01
-#define CONTROL_STEP_OUT     0x02
-#define CONTROL_TIMER_RESET  0x04
-#define CONTROL_INT_ENABLE   0x10
-#define CONTROL_INT_DISABLE  0x20
-#define CONTROL_WRITE_ENABLE 0x80
-
-						// controls drive operation
-						DBG(("OUT CONTROL %02x", data));
-
-						if (state == STATE_IDLE) {
-							if (data & CONTROL_STEP_IN) {
-								trackPosition++;
-								DBG(("Track position: %u", trackPosition));
-
-								stateCounter = 0;
-								state = STATE_HEAD_MOVE;
-
-							} else if (data & CONTROL_STEP_OUT) {
-								trackPosition--;
-								DBG(("Track position: %u", trackPosition));
-
-								stateCounter = 0;
-								state = STATE_HEAD_MOVE;
-							}
-
-							_sleep();
-						}
-					}
-					break;
-
-				case 0x0a:
-					// write data
-					DBG(("OUT WRITE"));
-					break;
+			} else {
+				state = STATE_DISABLED;
 			}
+			break;
 
-		} else if (busState->SINP && busState->PDBIN) {
+		case 0x09:
+			{
+	#define CONTROL_STEP_IN      0x01
+	#define CONTROL_STEP_OUT     0x02
+	#define CONTROL_TIMER_RESET  0x04
+	#define CONTROL_INT_ENABLE   0x10
+	#define CONTROL_INT_DISABLE  0x20
+	#define CONTROL_WRITE_ENABLE 0x80
+
+				// controls drive operation
+				DBG(("OUT CONTROL %02x", data));
+
+				if (state == STATE_IDLE) {
+					if (data & CONTROL_STEP_IN) {
+						trackPosition++;
+						DBG(("Track position: %u", trackPosition));
+
+						stateCounter = 0;
+						state = STATE_HEAD_MOVE;
+
+					} else if (data & CONTROL_STEP_OUT) {
+						trackPosition--;
+						DBG(("Track position: %u", trackPosition));
+
+						stateCounter = 0;
+						state = STATE_HEAD_MOVE;
+					}
+
+					_sleep();
+				}
+			}
+			break;
+
+		case 0x0a:
+			// write data
+			DBG(("OUT WRITE"));
+			break;
+	}
+}
+
+
+static void _onReadIo(S100Bus *bus, void *privateData) {
+	Altair88McsParameters *params = (Altair88McsParameters *) privateData;
+
 #define STATUS_ENWD  0x01
 #define STATUS_MH    0x02
 #define STATUS_HS    0x04
@@ -138,133 +139,131 @@ static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
 #define STATUS_TRACK 0x40
 #define STATUS_NRDA  0x80
 
-			switch (address) {
-				case 0x08:
-					// status of drives and controllers
+	switch (bus->A >> 8) {
+		case 0x08:
+			// status of drives and controllers
 //					DBG(("IN status, state: %u", state));
 
-					if (state != STATE_DISABLED) {
-						// 0x18 always false bits when drive is enabled
-						busState->DI = 0x18;
-					} else {
-						busState->DI = 0x00;
+			if (state != STATE_DISABLED) {
+				// 0x18 always false bits when drive is enabled
+				bus->DI = 0x18;
+			} else {
+				bus->DI = 0x00;
+			}
+
+			switch (state) {
+				case STATE_DISABLED:
+					break;
+
+				case STATE_STARTING:
+					state = STATE_IDLE;
+					break;
+
+				case STATE_IDLE:
+					bus->DI |= (STATUS_MH | STATUS_HS);
+
+					if (trackPosition == 0) {
+						bus->DI |= STATUS_TRACK;
 					}
 
-					switch (state) {
-						case STATE_DISABLED:
-							break;
-
-						case STATE_STARTING:
-							state = STATE_IDLE;
-							break;
-
-						case STATE_IDLE:
-							busState->DI |= (STATUS_MH | STATUS_HS);
-
-							if (trackPosition == 0) {
-								busState->DI |= STATUS_TRACK;
-							}
-
-							// TODO: write mode
-							if (! byteWrRd) {
-								busState->DI |= STATUS_NRDA;
-							}
-
-							break;
-
-						case STATE_HEAD_MOVE:
-							busState->DI |= (STATUS_HS);
-							if (trackPosition == 0) {
-								busState->DI |= STATUS_TRACK;
-							}
-
-							stateCounter = 0;
-							byteWrRd     = 0;
-
-							state = STATE_IDLE;
-							break;
+					// TODO: write mode
+					if (! byteWrRd) {
+						bus->DI |= STATUS_NRDA;
 					}
 
-					busState->DI = ~busState->DI;
+					break;
+
+				case STATE_HEAD_MOVE:
+					bus->DI |= (STATUS_HS);
+					if (trackPosition == 0) {
+						bus->DI |= STATUS_TRACK;
+					}
+
+					stateCounter = 0;
+					byteWrRd     = 0;
+
+					state = STATE_IDLE;
+					break;
+			}
+
+			bus->DI = ~bus->DI;
 
 //					DBG(("STATUS RET: %02x, track: %u, sector: %u", busState->DI, trackPosition, sectorPosition));
 
-					_sleep();
+			_sleep();
 
-					break;
+			break;
 
-				case 0x09:
-					// sector position of diskette
-					DBG(("SECTOR POS track: %u, sector: %u, byte: %u", trackPosition, sectorPosition, bytePosition));
+		case 0x09:
+			// sector position of diskette
+			DBG(("SECTOR POS track: %u, sector: %u, byte: %u", trackPosition, sectorPosition, bytePosition));
 
-					busState->DI = (sectorPosition << 1) | (bytePosition > 64);
+			bus->DI = (sectorPosition << 1) | (bytePosition > 64);
 
-					_sleep();
-					break;
+			_sleep();
+			break;
 
-				case 0x0a:
-					DBG(("IN data, track: %u, sector: %u, byte: %u, f: %p",
-						trackPosition, sectorPosition, bytePosition, diskFd
-					));
+		case 0x0a:
+			DBG(("IN data, track: %u, sector: %u, byte: %u, f: %p",
+				trackPosition, sectorPosition, bytePosition, diskFd
+			));
 
-					byteWrRd = 1;
+			byteWrRd = 1;
 
-					{
-						_U8 data;
+			{
+				_U8 data;
 
-						if (diskFd) {
-							_U32 offset = trackPosition * SECTOS_PER_TRACK * SECTOR_SIZE;
+				if (diskFd) {
+					_U32 offset = trackPosition * SECTOS_PER_TRACK * SECTOR_SIZE;
 
-							offset += (sectorPosition * SECTOR_SIZE);
-							offset += (bytePosition);
+					offset += (sectorPosition * SECTOR_SIZE);
+					offset += (bytePosition);
 
-							DBG(("READ from file at %u", offset));
-							fseek(diskFd, offset, SEEK_SET);
-							fread(&data, 1, 1, diskFd);
-						}
+					DBG(("READ from file at %u", offset));
+					fseek(diskFd, offset, SEEK_SET);
+					fread(&data, 1, 1, diskFd);
+				}
 
-						busState->DI = data;
-					}
-
-					_sleep();
-					break;
+				bus->DI = data;
 			}
 
-			if (state == STATE_IDLE) {
-				stateCounter++;
-				if (stateCounter == STATE_CHANGE_INTERVAL) {
-					stateCounter = 0;
-					byteWrRd    = 0;
+			_sleep();
+			break;
+	}
 
-					bytePosition++;
-					if (bytePosition == SECTOR_SIZE) {
-						bytePosition = 0;
+	if (state == STATE_IDLE) {
+		stateCounter++;
+		if (stateCounter == STATE_CHANGE_INTERVAL) {
+			stateCounter = 0;
+			byteWrRd    = 0;
 
-						sectorPosition++;
-						if (sectorPosition == 16) {
-							sectorPosition = 0;
-						}
-					}
-				}
+			bytePosition++;
+			if (bytePosition == SECTOR_SIZE) {
+				bytePosition = 0;
 
-			} else if (state == STATE_HEAD_MOVE) {
-				stateCounter++;
-
-				if (stateCounter == STATE_CHANGE_INTERVAL) {
-					stateCounter = 0;
-
-					state = STATE_IDLE;
-				}
-
-			} else if (state == STATE_STARTING) {
-				stateCounter++;
-
-				if (stateCounter == STATE_CHANGE_INTERVAL) {
-					stateCounter = 0;
-
-					state = STATE_IDLE;
+				sectorPosition++;
+				if (sectorPosition == 16) {
+					sectorPosition = 0;
 				}
 			}
+		}
+
+	} else if (state == STATE_HEAD_MOVE) {
+		stateCounter++;
+
+		if (stateCounter == STATE_CHANGE_INTERVAL) {
+			stateCounter = 0;
+
+			state = STATE_IDLE;
+		}
+
+	} else if (state == STATE_STARTING) {
+		stateCounter++;
+
+		if (stateCounter == STATE_CHANGE_INTERVAL) {
+			stateCounter = 0;
+
+			state = STATE_IDLE;
 		}
 	}
 }
@@ -272,7 +271,12 @@ static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
 
 void altair_module_88mcs_init(AltairModule *module, Altair88McsParameters *params) {
 	module->privateData   = params;
-	module->clockCallback = _onTick;
+
+	module->clockCallback       = NULL;
+	module->readIoCallback      = _onReadIo;
+	module->writeIoCallback     = _onWriteIo;
+	module->readMemoryCallback  = NULL;
+	module->writeMemoryCallback = NULL;
 
 	{
 		char *envVal = getenv("MD_FILE");

@@ -21,60 +21,56 @@
 #include "common/debug.h"
 
 
-static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+static void _onReadIo(S100Bus *bus, void *privateData) {
 	Altair88SioParameters *params = (Altair88SioParameters *) privateData;
 
-	if (phase1) {
-		_U8 address = busState->A >> 8;
+	_U8 address = bus->A >> 8;
 
-		if (busState->SOUT && ! busState->_PWR) {
-			if ((address >= params->address) && (address < params->address + 2)) {
-				if (address & 0x01) {
-					params->outputDataCallback(busState->DO, params->callbackData);
-
-				} else {
-					// Control
-				}
-			}
-
-		} else if (busState->SINP && busState->PDBIN) {
-			if ((address >= params->address) && (address < params->address + 4)) {
-				if (address & 0x01) {
-					busState->DI = params->inputDataCallback(params->callbackData);
-
-				} else {
-					Altair88SioStatusRegister status;
-
-					params->statusRegCallback(&status, params->callbackData);
-
-					busState->DI = 0;
-
-					if (! status.ODR) busState->DI |= 0x80;
-					if (status.DA   ) busState->DI |= 0x20;
-					if (status.DO   ) busState->DI |= 0x10;
-					if (status.FE   ) busState->DI |= 0x08;
-					if (status.PE   ) busState->DI |= 0x04;
-					if (status.XBE  ) busState->DI |= 0x02;
-					if (! status.IDR) busState->DI |= 0x01;
-				}
-			}
+	if ((address >= params->address) && (address < params->address + 4)) {
+		if (address & 0x01) {
+			bus->DI = params->inputDataCallback(params->callbackData);
 
 		} else {
-			if (params->intInEnable) {
-				Altair88SioStatusRegister status;
+			Altair88SioStatusRegister status;
 
-				params->statusRegCallback(&status, params->callbackData);
+			params->statusRegCallback(&status, params->callbackData);
 
-				if (status.IDR) {
-					busState->_PINT = FALSE;
-				}
-			}
+			bus->DI = 0;
+
+			if (! status.ODR) bus->DI |= 0x80;
+			if (status.DA   ) bus->DI |= 0x20;
+			if (status.DO   ) bus->DI |= 0x10;
+			if (status.FE   ) bus->DI |= 0x08;
+			if (status.PE   ) bus->DI |= 0x04;
+			if (status.XBE  ) bus->DI |= 0x02;
+			if (! status.IDR) bus->DI |= 0x01;
+		}
+	}
+}
+
+
+static void _onWriteIo(S100Bus *bus, void *privateData) {
+	Altair88SioParameters *params = (Altair88SioParameters *) privateData;
+
+	_U8 address = bus->A >> 8;
+
+	if ((address >= params->address) && (address < params->address + 2)) {
+		if (address & 0x01) {
+			params->outputDataCallback(bus->DO, params->callbackData);
+
+		} else {
+			// Control
 		}
 	}
 }
 
 
 void altair_module_88sio_init(AltairModule *module, Altair88SioParameters *params) {
-	module->clockCallback = _onTick;
+	module->clockCallback       = NULL;
+	module->readIoCallback      = _onReadIo;
+	module->writeIoCallback     = _onWriteIo;
+	module->readMemoryCallback  = NULL;
+	module->writeMemoryCallback = NULL;
+
 	module->privateData   = params;
 }

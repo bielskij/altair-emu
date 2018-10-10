@@ -20,29 +20,36 @@
 #define DEBUG_LEVEL 1
 #include "common/debug.h"
 
-static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+
+static void _onReadMemory(S100Bus *bus, void *privateData) {
 	Altair8816mcsParameter *params = (Altair8816mcsParameter *) privateData;
 
-	if (phase1) {
-		if (busState->SMEMR && busState->PDBIN) {
-			if (
-				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
-			) {
-				busState->DI = params->readCallback(busState->A);
-			}
+	if (
+		(bus->A >= (params->bank << 14)) && (bus->A < ((params->bank + 1) << 14))
+	) {
+		bus->DI = params->readCallback(bus->A);
+	}
+}
 
-		} else if (busState->MWRT) {
-			if (
-				(busState->A >= (params->bank << 14)) && (busState->A < ((params->bank + 1) << 14))
-			) {
-				params->writeCallback(busState->A, busState->DO);
-			}
-		}
+
+static void _onWriteMemory(S100Bus *bus, void *privateData) {
+	Altair8816mcsParameter *params = (Altair8816mcsParameter *) privateData;
+
+	if (
+		(bus->A >= (params->bank << 14)) && (bus->A < ((params->bank + 1) << 14))
+	) {
+		params->writeCallback(bus->A, bus->DO);
 	}
 }
 
 
 void altair_module_8816mcs_init(AltairModule *module, Altair8816mcsParameter *parameters) {
-	module->clockCallback = _onTick;
-	module->privateData   = parameters;
+	module->clockCallback   = NULL;
+	module->readIoCallback  = NULL;
+	module->writeIoCallback = NULL;
+
+	module->readMemoryCallback  = _onReadMemory;
+	module->writeMemoryCallback = _onWriteMemory;
+
+	module->privateData = parameters;
 }

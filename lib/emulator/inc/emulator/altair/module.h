@@ -23,9 +23,21 @@
 
 typedef void (*AltairModuleOnClock)(_U8 phase1, S100Bus *busState, void *privateData);
 
+typedef void (*AltairModuleOnReadMemory) (S100Bus *busState, void *privateData);
+typedef void (*AltairModuleOnWriteMemory)(S100Bus *busState, void *privateData);
+
+typedef void (*AltairModuleOnReadIo) (S100Bus *busState, void *privateData);
+typedef void (*AltairModuleOnWriteIo)(S100Bus *busState, void *privateData);
+
+
 typedef struct _AltairModule {
-	AltairModuleOnClock clockCallback;
-	void               *privateData;
+	AltairModuleOnClock       clockCallback;
+	AltairModuleOnReadMemory  readMemoryCallback;
+	AltairModuleOnWriteMemory writeMemoryCallback;
+	AltairModuleOnReadIo      readIoCallback;
+	AltairModuleOnWriteIo     writeIoCallback;
+
+	void *privateData;
 } AltairModule;
 
 #endif /* EMULATOR_ALTAIR_MODULE_H_ */

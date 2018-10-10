@@ -64,5 +64,11 @@ void altair_module_cpu_init(AltairModule *module, Cpu *core) {
 	cpu_init(core);
 
 	module->clockCallback = _onClock;
+
+	module->readIoCallback      = NULL;
+	module->writeIoCallback     = NULL;
+	module->readMemoryCallback  = NULL;
+	module->writeMemoryCallback = NULL;
+
 	module->privateData   = core;
 }

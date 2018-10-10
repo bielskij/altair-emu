@@ -18,24 +18,25 @@
 #include "emulator/altair/module/88-pmc.h"
 
 
-static void _onTick(_U8 phase1, S100Bus *busState, void *privateData) {
+static void _onReadMemory(S100Bus *bus, void *privateData) {
 	Altair88PmcParameters *params = (Altair88PmcParameters *) privateData;
 
-	if (phase1) {
-		if (busState->SMEMR && busState->PDBIN) {
-			_U8 patternValue = busState->A >> 11;
-			if (patternValue == params->addressPattern) {
-				_U8 address = (busState->A);
-				_U8 bank    = (busState->A >> 8) & 0x07;
+	_U8 patternValue = bus->A >> 11;
+	if (patternValue == params->addressPattern) {
+		_U8 address = (bus->A);
+		_U8 bank    = (bus->A >> 8) & 0x07;
 
-				busState->DI = params->readCallback(bank, address, params->callbackData);
-			}
-		}
+		bus->DI = params->readCallback(bank, bus->A, params->callbackData);
 	}
 }
 
 
 void altair_module_88pmc_init(AltairModule *module, Altair88PmcParameters *params) {
-	module->clockCallback = _onTick;
+	module->clockCallback       = NULL;
+	module->readIoCallback      = NULL;
+	module->writeIoCallback     = NULL;
+	module->readMemoryCallback  = _onReadMemory;
+	module->writeMemoryCallback = NULL;
+
 	module->privateData   = params;
 }

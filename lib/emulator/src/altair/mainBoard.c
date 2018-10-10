@@ -20,72 +20,124 @@
 #define DEBUG_LEVEL 5
 #include "common/debug.h"
 
-static AltairModule *_modules[ALTAIR_MODULES_COUNT];
-static _U8           _modulesConnected = 0;
-static S100Bus       _bus;
+typedef struct _ModuleListItem {
+	AltairModule           *module;
+	struct _ModuleListItem *next;
+} ModuleListItem;
+
+static ModuleListItem _listItems[ALTAIR_MODULES_COUNT * 5];
+static _U8            _listItemsUsed = 0;
+
+static ModuleListItem *_listClock = NULL;
+static ModuleListItem *_listMemRd = NULL;
+static ModuleListItem *_listMemWr = NULL;
+static ModuleListItem *_listIoRd  = NULL;
+static ModuleListItem *_listIoWr  = NULL;
+
+static S100Bus _bus;
+
+
+static ModuleListItem *_getNextItem(AltairModule *module) {
+	ModuleListItem *ret = &_listItems[_listItemsUsed++];
+
+	ret->module = module;
+	ret->next   = NULL;
+
+	return ret;
+}
+
+
+static void _addNextItem(ModuleListItem **list, ModuleListItem *node) {
+	node->next = *list;
+
+	*list = node;
+}
+
 
 void altair_mainBoard_initialize() {
-	for (_U8 i = 0; i < ALTAIR_MODULES_COUNT; i++) {
-		_modules[i] = NULL;
-	}
-
 	_bus._PINT = 1;
 }
 
 
 void altair_mainBoard_addModule(AltairModule *module) {
-	_modules[_modulesConnected++] = module;
+	if (module->clockCallback) {
+		_addNextItem(&_listClock, _getNextItem(module));
+	}
+
+	if (module->readIoCallback) {
+		_addNextItem(&_listIoRd, _getNextItem(module));
+	}
+
+	if (module->writeIoCallback) {
+		_addNextItem(&_listIoWr, _getNextItem(module));
+	}
+
+	if (module->readMemoryCallback) {
+		_addNextItem(&_listMemRd, _getNextItem(module));
+	}
+
+	if (module->writeMemoryCallback) {
+		_addNextItem(&_listMemWr, _getNextItem(module));
+	}
 }
 
 
 void altair_mainBoard_tick() {
-	AltairModule *m;
-	_U8 i = 0;
+	ModuleListItem *i;
 
 	// phase1
-	while (_modules[i] != NULL) {
-		m = _modules[i++];
+	i = _listClock;
+	while (i) {
+		i->module->clockCallback(TRUE, &_bus, i->module->privateData);
 
-		if (m->clockCallback) {
-			m->clockCallback(TRUE, &_bus, m->privateData);
+		i = i->next;
+	}
+
+	if (_bus.PDBIN) {
+		// Memory read
+		if (_bus.SMEMR) {
+			i = _listMemRd;
+			while (i) {
+				i->module->readMemoryCallback(&_bus, i->module->privateData);
+
+				i = i->next;
+			}
+
+		// IO read
+		} else if (_bus.SINP) {
+			i = _listIoRd;
+			while (i) {
+				i->module->readIoCallback(&_bus, i->module->privateData);
+
+				i = i->next;
+			}
 		}
 
-		if (_bus.PDBIN) {
-			// Memory read
-			if (_bus.SMEMR) {
-				if (m->readMemoryCallback) {
-					m->readMemoryCallback(&_bus, m->privateData);
-				}
+	// Memory write
+	} else if (_bus.MWRT) {
+		i = _listMemWr;
+		while (i) {
+			i->module->writeMemoryCallback(&_bus, i->module->privateData);
 
-			// IO read
-			} else if (_bus.SINP) {
-				if (m->readIoCallback) {
-					m->readIoCallback(&_bus, m->privateData);
-				}
-			}
+			i = i->next;
+		}
 
-		// Memory write
-		} else if (_bus.MWRT) {
-			if (m->writeMemoryCallback) {
-				m->writeMemoryCallback(&_bus, m->privateData);
-			}
+	// IO write
+	} else if (_bus.SOUT && _bus._PWR) {
+		i = _listIoWr;
+		while (i) {
+			i->module->writeIoCallback(&_bus, i->module->privateData);
 
-		// IO write
-		} else if (_bus.SOUT && _bus._PWR) {
-			if (m->writeIoCallback) {
-				m->writeIoCallback(&_bus, m->privateData);
-			}
+			i = i->next;
 		}
 	}
 
 	// phase2
-	i = 0;
-	while (_modules[i] != NULL) {
-		m = _modules[i++];
+	i = _listClock;
+	while (i) {
+		i->module->clockCallback(FALSE, &_bus, i->module->privateData);
 
-		if (m->clockCallback) {
-			m->clockCallback(FALSE, &_bus, m->privateData);
-		}
+		i = i->next;
 	}
 }
 

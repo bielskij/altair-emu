@@ -24,6 +24,7 @@
 #include "altair/Core.hpp"
 
 #include "Core/Instruction/MovRR.hpp"
+#include "Core/Instruction/MovRM.hpp"
 #include "Core/Instruction/MviR.hpp"
 
 
@@ -47,6 +48,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x43] = new InstructionMovRR(core);
 	this->_opCodes[0x44] = new InstructionMovRR(core);
 	this->_opCodes[0x45] = new InstructionMovRR(core);
+	this->_opCodes[0x46] = new InstructionMovRM(core);
 	this->_opCodes[0x47] = new InstructionMovRR(core);
 	this->_opCodes[0x48] = new InstructionMovRR(core);
 	this->_opCodes[0x49] = new InstructionMovRR(core);
@@ -54,6 +56,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x4b] = new InstructionMovRR(core);
 	this->_opCodes[0x4c] = new InstructionMovRR(core);
 	this->_opCodes[0x4d] = new InstructionMovRR(core);
+	this->_opCodes[0x4e] = new InstructionMovRM(core);
 	this->_opCodes[0x4f] = new InstructionMovRR(core);
 	this->_opCodes[0x50] = new InstructionMovRR(core);
 	this->_opCodes[0x51] = new InstructionMovRR(core);
@@ -61,6 +64,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x53] = new InstructionMovRR(core);
 	this->_opCodes[0x54] = new InstructionMovRR(core);
 	this->_opCodes[0x55] = new InstructionMovRR(core);
+	this->_opCodes[0x56] = new InstructionMovRM(core);
 	this->_opCodes[0x57] = new InstructionMovRR(core);
 	this->_opCodes[0x58] = new InstructionMovRR(core);
 	this->_opCodes[0x59] = new InstructionMovRR(core);
@@ -68,6 +72,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x5b] = new InstructionMovRR(core);
 	this->_opCodes[0x5c] = new InstructionMovRR(core);
 	this->_opCodes[0x5d] = new InstructionMovRR(core);
+	this->_opCodes[0x5e] = new InstructionMovRM(core);
 	this->_opCodes[0x5f] = new InstructionMovRR(core);
 	this->_opCodes[0x60] = new InstructionMovRR(core);
 	this->_opCodes[0x61] = new InstructionMovRR(core);
@@ -75,6 +80,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x63] = new InstructionMovRR(core);
 	this->_opCodes[0x64] = new InstructionMovRR(core);
 	this->_opCodes[0x65] = new InstructionMovRR(core);
+	this->_opCodes[0x66] = new InstructionMovRM(core);
 	this->_opCodes[0x67] = new InstructionMovRR(core);
 	this->_opCodes[0x68] = new InstructionMovRR(core);
 	this->_opCodes[0x69] = new InstructionMovRR(core);
@@ -82,6 +88,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x6b] = new InstructionMovRR(core);
 	this->_opCodes[0x6c] = new InstructionMovRR(core);
 	this->_opCodes[0x6d] = new InstructionMovRR(core);
+	this->_opCodes[0x6e] = new InstructionMovRM(core);
 	this->_opCodes[0x6f] = new InstructionMovRR(core);
 	this->_opCodes[0x78] = new InstructionMovRR(core);
 	this->_opCodes[0x79] = new InstructionMovRR(core);
@@ -89,6 +96,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x7b] = new InstructionMovRR(core);
 	this->_opCodes[0x7c] = new InstructionMovRR(core);
 	this->_opCodes[0x7d] = new InstructionMovRR(core);
+	this->_opCodes[0x7e] = new InstructionMovRM(core);
 	this->_opCodes[0x7f] = new InstructionMovRR(core);
 }
 

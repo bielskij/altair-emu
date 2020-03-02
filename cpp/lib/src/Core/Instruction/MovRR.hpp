@@ -38,14 +38,14 @@ namespace altair {
 
 					bool t4() override {
 						// SSS -> TMP
-						core()->bR(Core::BReg::TMP, core()->bR(this->sss()));
+						core()->bR(Core::BReg::TMP, core()->bR(sss()));
 
 						return true;
 					}
 
 					bool t5() override {
 						// TMP -> DDD
-						core()->bR(this->ddd(), core()->bR(Core::BReg::TMP));
+						core()->bR(ddd(), core()->bR(Core::BReg::TMP));
 
 						return false;
 					}

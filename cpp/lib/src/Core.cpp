@@ -54,17 +54,23 @@ altair::Core::~Core() {
 
 
 void altair::Core::nextInstruction() {
+	if (this->_i == nullptr) {
+		this->nextCycle();
+	}
 
+	while (this->_i != nullptr) {
+		this->nextCycle();
+	}
 }
 
 
 void altair::Core::nextCycle() {
 	MachineCycle *cycle = this->_cycle;
 
-	while (cycle == nullptr || cycle == this->_cycle) {
+	while (cycle == nullptr || (cycle == this->_cycle)) {
 		this->tick();
 
-		if (cycle == nullptr && this->_cycle != nullptr) {
+		if (cycle == nullptr && this->_cycle != nullptr && this->_cycle != this->_fetchCycle) {
 			cycle = this->_cycle;
 		}
 	}
@@ -116,13 +122,15 @@ void altair::Core::tick() {
 
 		this->_pio.clk();
 
-		this->_state++;
-		if (nextCycle) {
+		if (! nextCycle) {
+			this->_state++;
+
+		} else {
 			this->_state = 0;
 
 			this->_cycle = this->_i->nextCycle();
 			if (this->_cycle == nullptr) {
-				this->_i = nullptr;
+				this->_i     = nullptr;
 			}
 		}
 	}

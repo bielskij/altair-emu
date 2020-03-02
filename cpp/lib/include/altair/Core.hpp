@@ -25,13 +25,11 @@
 #define ALTAIR_CORE_HPP_
 
 #include <cstdint>
-
-#include "altair/Utils.hpp"
+#include <stdexcept>
 
 namespace altair {
 	class Core {
 		public:
-			// IMPORTANT: !! Do not change reg order !!
 			enum class BReg : uint8_t {
 				A, B, C, D, E, H, L, IR, TMP, COUNT
 			};
@@ -208,12 +206,11 @@ namespace altair {
 					virtual ~Instruction();
 
 					MachineCycle *nextCycle() {
-						if (this->_cycleIdx == this->_cyclesCount - 1) {
+						if (this->_cycleIdx == this->_cyclesCount) {
 							return nullptr;
-
-						} else {
-							return this->_cycles[this->_cycleIdx++];
 						}
+
+						return this->_cycles[this->_cycleIdx++];
 					}
 
 					inline void reset() {
@@ -224,7 +221,7 @@ namespace altair {
 					Instruction(Core *core);
 					void addCycle(MachineCycle *cycle);
 
-					inline Core *core() {
+					inline Core *core() const {
 						return this->_core;
 					}
 
@@ -332,7 +329,17 @@ namespace altair {
 			Core(const Core &core) = delete;
 
 			static inline Core::BReg binToBreg(uint8_t val) {
-				return static_cast<Core::BReg>(val);
+				switch (val) {
+					case 0x00: return BReg::B;
+					case 0x01: return BReg::C;
+					case 0x02: return BReg::D;
+					case 0x03: return BReg::E;
+					case 0x04: return BReg::H;
+					case 0x05: return BReg::L;
+					case 0x07: return BReg::A;
+					default:
+						throw std::runtime_error("Invalid code!");
+				}
 			}
 
 			static inline Core::WReg binToWreg(uint8_t val) {

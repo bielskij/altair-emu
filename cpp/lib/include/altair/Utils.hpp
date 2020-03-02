@@ -24,12 +24,22 @@
 #ifndef ALTAIR_UTILS_HPP_
 #define ALTAIR_UTILS_HPP_
 
+#include "altair/Core.hpp"
 
 namespace altair {
 	class Utils {
 		public:
-			static inline uint8_t getBits(uint8_t val, uint8_t startOffset, uint8_t bitsCount) {
-
+			static inline std::string bregToString(Core::BReg reg) {
+				switch (reg) {
+					case Core::BReg::A: return "a";
+					case Core::BReg::B: return "b";
+					case Core::BReg::C: return "c";
+					case Core::BReg::D: return "d";
+					case Core::BReg::E: return "e";
+					case Core::BReg::H: return "h";
+					case Core::BReg::L: return "l";
+					default: return "?";
+				}
 			}
 	};
 }

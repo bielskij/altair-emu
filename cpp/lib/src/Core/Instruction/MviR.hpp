@@ -21,60 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_MEMORY_READ_HPP_
-#define CORE_MACHINECYCLE_MEMORY_READ_HPP_
+#ifndef CORE_INSTRUCTION_MVIR_H_
+#define CORE_INSTRUCTION_MVIR_H_
 
 #include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/MemoryRead.hpp"
 
 namespace altair {
-	class MachineCycleMemoryRead : public Core::MachineCycle {
-		public:
-			/*!
-			 * readFromPc true - address from PC, false - address from HL register pair
-			 */
-			MachineCycleMemoryRead(Core *core, bool readFromPc) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
-				this->readFromPc = readFromPc;
-			}
-
-			bool t1() override {
-				Core::Pio &pio = this->core()->pio();
-
-				if (this->readFromPc) {
-					pio.setAddress(this->core()->wR(Core::WReg::PC));
-				} else {
-					pio.setAddress(this->core()->wR(Core::WReg::H));
-				}
-
-				pio.setData(this->getStatus());
-				pio.setSync(true);
-
-				return true;
-			}
-
-			bool t2() override {
-				Core::Pio &pio = this->core()->pio();
-
-				pio.setSync(false);
-				pio.setDbin(true);
-
-				if (this->readFromPc) {
-					this->core()->wR(Core::WReg::PC, this->core()->wR(Core::WReg::PC) + 1);
-				}
-
-				return true;
-			}
-
-			bool t3() override {
-				Core::Pio &pio = this->core()->pio();
-
-				pio.setDbin(false);
-
-				return false;
-			}
-
+	class InstructionMviR : public Core::Instruction {
 		private:
-			bool readFromPc;
+			class MemoryRead : public MachineCycleMemoryRead {
+				public:
+					MemoryRead(Core *core) : MachineCycleMemoryRead(core, true) {
+					}
+
+					bool t3() override {
+						core()->bR(ddd(), core()->pio().getData());
+
+						return this->MachineCycleMemoryRead::t3();
+					}
+			};
+
+		public:
+			InstructionMviR(Core *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MemoryRead(core));
+			}
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_MEMORY_READ_HPP_ */
+#endif /* CORE_INSTRUCTION_MVIR_H_ */

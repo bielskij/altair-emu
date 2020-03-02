@@ -74,6 +74,8 @@ void test::Pio::setHoldAck(bool active) {
 
 void test::Pio::setWait(bool active) {
 	DBG(("CALL"));
+
+	this->wait = active;
 }
 
 
@@ -86,6 +88,10 @@ void test::Pio::setSync(bool active) {
 
 uint8_t test::Pio::getData() {
 	DBG(("CALL"));
+
+	if (this->dbin) {
+		return this->program[this->address];
+	}
 
 	return this->data;
 }

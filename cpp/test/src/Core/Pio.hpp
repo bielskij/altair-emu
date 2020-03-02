@@ -25,6 +25,7 @@
 #ifndef CORE_PIO_HPP_
 #define CORE_PIO_HPP_
 
+#include <vector>
 #include "test/Core.hpp"
 
 namespace test {
@@ -37,15 +38,19 @@ namespace test {
 			bool sync;
 			bool dbin;
 			bool wr;
+			bool wait;
+
+			std::vector<uint8_t> program;
 
 		public:
-			Pio() {
+			Pio(const std::vector<uint8_t> &program) : program(program) {
 				this->clkCount = 0;
 				this->address  = 0;
 				this->data     = 0;
 				this->sync     = false;
 				this->dbin     = false;
 				this->wr       = false;
+				this->wait     = false;
 			}
 
 			bool getInt() override;

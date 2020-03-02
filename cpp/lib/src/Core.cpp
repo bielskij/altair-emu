@@ -53,47 +53,19 @@ altair::Core::~Core() {
 }
 
 
-void altair::Core::nexti() {
-	// No instruction - fetch new one
-	if (this->_i == nullptr) {
-		// Fetch next instruction
-		this->_fetchCycle->t1();
-		this->_pio.clk();
+void altair::Core::nextInstruction() {
 
-		this->_fetchCycle->t2();
-		this->_pio.clk();
+}
 
-		this->_fetchCycle->t3();
-		this->_pio.clk();
 
-		this->_i = this->_decoder->decode(this->bR(BReg::IR));
-		if (this->_i == nullptr) {
-			ERR(("Not supported opcode: %02x", this->bR(BReg::IR)));
+void altair::Core::nextCycle() {
+	MachineCycle *cycle = this->_cycle;
 
-			throw std::runtime_error("Not supported opcode!");
-		}
+	while (cycle == nullptr || cycle == this->_cycle) {
+		this->tick();
 
-		this->_i->reset();
-
-		MachineCycle *cycle;
-		while ((cycle = this->_i->nextCycle()) != nullptr) {
-			if (! cycle->t1()) {
-				continue;
-			}
-
-			if (! cycle->t2()) {
-				continue;
-			}
-
-			if (! cycle->t3()) {
-				continue;
-			}
-
-			if (! cycle->t4()) {
-				continue;
-			}
-
-			cycle->t5();
+		if (cycle == nullptr && this->_cycle != nullptr) {
+			cycle = this->_cycle;
 		}
 	}
 }
@@ -101,27 +73,25 @@ void altair::Core::nexti() {
 
 void altair::Core::tick() {
 	// No instruction there. Do fetch
-	if (this->_i == nullptr) {
+	if (this->_cycle == nullptr){
+		this->_cycle = this->_fetchCycle;
+	}
+	{
+		bool nextCycle = false;
+
 		switch (this->_state) {
 			case 0:
-				{
-					this->_fetchCycle->t1();
-					this->_pio.clk();
-				}
+				nextCycle = ! this->_cycle->t1();
 				break;
 
 			case 1:
-				{
-					this->_fetchCycle->t2();
-					this->_pio.clk();
-				}
+				nextCycle = ! this->_cycle->t2();
 				break;
 
 			case 2:
-				{
-					this->_fetchCycle->t3();
-					// No cycle there
+				nextCycle = ! this->_cycle->t3();
 
+				if (this->_cycle == this->_fetchCycle) {
 					this->_i = this->_decoder->decode(this->bR(BReg::IR));
 					if (this->_i == nullptr) {
 						ERR(("Not supported opcode: %02x", this->bR(BReg::IR)));
@@ -135,35 +105,12 @@ void altair::Core::tick() {
 				}
 				break;
 
-			default:
-				break;
-		}
-
-		this->_state++;
-	}
-
-	if (this->_i != nullptr) {
-		bool nextCycle = false;
-
-		switch (this->_state) {
-			case 0:
-				nextCycle = ! this->_fetchCycle->t1();
-				break;
-
-			case 1:
-				nextCycle = ! this->_fetchCycle->t2();
-				break;
-
-			case 2:
-				nextCycle = ! this->_fetchCycle->t3();
-				break;
-
 			case 3:
-				nextCycle = ! this->_fetchCycle->t4();
+				nextCycle = ! this->_cycle->t4();
 				break;
 
 			case 4:
-				nextCycle = ! this->_fetchCycle->t5();
+				nextCycle = ! this->_cycle->t5();
 				break;
 		}
 

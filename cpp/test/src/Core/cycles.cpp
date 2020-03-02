@@ -28,14 +28,45 @@
 #include "Pio.hpp"
 
 
-CUNIT_TEST(core_cycles, fetch_signals) {
-	test::Pio  pio;
+CUNIT_TEST(core_cycles, fetch) {
+	test::Pio  pio({ 0x5f }); // MOV r,r
 	test::Core core(pio);
 
 	core.tick();
-	CUNIT_ASSERT_EQ(pio.clkCount, 2);
+	CUNIT_ASSERT_EQ(pio.address, 0x0000);
+	CUNIT_ASSERT_EQ(pio.data,    0xA0); // Fetch cycle
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 1);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0);
 
 	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_TRUE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
 	CUNIT_ASSERT_EQ(pio.clkCount, 2);
-//	core.tick();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 3);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::IR), 0x5f);
+}
+
+CUNIT_TEST(core_cycles, read_memory) {
+	test::Pio  pio({ 0x5f, 0xA5 }); // MVI B,0xa5
+	test::Core core(pio);
+
+	core.nextCycle();
+
+	CUNIT_ASSERT_EQ(pio.clkCount, 3);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+
 }

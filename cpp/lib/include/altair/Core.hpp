@@ -264,8 +264,9 @@ namespace altair {
 			Core(Pio &pio);
 			virtual ~Core();
 
-			void nexti();
 			void tick();
+			void nextCycle();
+			void nextInstruction();
 
 			inline uint8_t bR(BReg reg) const {
 				if (reg == BReg::A) {

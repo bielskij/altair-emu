@@ -24,14 +24,11 @@
 #ifndef ALTAIR_UTILS_HPP_
 #define ALTAIR_UTILS_HPP_
 
+
 namespace altair {
 	class Utils {
 		public:
-			static inline Core::BReg binToBreg(uint8_t val) {
-				return static_cast<Core::BReg>(val);
-			}
-
-			static inline uint8_t getBits(uint8_t startOffset, uint8_t bitsCount) {
+			static inline uint8_t getBits(uint8_t val, uint8_t startOffset, uint8_t bitsCount) {
 
 			}
 	};

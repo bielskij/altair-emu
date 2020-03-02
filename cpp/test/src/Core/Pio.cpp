@@ -21,41 +21,93 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MOV_HPP_
-#define CORE_INSTRUCTION_MOV_HPP_
 
-#include "altair/Core.hpp"
-#include "altair/Utils.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
+#include "Pio.hpp"
 
-namespace altair {
-	class InstructionMovRR : public Core::Instruction {
-		private:
-			class Fetch : public altair::MachineCycleFetch {
-				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
-					}
+#define DEBUG_LEVEL 1
+#include "common/debug.h"
 
-					bool t4() override {
-						// SSS -> TMP
-						core()->bR(Core::BReg::TMP, core()->bR(this->sss()));
-
-						return true;
-					}
-
-					bool t5() override {
-						// TMP -> DDD
-						core()->bR(this->ddd(), core()->bR(Core::BReg::TMP));
-
-						return false;
-					}
-			};
-
-		public:
-			InstructionMovRR(Core *core) : Instruction(core) {
-				this->addCycle(new Fetch(core));
-			}
-	};
+bool test::Pio::getInt() {
+	DBG(("CALL"));
+	return false;
 }
 
-#endif /* CORE_INSTRUCTION_MOV_HPP_ */
+bool test::Pio::getHold() {
+	DBG(("CALL"));
+	return false;
+}
+
+
+bool test::Pio::getReady() {
+	DBG(("CALL"));
+	return true;
+}
+
+
+bool test::Pio::getReset() {
+	DBG(("CALL"));
+	return false;
+}
+
+
+void test::Pio::setWr(bool active) {
+	DBG(("CALL"));
+}
+
+
+void test::Pio::setDbin(bool active) {
+	DBG(("CALL"));
+
+	this->dbin = active;
+}
+
+
+void test::Pio::setInte(bool active) {
+	DBG(("CALL"));
+}
+
+
+void test::Pio::setHoldAck(bool active) {
+	DBG(("CALL"));
+}
+
+
+void test::Pio::setWait(bool active) {
+	DBG(("CALL"));
+}
+
+
+void test::Pio::setSync(bool active) {
+	DBG(("CALL"));
+
+	this->sync = active;
+}
+
+
+uint8_t test::Pio::getData() {
+	DBG(("CALL"));
+
+	return this->data;
+}
+
+
+void test::Pio::setData(uint8_t val) {
+	DBG(("CALL"));
+
+	this->data = val;
+}
+
+
+void test::Pio::setAddress(uint16_t val) {
+	DBG(("CALL"));
+
+	this->address = val;
+}
+
+
+void test::Pio::clk() {
+	DBG(("CALL"));
+
+	this->clkCount++;
+}
+

@@ -29,22 +29,51 @@
 namespace altair {
 	class MachineCycleMemoryRead : public Core::MachineCycle {
 		public:
-			MachineCycleMemoryRead(Core *core) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
+			/*!
+			 * readFromPc true - address from PC, false - address from HL register pair
+			 */
+			MachineCycleMemoryRead(Core *core, bool readFromPc) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
+				this->readFromPc = readFromPc;
 			}
 
 			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
 
+				if (this->readFromPc) {
+					pio.setAddress(this->core()->wR(Core::WReg::PC));
+				} else {
+					pio.setAddress(this->core()->wR(Core::WReg::H));
+				}
+
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
 			}
 
 			bool t2() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setSync(false);
+				pio.setDbin(true);
+
+				if (this->readFromPc) {
+					this->core()->wR(Core::WReg::PC, this->core()->wR(Core::WReg::PC) + 1);
+				}
+
+				return true;
 			}
 
 			bool t3() override {
+				Core::Pio &pio = this->core()->pio();
+
+				pio.setDbin(false);
+
+				return false;
 			}
 
-			bool t4() override {
-			}
+		private:
+			bool readFromPc;
 	};
 }
 

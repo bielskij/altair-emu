@@ -26,6 +26,7 @@
 
 #include <cstdint>
 
+#include "altair/Utils.hpp"
 
 namespace altair {
 	class Core {
@@ -174,10 +175,27 @@ namespace altair {
 					virtual bool t4();
 					virtual bool t5();
 
-					virtual uint8_t getStatus();
+					virtual uint8_t getStatus() const;
 
-					inline Core *core() {
+					inline Core *core() const {
 						return this->_core;
+					}
+
+				protected:
+					inline Core::BReg sss() const {
+						return Core::binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
+					}
+
+					inline Core::BReg ddd() const {
+						return Core::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+					}
+
+					inline Core::WReg rp() const {
+						return Core::binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
+					}
+
+					inline Core::BReg ccc() const {
+						return Core::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 				private:
@@ -231,7 +249,7 @@ namespace altair {
 		private:
 			// General purpose registers + temporary internals
 			uint8_t  _bregs[static_cast<uint8_t>(BReg::COUNT) - 1];
-			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT)];
+			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT) - 3];
 
 			Instruction  *_i;
 			MachineCycle *_cycle;
@@ -241,6 +259,7 @@ namespace altair {
 			Pio               &_pio;
 			MachineCycle      *_fetchCycle;
 			uint8_t            _state; // Current state
+
 		public:
 			Core(Pio &pio);
 			virtual ~Core();
@@ -266,11 +285,41 @@ namespace altair {
 			}
 
 			inline uint16_t wR(WReg reg) const {
-				return this->_wregs[static_cast<uint8_t>(reg)];
+				switch (reg) {
+					case WReg::B:
+						return ((uint16_t) this->bR(BReg::B) << 8) | this->bR(BReg::C);
+
+					case WReg::D:
+						return ((uint16_t) this->bR(BReg::D) << 8) | this->bR(BReg::E);
+
+					case WReg::H:
+						return ((uint16_t) this->bR(BReg::H) << 8) | this->bR(BReg::L);
+
+					default:
+						return this->_wregs[static_cast<uint8_t>(reg) - 3];
+				}
 			}
 
 			inline void wR(WReg reg, uint16_t val) {
-				this->_wregs[static_cast<uint8_t>(reg)] = val;
+				switch (reg) {
+					case WReg::B:
+						this->bR(BReg::B, val >> 8);
+						this->bR(BReg::C, val);
+						break;
+
+					case WReg::D:
+						this->bR(BReg::D, val >> 8);
+						this->bR(BReg::E, val);
+						break;
+
+					case WReg::H:
+						this->bR(BReg::H, val >> 8);
+						this->bR(BReg::L, val);
+						break;
+
+					default:
+						this->_wregs[static_cast<uint8_t>(reg) - 3] = val;
+				}
 			}
 
 			inline Pio &pio() const {
@@ -280,6 +329,14 @@ namespace altair {
 		protected:
 			Core() = delete;
 			Core(const Core &core) = delete;
+
+			static inline Core::BReg binToBreg(uint8_t val) {
+				return static_cast<Core::BReg>(val);
+			}
+
+			static inline Core::WReg binToWreg(uint8_t val) {
+				return static_cast<Core::WReg>(val);
+			}
 	};
 }
 

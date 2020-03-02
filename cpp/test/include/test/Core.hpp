@@ -21,41 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MOV_HPP_
-#define CORE_INSTRUCTION_MOV_HPP_
+#ifndef TESTCORE_HPP_
+#define TESTCORE_HPP_
 
-#include "altair/Core.hpp"
-#include "altair/Utils.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
+#include "altair/Cpu.hpp"
 
-namespace altair {
-	class InstructionMovRR : public Core::Instruction {
-		private:
-			class Fetch : public altair::MachineCycleFetch {
-				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
-					}
-
-					bool t4() override {
-						// SSS -> TMP
-						core()->bR(Core::BReg::TMP, core()->bR(this->sss()));
-
-						return true;
-					}
-
-					bool t5() override {
-						// TMP -> DDD
-						core()->bR(this->ddd(), core()->bR(Core::BReg::TMP));
-
-						return false;
-					}
-			};
-
+namespace test {
+	class Core : public altair::Core {
 		public:
-			InstructionMovRR(Core *core) : Instruction(core) {
-				this->addCycle(new Fetch(core));
+			Core(altair::Cpu::Pio &pio) : altair::Core(pio) {
+
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_MOV_HPP_ */
+#endif /* TESTCORE_HPP_ */

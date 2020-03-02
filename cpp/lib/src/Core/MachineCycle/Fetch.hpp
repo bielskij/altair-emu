@@ -36,6 +36,7 @@ namespace altair {
 				Core::Pio &pio = this->core()->pio();
 
 				pio.setAddress(this->core()->wR(Core::WReg::PC));
+				pio.setData(this->getStatus());
 				pio.setSync(true);
 
 				return true;
@@ -45,7 +46,6 @@ namespace altair {
 				Core::Pio &pio = this->core()->pio();
 
 				pio.setSync(false);
-				pio.setData(this->getStatus());
 				pio.setDbin(true);
 
 				this->core()->wR(Core::WReg::PC, this->core()->wR(Core::WReg::PC) + 1);

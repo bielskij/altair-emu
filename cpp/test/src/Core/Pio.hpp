@@ -21,41 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MOV_HPP_
-#define CORE_INSTRUCTION_MOV_HPP_
 
-#include "altair/Core.hpp"
-#include "altair/Utils.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
+#ifndef CORE_PIO_HPP_
+#define CORE_PIO_HPP_
 
-namespace altair {
-	class InstructionMovRR : public Core::Instruction {
-		private:
-			class Fetch : public altair::MachineCycleFetch {
-				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
-					}
+#include "test/Core.hpp"
 
-					bool t4() override {
-						// SSS -> TMP
-						core()->bR(Core::BReg::TMP, core()->bR(this->sss()));
+namespace test {
+	class Pio : public test::Core::Pio {
+		public:
+			uint16_t address;
+			uint8_t  data;
+			uint32_t clkCount;
 
-						return true;
-					}
-
-					bool t5() override {
-						// TMP -> DDD
-						core()->bR(this->ddd(), core()->bR(Core::BReg::TMP));
-
-						return false;
-					}
-			};
+			bool sync;
+			bool dbin;
+			bool wr;
 
 		public:
-			InstructionMovRR(Core *core) : Instruction(core) {
-				this->addCycle(new Fetch(core));
+			Pio() {
+				this->clkCount = 0;
+				this->address  = 0;
+				this->data     = 0;
+				this->sync     = false;
+				this->dbin     = false;
+				this->wr       = false;
 			}
+
+			bool getInt() override;
+			bool getHold() override;
+			bool getReady() override;
+			bool getReset() override;
+			void setWr(bool active) override;
+			void setDbin(bool active) override;
+			void setInte(bool active) override;
+			void setHoldAck(bool active) override;
+			void setWait(bool active) override;
+			void setSync(bool active) override;
+			uint8_t getData() override;
+			void setData(uint8_t val) override;
+			void setAddress(uint16_t val) override;
+			void clk() override;
 	};
 }
 
-#endif /* CORE_INSTRUCTION_MOV_HPP_ */
+#endif /* CORE_PIO_HPP_ */

@@ -107,7 +107,6 @@ void altair::Core::tick() {
 				{
 					this->_fetchCycle->t1();
 					this->_pio.clk();
-					this->_state++;
 				}
 				break;
 
@@ -115,7 +114,6 @@ void altair::Core::tick() {
 				{
 					this->_fetchCycle->t2();
 					this->_pio.clk();
-					this->_state++;
 				}
 				break;
 
@@ -140,6 +138,8 @@ void altair::Core::tick() {
 			default:
 				break;
 		}
+
+		this->_state++;
 	}
 
 	if (this->_i != nullptr) {

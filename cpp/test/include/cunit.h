@@ -25,8 +25,8 @@
 #define CUNIT_CTX            CUnitContext CUNIT_CTX_NAME;
 #define CUNIT_CTX_EXT extern CUnitContext CUNIT_CTX_NAME;
 
-#define CUNIT_ATTR_WEAK        __attribute__((weak))
-#define CUNIT_ATTR_CONSTRUCTOR __attribute__((constructor))
+#define CUNIT_ATTR_WEAK         __attribute__((weak))
+#define CUNIT_ATTR_CONSTRUCTOR  __attribute__((constructor))
 
 #define CUNIT_COLOR_GREEN   "\e[32m"
 #define CUNIT_COLOR_RED     "\e[31m"
@@ -113,7 +113,8 @@ typedef struct _CUnitContext {
 
 #ifdef __CDT_PARSER__
 	#define __type_print(_val)
-#else
+
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 	#define __type_print(_val) PRINTF(_Generic((_val), \
 		int                : "%d", \
 		long               : "%ld",  \
@@ -125,9 +126,39 @@ typedef struct _CUnitContext {
 		double             : "%f", \
 		long double        : "%Lf", \
 		void *             : "%p", \
-		uint8_t            : "%"PRId8, \
+		uint8_t            : "%" PRIu8, \
 		default            : "undef"), \
 		(_val))
+#else
+	void __type_print(int val) CUNIT_ATTR_WEAK;
+	void __type_print(int val) { PRINTF("%d", val); }
+
+	void __type_print(long val) CUNIT_ATTR_WEAK;
+	void __type_print(long val) { PRINTF("%ld", val); }
+
+	void __type_print(long long val) CUNIT_ATTR_WEAK;
+	void __type_print(long long val) { PRINTF("%lld", val); }
+
+	void __type_print(float val) CUNIT_ATTR_WEAK;
+	void __type_print(float val) { PRINTF("%f", val); }
+
+	void __type_print(double val) CUNIT_ATTR_WEAK;
+	void __type_print(double val) { PRINTF("%f", val); }
+
+	void __type_print(long double val) CUNIT_ATTR_WEAK;
+	void __type_print(long double val) { PRINTF("%Lf", val); }
+
+	void __type_print(uint32_t val) CUNIT_ATTR_WEAK;
+	void __type_print(uint32_t val) { PRINTF("%" PRIu32, val); }
+
+	void __type_print(void *val) CUNIT_ATTR_WEAK;
+	void __type_print(void * val) { PRINTF("%p", val); }
+#endif
+
+#ifdef __cplusplus
+	#define __typeof_word decltype
+#else
+	#define __typeof_word typeof
 #endif
 
 #define CUNIT_TEST_BINARY(__val1, __val2, __op, __assert) { \
@@ -138,8 +169,8 @@ typedef struct _CUnitContext {
 	} \
 	\
 	if (! ((__val1) __op (__val2))) { \
-		typeof (__val1) v1 = (__val1); \
-		typeof (__val2) v2 = (__val2); \
+		__typeof_word (__val1) v1 = (__val1); \
+		__typeof_word (__val2) v2 = (__val2); \
 		\
 		if (__assert) { \
 			PRINTF("%s:%d: assertion failed!\n", __FILE__, __LINE__); \

@@ -63,6 +63,6 @@ bool altair::Core::MachineCycle::t5() {
 	return false;
 }
 
-uint8_t altair::Core::MachineCycle::getStatus() {
+uint8_t altair::Core::MachineCycle::getStatus() const {
 	return this->_status;
 }

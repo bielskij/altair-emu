@@ -36,6 +36,10 @@ namespace altair {
 					Fetch(Core *core) : MachineCycleFetch(core) {
 					}
 
+					bool t3() override {
+						return true;
+					}
+
 					bool t4() override {
 						// SSS -> TMP
 						this->core()->bR(

@@ -29,6 +29,7 @@
 #include "Core/Instruction/Sphl.hpp"
 #include "Core/Instruction/MviR.hpp"
 #include "Core/Instruction/MviM.hpp"
+#include "Core/Instruction/Lxi.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -36,12 +37,22 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 		opcode = nullptr;
 	}
 
+	this->_opCodes[0x01] = new InstructionLxi(core);
+
 	this->_opCodes[0x06] = new InstructionMviR(core);
 	this->_opCodes[0x0e] = new InstructionMviR(core);
+
+	this->_opCodes[0x11] = new InstructionLxi(core);
+
 	this->_opCodes[0x16] = new InstructionMviR(core);
 	this->_opCodes[0x1e] = new InstructionMviR(core);
+
+	this->_opCodes[0x21] = new InstructionLxi(core);
+
 	this->_opCodes[0x26] = new InstructionMviR(core);
 	this->_opCodes[0x2e] = new InstructionMviR(core);
+
+	this->_opCodes[0x31] = new InstructionLxi(core);
 
 	this->_opCodes[0x36] = new InstructionMviM(core);
 

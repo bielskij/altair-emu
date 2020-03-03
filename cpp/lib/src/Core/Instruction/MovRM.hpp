@@ -34,7 +34,7 @@ namespace altair {
 		private:
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core) : MachineCycleMemoryRead(core, false) {
+					MemoryRead(Core *core) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::HL) {
 					}
 
 					bool t3() override {

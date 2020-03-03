@@ -320,6 +320,54 @@ namespace altair {
 				}
 			}
 
+			inline uint8_t wRL(WReg reg) {
+				switch (reg) {
+					case WReg::B: return this->bR(BReg::C);
+					case WReg::D: return this->bR(BReg::E);
+					case WReg::H: return this->bR(BReg::L);
+					default:
+						return this->_wregs[static_cast<uint8_t>(reg) - 3];
+				}
+			}
+
+			inline void wRL(WReg reg, uint8_t val) {
+				switch (reg) {
+					case WReg::B: this->bR(BReg::C, val); break;
+					case WReg::D: this->bR(BReg::E, val); break;
+					case WReg::H: this->bR(BReg::L, val); break;
+					default:
+						{
+							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];
+
+							r = (r & 0xff00) | val;
+						}
+				}
+			}
+
+			inline uint8_t wRH(WReg reg) {
+				switch (reg) {
+					case WReg::B: return this->bR(BReg::B);
+					case WReg::D: return this->bR(BReg::D);
+					case WReg::H: return this->bR(BReg::H);
+					default:
+						return this->_wregs[static_cast<uint8_t>(reg) - 3] >> 8;
+				}
+			}
+
+			inline void wRH(WReg reg, uint8_t val) {
+				switch (reg) {
+					case WReg::B: this->bR(BReg::B, val); break;
+					case WReg::D: this->bR(BReg::D, val); break;
+					case WReg::H: this->bR(BReg::H, val); break;
+					default:
+						{
+							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];
+
+							r = (r & 0x00ff) | ((uint16_t) val << 8);
+						}
+				}
+			}
+
 			inline Pio &pio() const {
 				return this->_pio;
 			}

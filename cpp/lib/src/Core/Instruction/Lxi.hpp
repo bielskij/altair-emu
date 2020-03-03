@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MVIM_H_
-#define CORE_INSTRUCTION_MVIM_H_
+#ifndef CORE_INSTRUCTION_LXI_H_
+#define CORE_INSTRUCTION_LXI_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
@@ -31,41 +31,36 @@
 #include "Core/MachineCycle/MemoryWrite.hpp"
 
 namespace altair {
-	class InstructionMviM : public Core::Instruction {
+	class InstructionLxi : public Core::Instruction {
 		private:
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::PC_INC) {
+					MemoryRead(Core *core, bool lowbyte) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::PC_INC) {
+						this->lowByte = lowbyte;
 					}
 
 					bool t3() override {
-						// data -> TMP
-						core()->bR(Core::BReg::TMP, core()->pio().getData());
+						if (this->lowByte) {
+							core()->wRL(rp(), core()->pio().getData());
+
+						} else {
+							core()->wRH(rp(), core()->pio().getData());
+						}
 
 						return this->MachineCycleMemoryRead::t3();
 					}
-			};
 
-			class MemoryWrite : public MachineCycleMemoryWrite {
-				public:
-					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core, MachineCycleMemoryWrite::Address::HL) {
-					}
-
-					bool t3() override {
-						// TMP -> data
-						core()->pio().setData(core()->bR(Core::BReg::TMP));
-
-						return this->MachineCycleMemoryWrite::t3();
-					}
+				private:
+					bool lowByte;
 			};
 
 		public:
-			InstructionMviM(Core *core) : Instruction(core) {
+			InstructionLxi(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core));
-				this->addCycle(new MemoryWrite(core));
+				this->addCycle(new MemoryRead(core, true));
+				this->addCycle(new MemoryRead(core, false));
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_MVIR_H_ */
+#endif /* CORE_INSTRUCTION_LXI_H_ */

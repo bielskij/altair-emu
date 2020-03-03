@@ -29,20 +29,30 @@
 namespace altair {
 	class MachineCycleMemoryRead : public Core::MachineCycle {
 		public:
+			enum Address {
+				PC_INC,
+				HL
+			};
+
+		public:
 			/*!
 			 * readFromPc true - address from PC, false - address from HL register pair
 			 */
-			MachineCycleMemoryRead(Core *core, bool readFromPc) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
-				this->readFromPc = readFromPc;
+			MachineCycleMemoryRead(Core *core, Address addr) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
+				this->address = addr;
 			}
 
 			bool t1() override {
 				Core::Pio &pio = this->core()->pio();
 
-				if (this->readFromPc) {
-					pio.setAddress(this->core()->wR(Core::WReg::PC));
-				} else {
-					pio.setAddress(this->core()->wR(Core::WReg::H));
+				switch (this->address) {
+					case Address::PC_INC:
+						pio.setAddress(this->core()->wR(Core::WReg::PC));
+						break;
+
+					case Address::HL:
+						pio.setAddress(this->core()->wR(Core::WReg::H));
+						break;
 				}
 
 				pio.setData(this->getStatus());
@@ -57,7 +67,7 @@ namespace altair {
 				pio.setSync(false);
 				pio.setDbin(true);
 
-				if (this->readFromPc) {
+				if (this->address == Address::PC_INC) {
 					this->core()->wR(Core::WReg::PC, this->core()->wR(Core::WReg::PC) + 1);
 				}
 
@@ -73,7 +83,7 @@ namespace altair {
 			}
 
 		private:
-			bool readFromPc;
+			Address address;
 	};
 }
 

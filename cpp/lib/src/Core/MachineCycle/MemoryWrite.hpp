@@ -33,7 +33,8 @@ namespace altair {
 		public:
 			enum Address {
 				HL,
-				WZ
+				WZ,
+				WZ_INC
 			};
 
 		public:
@@ -50,6 +51,7 @@ namespace altair {
 						break;
 
 					case Address::WZ:
+					case Address::WZ_INC:
 						pio.setAddress(this->core()->wR(Core::WReg::W));
 						break;
 
@@ -67,6 +69,10 @@ namespace altair {
 				Core::Pio &pio = this->core()->pio();
 
 				pio.setSync(false);
+
+				if (this->addr == Address::WZ_INC) {
+					this->core()->wR(Core::WReg::W, this->core()->wR(Core::WReg::W) + 1);
+				}
 
 				return true;
 			}

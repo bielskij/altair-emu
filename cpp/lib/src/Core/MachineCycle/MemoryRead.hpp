@@ -31,7 +31,8 @@ namespace altair {
 		public:
 			enum Address {
 				PC_INC,
-				HL
+				HL,
+				WZ
 			};
 
 		public:
@@ -52,6 +53,10 @@ namespace altair {
 
 					case Address::HL:
 						pio.setAddress(this->core()->wR(Core::WReg::H));
+						break;
+
+					case Address::WZ:
+						pio.setAddress(this->core()->wR(Core::WReg::W));
 						break;
 				}
 

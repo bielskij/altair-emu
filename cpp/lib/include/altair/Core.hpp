@@ -31,14 +31,14 @@ namespace altair {
 	class Core {
 		public:
 			enum class BReg : uint8_t {
-				A, B, C, D, E, H, L, IR, TMP, COUNT
+				A, B, C, D, E, H, L, W, Z, IR, TMP, COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
 			// IR - instruction register
 			// PC - program counter
 			enum class WReg {
-				B, D, H, SP, PC, COUNT
+				B, D, H, SP, PC, W, COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
@@ -293,6 +293,9 @@ namespace altair {
 					case WReg::H:
 						return ((uint16_t) this->bR(BReg::H) << 8) | this->bR(BReg::L);
 
+					case WReg::W:
+						return ((uint16_t) this->bR(BReg::W) << 8) | this->bR(BReg::Z);
+
 					default:
 						return this->_wregs[static_cast<uint8_t>(reg) - 3];
 				}
@@ -315,6 +318,11 @@ namespace altair {
 						this->bR(BReg::L, val);
 						break;
 
+					case WReg::W:
+						this->bR(BReg::W, val >> 8);
+						this->bR(BReg::Z, val);
+						break;
+
 					default:
 						this->_wregs[static_cast<uint8_t>(reg) - 3] = val;
 				}
@@ -325,6 +333,7 @@ namespace altair {
 					case WReg::B: return this->bR(BReg::C);
 					case WReg::D: return this->bR(BReg::E);
 					case WReg::H: return this->bR(BReg::L);
+					case WReg::W: return this->bR(BReg::Z);
 					default:
 						return this->_wregs[static_cast<uint8_t>(reg) - 3];
 				}
@@ -335,6 +344,7 @@ namespace altair {
 					case WReg::B: this->bR(BReg::C, val); break;
 					case WReg::D: this->bR(BReg::E, val); break;
 					case WReg::H: this->bR(BReg::L, val); break;
+					case WReg::W: this->bR(BReg::Z, val); break;
 					default:
 						{
 							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];
@@ -349,6 +359,7 @@ namespace altair {
 					case WReg::B: return this->bR(BReg::B);
 					case WReg::D: return this->bR(BReg::D);
 					case WReg::H: return this->bR(BReg::H);
+					case WReg::W: return this->bR(BReg::W);
 					default:
 						return this->_wregs[static_cast<uint8_t>(reg) - 3] >> 8;
 				}
@@ -359,6 +370,7 @@ namespace altair {
 					case WReg::B: this->bR(BReg::B, val); break;
 					case WReg::D: this->bR(BReg::D, val); break;
 					case WReg::H: this->bR(BReg::H, val); break;
+					case WReg::W: this->bR(BReg::W, val); break;
 					default:
 						{
 							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];

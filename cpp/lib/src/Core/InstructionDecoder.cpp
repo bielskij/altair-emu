@@ -36,6 +36,7 @@
 #include "Core/Instruction/Shld.hpp"
 #include "Core/Instruction/Ldax.hpp"
 #include "Core/Instruction/Stax.hpp"
+#include "Core/Instruction/Xchg.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -126,6 +127,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x7d] = new InstructionMovRR(core);
 	this->_opCodes[0x7e] = new InstructionMovRM(core);
 	this->_opCodes[0x7f] = new InstructionMovRR(core);
+	this->_opCodes[0xeb] = new InstructionXchg(core);
 	this->_opCodes[0xf9] = new InstructionSphl(core);
 }
 

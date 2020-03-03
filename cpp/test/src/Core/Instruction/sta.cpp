@@ -28,9 +28,9 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, lda_clk) {
+CUNIT_TEST(core_instruction, sta_clk) {
 	test::Pio  pio({
-		0x3A, 0x07, 0x00
+		0x32, 0x07, 0x00
 	});
 
 	test::Core core(pio);
@@ -40,14 +40,15 @@ CUNIT_TEST(core_instruction, lda_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, lda) {
-	// lda 0x0007
+CUNIT_TEST(core_instruction, sta) {
+	// mvi a,64
+	// sta 0x0007
 	test::Pio  pio({
-		0x3A, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa5
+		0x3E, 0x40, 0x32, 0x07, 0x00, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xa5);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x40);
 }

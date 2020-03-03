@@ -31,6 +31,7 @@
 #include "Core/Instruction/MviM.hpp"
 #include "Core/Instruction/Lxi.hpp"
 #include "Core/Instruction/Lda.hpp"
+#include "Core/Instruction/Sta.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -48,6 +49,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x26] = new InstructionMviR(core);
 	this->_opCodes[0x2e] = new InstructionMviR(core);
 	this->_opCodes[0x31] = new InstructionLxi(core);
+	this->_opCodes[0x32] = new InstructionSta(core);
 	this->_opCodes[0x36] = new InstructionMviM(core);
 	this->_opCodes[0x3a] = new InstructionLda(core);
 	this->_opCodes[0x3e] = new InstructionMviR(core);

@@ -27,6 +27,7 @@
 #include "Core/Instruction/MovRM.hpp"
 #include "Core/Instruction/MovMR.hpp"
 #include "Core/Instruction/MviR.hpp"
+#include "Core/Instruction/Sphl.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -122,11 +123,19 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x7e] = new InstructionMovRM(core);
 
 	this->_opCodes[0x7f] = new InstructionMovRR(core);
+
+	this->_opCodes[0xf9] = new InstructionSphl(core);
 }
 
 
 altair::Core::InstructionDecoder::~InstructionDecoder() {
+	for (auto &opcode : this->_opCodes) {
+		if (opcode != nullptr) {
+			delete opcode;
+		}
 
+		opcode = nullptr;
+	}
 }
 
 

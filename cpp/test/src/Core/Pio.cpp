@@ -51,7 +51,9 @@ bool test::Pio::getReset() {
 
 
 void test::Pio::setWr(bool active) {
-	DBG(("CALL"));
+	DBG(("CALL %d", active));
+
+	this->wr = active;
 }
 
 
@@ -89,10 +91,6 @@ void test::Pio::setSync(bool active) {
 uint8_t test::Pio::getData() {
 	DBG(("CALL"));
 
-	if (this->dbin) {
-		return this->program[this->address];
-	}
-
 	return this->data;
 }
 
@@ -113,6 +111,14 @@ void test::Pio::setAddress(uint16_t val) {
 
 void test::Pio::clk() {
 	DBG(("CALL"));
+
+	if (this->dbin) {
+		this->data = this->program[this->address];
+	}
+
+	if (this->wr) {
+		this->program[this->address] = this->data;
+	}
 
 	this->clkCount++;
 }

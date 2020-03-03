@@ -29,6 +29,18 @@
 #include "Core/Pio.hpp"
 
 
+CUNIT_TEST(core_instruction, movir_clk) {
+	test::Pio  pio({
+		0x3E, 0x01
+	});
+
+	test::Core core(pio);
+
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 7);
+}
+
+
 CUNIT_TEST(core_instruction, mvir) {
 	// mov a,1
 	// mov b,2

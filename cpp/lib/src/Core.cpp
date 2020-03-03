@@ -78,6 +78,9 @@ void altair::Core::nextCycle() {
 
 
 void altair::Core::tick() {
+	// WR is set in the last state of write cycle - require to be cleared on the next cycle/state.
+	this->_pio.setWr(false);
+
 	// No instruction there. Do fetch
 	if (this->_cycle == nullptr){
 		this->_cycle = this->_fetchCycle;

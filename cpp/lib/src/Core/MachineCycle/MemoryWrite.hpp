@@ -21,31 +21,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_FETCH_HPP_
-#define CORE_MACHINECYCLE_FETCH_HPP_
+#ifndef CORE_MACHINECYCLE_MEMORY_WRITE_HPP_
+#define CORE_MACHINECYCLE_MEMORY_WRITE_HPP_
+
+#include <stdexcept>
 
 #include "altair/Core.hpp"
 
 namespace altair {
 	class MachineCycleMemoryWrite : public Core::MachineCycle {
 		public:
-			MachineCycleMemoryWrite(Core *core) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
+			enum Address {
+				HL,
+			};
+
+		public:
+			MachineCycleMemoryWrite(Core *core, Address address) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
+				this->addr = address;
 			}
 
 			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
 
+				switch (this->addr) {
+					case Address::HL:
+						pio.setAddress(this->core()->wR(Core::WReg::H));
+						break;
+
+					default:
+						throw std::runtime_error("Unvalid addressing!");
+				}
+
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
 			}
 
 			bool t2() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setSync(false);
+
+				return true;
 			}
 
 			bool t3() override {
+				Core::Pio &pio = this->core()->pio();
+
+				pio.setWr(true);
+
+				return false;
 			}
 
-			bool t4() override {
-			}
+		private:
+			Address addr;
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_FETCH_HPP_ */
+#endif /* CORE_MACHINECYCLE_MEMORY_WRITE_HPP_ */

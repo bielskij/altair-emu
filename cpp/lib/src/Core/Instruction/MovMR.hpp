@@ -21,58 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef CORE_INSTRUCTION_MOVMR_H_
+#define CORE_INSTRUCTION_MOVMR_H_
 
-#ifndef CORE_PIO_HPP_
-#define CORE_PIO_HPP_
+#include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/MemoryWrite.hpp"
 
-#include <vector>
-#include "test/Core.hpp"
+namespace altair {
+	class InstructionMovMR : public Core::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(Core *core) : MachineCycleFetch(core) {
+					}
 
-namespace test {
-	class Pio : public test::Core::Pio {
-		public:
-			uint16_t address;
-			uint8_t  data;
-			uint32_t clkCount;
+					bool t4() override {
+						// SSS -> TMP
+						core()->bR(Core::BReg::TMP, core()->bR(sss()));
 
-			bool sync;
-			bool dbin;
-			bool wr;
-			bool wait;
+						return false;
+					}
+			};
 
-			std::vector<uint8_t> program;
+			class MemoryWrite : public MachineCycleMemoryWrite {
+				public:
+					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core, MachineCycleMemoryWrite::Address::HL) {
+					}
 
-		public:
-			Pio(const std::vector<uint8_t> &program) : program(program) {
-				this->clkCount = 0;
-				this->address  = 0;
-				this->data     = 0;
-				this->sync     = false;
-				this->dbin     = false;
-				this->wr       = false;
-				this->wait     = false;
-			}
+					bool t3() override {
+						// TMP -> data
+						core()->pio().setData(core()->bR(Core::BReg::TMP));
 
-			bool getInt() override;
-			bool getHold() override;
-			bool getReady() override;
-			bool getReset() override;
-			void setWr(bool active) override;
-			void setDbin(bool active) override;
-			void setInte(bool active) override;
-			void setHoldAck(bool active) override;
-			void setWait(bool active) override;
-			void setSync(bool active) override;
-			uint8_t getData() override;
-			void setData(uint8_t val) override;
-			void setAddress(uint16_t val) override;
-			void clk() override;
+						return this->MachineCycleMemoryWrite::t3();
+					}
+			};
 
 		public:
-			uint8_t mem(uint16_t addr) {
-				return this->program[addr];
+			InstructionMovMR(Core *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
+				this->addCycle(new MemoryWrite(core));
 			}
 	};
 }
 
-#endif /* CORE_PIO_HPP_ */
+#endif /* CORE_INSTRUCTION_MOVMR_H_ */

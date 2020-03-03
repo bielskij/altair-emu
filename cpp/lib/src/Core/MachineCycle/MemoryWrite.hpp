@@ -34,10 +34,16 @@ namespace altair {
 			enum Address {
 				HL,
 				WZ,
-				WZ_INC
+				WZ_INC,
+				B,
+				D
 			};
 
 		public:
+			MachineCycleMemoryWrite(Core *core) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
+				this->addr = Address::HL;
+			}
+
 			MachineCycleMemoryWrite(Core *core, Address address) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
 				this->addr = address;
 			}
@@ -55,8 +61,16 @@ namespace altair {
 						pio.setAddress(this->core()->wR(Core::WReg::W));
 						break;
 
+					case Address::B:
+						pio.setAddress(this->core()->wR(Core::WReg::B));
+						break;
+
+					case Address::D:
+						pio.setAddress(this->core()->wR(Core::WReg::D));
+						break;
+
 					default:
-						throw std::runtime_error("Unvalid addressing!");
+						throw std::runtime_error("Invalid addressing!");
 				}
 
 				pio.setData(this->getStatus());
@@ -83,6 +97,11 @@ namespace altair {
 				pio.setWr(true);
 
 				return false;
+			}
+
+		protected:
+			void setAddress(Address addr) {
+				this->addr = addr;
 			}
 
 		private:

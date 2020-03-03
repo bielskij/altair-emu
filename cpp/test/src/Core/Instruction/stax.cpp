@@ -21,47 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_LDAX_H_
-#define CORE_INSTRUCTION_LDAX_H_
 
-#include "altair/Core.hpp"
-#include "altair/Utils.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
-#include "Core/MachineCycle/MemoryRead.hpp"
-#include "Core/MachineCycle/MemoryWrite.hpp"
+#include "cunit.h"
 
-namespace altair {
-	class InstructionLdax : public Core::Instruction {
-		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core) : MachineCycleMemoryRead(core) {;
-					}
+#include "test/Core.hpp"
+#include "Core/Pio.hpp"
 
-					bool t1() override {
-						switch (rp()) {
-							case Core::WReg::B: this->setAddress(Address::B); break;
-							case Core::WReg::D: this->setAddress(Address::D); break;
-							default:
-								throw std::runtime_error("Unknown address!");
-						}
 
-						return this->MachineCycleMemoryRead::t1();
-					}
+CUNIT_TEST(core_instruction, stax_clk) {
+	test::Pio  pio({
+		0x02
+	});
 
-					bool t3() override {
-						core()->bR(Core::BReg::A, core()->pio().getData());
+	test::Core core(pio);
 
-						return this->MachineCycleMemoryRead::t3();
-					}
-			};
-
-		public:
-			InstructionLdax(Core *core) : Instruction(core) {
-				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core));
-			}
-	};
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 7);
 }
 
-#endif /* CORE_INSTRUCTION_LDAX_H_ */
+
+CUNIT_TEST(core_instruction, stax) {
+	// mvi b,0
+	// mvi c,12
+	// mvi d,0
+	// mvi e,13
+	// mvi a,0xaa
+	// stax b
+	// stax d
+	test::Pio  pio({
+		0x06, 0x00, 0x0E, 0x0C, 0x16, 0x00, 0x1E, 0x0D,
+		0x3E, 0xAA, 0x02, 0x12, 0x00, 0x00
+	});
+
+	test::Core core(pio);
+
+	core.nextInstruction();
+	core.nextInstruction();
+	core.nextInstruction();
+	core.nextInstruction();
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.mem(12), 0x00);
+	CUNIT_ASSERT_EQ(pio.mem(13), 0x00);
+}

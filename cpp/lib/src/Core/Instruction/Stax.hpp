@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_LDAX_H_
-#define CORE_INSTRUCTION_LDAX_H_
+#ifndef CORE_INSTRUCTION_STAX_H_
+#define CORE_INSTRUCTION_STAX_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
@@ -31,11 +31,27 @@
 #include "Core/MachineCycle/MemoryWrite.hpp"
 
 namespace altair {
-	class InstructionLdax : public Core::Instruction {
+	class InstructionStax : public Core::Instruction {
 		private:
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core) : MachineCycleMemoryRead(core) {;
+					MemoryRead(Core *core, MachineCycleMemoryRead::Address addr, Core::BReg dest) : MachineCycleMemoryRead(core, addr) {
+						this->destination = dest;
+					}
+
+					bool t3() override {
+						core()->bR(this->destination, core()->pio().getData());
+
+						return this->MachineCycleMemoryRead::t3();
+					}
+
+				private:
+					Core::BReg destination;
+			};
+
+			class MemoryWrite : public MachineCycleMemoryWrite {
+				public:
+					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core) {
 					}
 
 					bool t1() override {
@@ -46,22 +62,23 @@ namespace altair {
 								throw std::runtime_error("Unknown address!");
 						}
 
-						return this->MachineCycleMemoryRead::t1();
+						return this->MachineCycleMemoryWrite::t1();
 					}
 
 					bool t3() override {
-						core()->bR(Core::BReg::A, core()->pio().getData());
+						// TMP -> data
+						core()->pio().setData(core()->bR(Core::BReg::A));
 
-						return this->MachineCycleMemoryRead::t3();
+						return this->MachineCycleMemoryWrite::t3();
 					}
 			};
 
 		public:
-			InstructionLdax(Core *core) : Instruction(core) {
+			InstructionStax(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core));
+				this->addCycle(new MemoryWrite(core));
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_LDAX_H_ */
+#endif /* CORE_INSTRUCTION_STAX_H_ */

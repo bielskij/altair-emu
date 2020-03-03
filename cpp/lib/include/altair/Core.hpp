@@ -30,15 +30,19 @@
 namespace altair {
 	class Core {
 		public:
+			// IR - instruction register
 			enum class BReg : uint8_t {
 				A, B, C, D, E, H, L, W, Z, IR, TMP, COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
-			// IR - instruction register
-			// PC - program counter
+			// PC - Program counter
+			// SP - Stack pointer
+			// W  - temporary
 			enum class WReg {
-				B, D, H, SP, PC, W, COUNT
+				SP, PC,
+				B, D, H, W, // Virtual registers, wrappers on byte reg pairs
+				COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
@@ -181,19 +185,45 @@ namespace altair {
 
 				protected:
 					inline Core::BReg sss() const {
-						return Core::binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
+						return binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
 					}
 
 					inline Core::BReg ddd() const {
-						return Core::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+						return binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 					inline Core::WReg rp() const {
-						return Core::binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
+						return binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
 					}
 
 					inline Core::BReg ccc() const {
-						return Core::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+						return binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+					}
+
+				private:
+					static inline Core::BReg binToBreg(uint8_t val) {
+						switch (val) {
+							case 0x00: return BReg::B;
+							case 0x01: return BReg::C;
+							case 0x02: return BReg::D;
+							case 0x03: return BReg::E;
+							case 0x04: return BReg::H;
+							case 0x05: return BReg::L;
+							case 0x07: return BReg::A;
+							default:
+								throw std::runtime_error("Invalid code!");
+						}
+					}
+
+					static inline Core::WReg binToWreg(uint8_t val) {
+						switch (val) {
+							case 0x00: return WReg::B;
+							case 0x01: return WReg::D;
+							case 0x02: return WReg::H;
+							case 0x03: return WReg::SP;
+							default:
+								throw std::runtime_error("Invalid code!");
+						}
 					}
 
 				private:
@@ -246,7 +276,7 @@ namespace altair {
 		private:
 			// General purpose registers + temporary internals
 			uint8_t  _bregs[static_cast<uint8_t>(BReg::COUNT) - 1];
-			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT) - 3];
+			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT) - 4];
 
 			Instruction  *_i;
 			MachineCycle *_cycle;
@@ -297,7 +327,7 @@ namespace altair {
 						return ((uint16_t) this->bR(BReg::W) << 8) | this->bR(BReg::Z);
 
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg) - 3];
+						return this->_wregs[static_cast<uint8_t>(reg)];
 				}
 			}
 
@@ -324,7 +354,7 @@ namespace altair {
 						break;
 
 					default:
-						this->_wregs[static_cast<uint8_t>(reg) - 3] = val;
+						this->_wregs[static_cast<uint8_t>(reg)] = val;
 				}
 			}
 
@@ -335,7 +365,7 @@ namespace altair {
 					case WReg::H: return this->bR(BReg::L);
 					case WReg::W: return this->bR(BReg::Z);
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg) - 3];
+						return this->_wregs[static_cast<uint8_t>(reg)];
 				}
 			}
 
@@ -347,7 +377,7 @@ namespace altair {
 					case WReg::W: this->bR(BReg::Z, val); break;
 					default:
 						{
-							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];
+							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg)];
 
 							r = (r & 0xff00) | val;
 						}
@@ -361,7 +391,7 @@ namespace altair {
 					case WReg::H: return this->bR(BReg::H);
 					case WReg::W: return this->bR(BReg::W);
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg) - 3] >> 8;
+						return this->_wregs[static_cast<uint8_t>(reg)] >> 8;
 				}
 			}
 
@@ -373,7 +403,7 @@ namespace altair {
 					case WReg::W: this->bR(BReg::W, val); break;
 					default:
 						{
-							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg) - 3];
+							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg)];
 
 							r = (r & 0x00ff) | ((uint16_t) val << 8);
 						}
@@ -387,24 +417,6 @@ namespace altair {
 		protected:
 			Core() = delete;
 			Core(const Core &core) = delete;
-
-			static inline Core::BReg binToBreg(uint8_t val) {
-				switch (val) {
-					case 0x00: return BReg::B;
-					case 0x01: return BReg::C;
-					case 0x02: return BReg::D;
-					case 0x03: return BReg::E;
-					case 0x04: return BReg::H;
-					case 0x05: return BReg::L;
-					case 0x07: return BReg::A;
-					default:
-						throw std::runtime_error("Invalid code!");
-				}
-			}
-
-			static inline Core::WReg binToWreg(uint8_t val) {
-				return static_cast<Core::WReg>(val);
-			}
 	};
 }
 

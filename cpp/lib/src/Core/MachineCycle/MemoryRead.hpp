@@ -33,13 +33,16 @@ namespace altair {
 				PC_INC,
 				HL,
 				WZ,
-				WZ_INC
+				WZ_INC,
+				B,
+				D
 			};
 
 		public:
-			/*!
-			 * readFromPc true - address from PC, false - address from HL register pair
-			 */
+			MachineCycleMemoryRead(Core *core) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
+				this->address = Address::PC_INC;
+			}
+
 			MachineCycleMemoryRead(Core *core, Address addr) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
 				this->address = addr;
 			}
@@ -59,6 +62,14 @@ namespace altair {
 					case Address::WZ:
 					case Address::WZ_INC:
 						pio.setAddress(this->core()->wR(Core::WReg::W));
+						break;
+
+					case Address::B:
+						pio.setAddress(this->core()->wR(Core::WReg::B));
+						break;
+
+					case Address::D:
+						pio.setAddress(this->core()->wR(Core::WReg::D));
 						break;
 				}
 
@@ -90,6 +101,11 @@ namespace altair {
 				pio.setDbin(false);
 
 				return false;
+			}
+
+		protected:
+			void setAddress(Address addr) {
+				this->address = addr;
 			}
 
 		private:

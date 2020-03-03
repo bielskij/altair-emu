@@ -113,7 +113,12 @@ void test::Pio::clk() {
 	DBG(("CALL"));
 
 	if (this->dbin) {
-		this->data = this->program[this->address];
+		if (this->address >= this->program.size()) {
+			this->data = 0;
+
+		} else {
+			this->data = this->program[this->address];
+		}
 	}
 
 	if (this->wr) {

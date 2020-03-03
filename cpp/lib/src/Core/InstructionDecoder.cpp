@@ -26,8 +26,9 @@
 #include "Core/Instruction/MovRR.hpp"
 #include "Core/Instruction/MovRM.hpp"
 #include "Core/Instruction/MovMR.hpp"
-#include "Core/Instruction/MviR.hpp"
 #include "Core/Instruction/Sphl.hpp"
+#include "Core/Instruction/MviR.hpp"
+#include "Core/Instruction/MviM.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -41,7 +42,9 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x1e] = new InstructionMviR(core);
 	this->_opCodes[0x26] = new InstructionMviR(core);
 	this->_opCodes[0x2e] = new InstructionMviR(core);
-	//	this->_opCodes[0x36], _h_mviM,  "MVI M,d8");
+
+	this->_opCodes[0x36] = new InstructionMviM(core);
+
 	this->_opCodes[0x3e] = new InstructionMviR(core);
 
 	this->_opCodes[0x40] = new InstructionMovRR(core);

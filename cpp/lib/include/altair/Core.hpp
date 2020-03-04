@@ -30,9 +30,12 @@
 namespace altair {
 	class Core {
 		public:
-			// IR - instruction register
+			// IR  - instruction register
+			// A   - accumulator (ALU)
+			// ACT - temporary accumulator (ALU)
+			// TMP - temporary (ALU)
 			enum class BReg : uint8_t {
-				A, B, C, D, E, H, L, W, Z, IR, TMP, COUNT
+				A, B, C, D, E, H, L, W, Z, IR, TMP, ACT, COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
@@ -93,21 +96,15 @@ namespace altair {
 					bool fParity;
 					bool fAuxCarry;
 
-					uint8_t _ac;  // Accumulator
-					uint8_t _act; // Temporary accumulator
-					uint8_t _tmp; // Temporary register
-
 				public:
-					Alu() {
+					Alu(Core *core) {
+						this->core = core;
+
 						this->fCarry    = false;
 						this->fZero     = false;
 						this->fSign     = false;
 						this->fParity   = false;
 						this->fAuxCarry = false;
-
-						this->_ac  = 0;
-						this->_act = 0;
-						this->_tmp = 0;
 					}
 
 					virtual ~Alu() {
@@ -120,35 +117,31 @@ namespace altair {
 						this->fParity   = false;
 						this->fAuxCarry = false;
 
-						this->ac(0);
-						this->act(0);
-						this->tmp(0);
-
 						this->setCommon(0);
 					}
 
 					inline uint8_t ac() const {
-						return this->_ac;
+						return core->bR(BReg::A);
 					}
 
 					inline void ac(uint8_t val) {
-						this->_ac = val;
+						core->bR(BReg::A, val);
 					}
 
 					inline uint8_t act() const {
-						return this->_act;
+						return core->bR(BReg::ACT);
 					}
 
 					inline void act(uint8_t val) {
-						this->_act = val;
+						core->bR(BReg::ACT, val);
 					}
 
 					inline uint8_t tmp() const {
-						return this->_tmp;
+						return core->bR(BReg::TMP);
 					}
 
 					inline void tmp(uint8_t val) {
-						this->_tmp = val;
+						core->bR(BReg::TMP, val);
 					}
 
 					static inline bool getParity(uint8_t val) {
@@ -164,6 +157,9 @@ namespace altair {
 						this->fZero   = (val == 0);
 						this->fParity = getParity(val) == 0;
 					}
+
+				private:
+					Core *core;
 			};
 
 			class MachineCycle {
@@ -275,13 +271,13 @@ namespace altair {
 
 		private:
 			// General purpose registers + temporary internals
-			uint8_t  _bregs[static_cast<uint8_t>(BReg::COUNT) - 1];
+			uint8_t  _bregs[static_cast<uint8_t>(BReg::COUNT)];
 			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT) - 4];
 
 			Instruction  *_i;
 			MachineCycle *_cycle;
 
-			Alu                _alu;
+			Alu               *_alu;
 			InstructionDecoder*_decoder;
 			Pio               &_pio;
 			MachineCycle      *_fetchCycle;
@@ -296,20 +292,11 @@ namespace altair {
 			void nextInstruction();
 
 			inline uint8_t bR(BReg reg) const {
-				if (reg == BReg::A) {
-					return this->_alu.ac();
-				}
-
-				return this->_bregs[static_cast<uint8_t>(reg) - 1];
+				return this->_bregs[static_cast<uint8_t>(reg)];
 			}
 
 			inline void bR(BReg r, uint8_t val) {
-				if (r == BReg::A) {
-					this->_alu.ac(val);
-
-				} else {
-					this->_bregs[static_cast<uint8_t>(r) - 1] = val;
-				}
+				this->_bregs[static_cast<uint8_t>(r)] = val;
 			}
 
 			inline uint16_t wR(WReg reg) const {

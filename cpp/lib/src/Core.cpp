@@ -33,6 +33,7 @@
 altair::Core::Core(Pio &pio) : _pio(pio) {
 	this->_fetchCycle = new MachineCycleFetch(this);
 	this->_decoder    = new InstructionDecoder(this);
+	this->_alu        = new Alu(this);
 
 	this->_i     = nullptr;
 	this->_cycle = nullptr;
@@ -50,6 +51,8 @@ altair::Core::Core(Pio &pio) : _pio(pio) {
 
 altair::Core::~Core() {
 	delete this->_fetchCycle;
+	delete this->_decoder;
+	delete this->_alu;
 }
 
 

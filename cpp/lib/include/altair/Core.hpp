@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <type_traits>
 
 namespace altair {
 	class Core {
@@ -35,14 +36,14 @@ namespace altair {
 			// ACT - temporary accumulator (ALU)
 			// TMP - temporary (ALU)
 			enum class BReg : uint8_t {
-				A, B, C, D, E, H, L, W, Z, IR, TMP, ACT, COUNT
+				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, COUNT
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
 			// PC - Program counter
 			// SP - Stack pointer
 			// W  - temporary
-			enum class WReg {
+			enum class WReg : uint8_t {
 				SP, PC,
 				B, D, H, W, // Virtual registers, wrappers on byte reg pairs
 				COUNT
@@ -88,63 +89,100 @@ namespace altair {
 			};
 
 			class Alu {
-				private:
-					// Flags
-					bool fCarry;
-					bool fZero;
-					bool fSign;
-					bool fParity;
-					bool fAuxCarry;
+				public:
+					static constexpr uint8_t Z  = 1 << 6;
+					static constexpr uint8_t CY = 1 << 0;
+					static constexpr uint8_t S  = 1 << 7;
+					static constexpr uint8_t P  = 1 << 2;
+					static constexpr uint8_t AC = 1 << 4;
+
+				public:
+					enum class Act {
+						A
+					};
+
+					enum class Op {
+						IDLE,
+
+						ADD
+					};
 
 				public:
 					Alu(Core *core) {
 						this->core = core;
 
-						this->fCarry    = false;
-						this->fZero     = false;
-						this->fSign     = false;
-						this->fParity   = false;
-						this->fAuxCarry = false;
+						this->reset();
 					}
 
 					virtual ~Alu() {
 					}
 
-					inline void reset() {
-						this->fCarry    = false;
-						this->fZero     = false;
-						this->fSign     = false;
-						this->fParity   = false;
-						this->fAuxCarry = false;
-
-						this->setCommon(0);
+					inline bool fZ() const {
+						return (core->bR(Core::BReg::F) & Z) != 0;
 					}
 
-					inline uint8_t ac() const {
-						return core->bR(BReg::A);
+					inline void fZ(uint8_t val) {
+						if (val == 0) {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | Z);
+						} else {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~Z);
+						}
 					}
 
-					inline void ac(uint8_t val) {
-						core->bR(BReg::A, val);
+					inline bool fCY() const {
+						return (core->bR(Core::BReg::F) & CY) != 0;
 					}
 
-					inline uint8_t act() const {
-						return core->bR(BReg::ACT);
+					inline void fCY(uint16_t val) {
+						if ((val & 0xff00) != 0) {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | CY);
+						} else {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~CY);
+						}
 					}
 
-					inline void act(uint8_t val) {
-						core->bR(BReg::ACT, val);
+					inline bool fS() const {
+						return (core->bR(Core::BReg::F) & S) != 0;
 					}
 
-					inline uint8_t tmp() const {
-						return core->bR(BReg::TMP);
+					inline void fS(uint8_t val) {
+						if ((val & 0x80) != 0) {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | S);
+						} else {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~S);
+						}
 					}
 
-					inline void tmp(uint8_t val) {
-						core->bR(BReg::TMP, val);
+					inline bool fP() const {
+						return (core->bR(Core::BReg::F) & P) != 0;
 					}
 
-					static inline bool getParity(uint8_t val) {
+					inline void fP(uint8_t val) {
+						if (getParityOdd(val)) {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~P);
+						} else {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | P);
+						}
+					}
+
+					inline bool fAC() const {
+						return (core->bR(Core::BReg::F) & AC) != 0;
+					}
+
+					inline void fAC(uint8_t val) {
+						if ((val & 0xf0) != 0) {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | AC);
+						} else {
+							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~AC);
+						}
+					}
+
+					void reset();
+					void op(Act actSrc, Op operation, bool includeCarry);
+					void clk();
+
+				private:
+					static inline bool getParityOdd(uint8_t val) {
 						val ^= (val >> 4);
 						val ^= (val >> 2);
 						val ^= (val >> 1);
@@ -152,14 +190,11 @@ namespace altair {
 						return (val) & 1;
 					}
 
-					inline void setCommon(uint8_t val) {
-						this->fSign   = (val & 0x80) != 0;
-						this->fZero   = (val == 0);
-						this->fParity = getParity(val) == 0;
-					}
-
 				private:
-					Core *core;
+					Core   *core;
+					Op      operation;
+					bool    operationCarry;
+					uint8_t clkCount;
 			};
 
 			class MachineCycle {
@@ -399,6 +434,10 @@ namespace altair {
 
 			inline Pio &pio() const {
 				return this->_pio;
+			}
+
+			inline Alu *alu() const {
+				return this->_alu;
 			}
 
 		protected:

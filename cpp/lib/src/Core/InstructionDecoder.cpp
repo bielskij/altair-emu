@@ -37,6 +37,7 @@
 #include "Core/Instruction/Ldax.hpp"
 #include "Core/Instruction/Stax.hpp"
 #include "Core/Instruction/Xchg.hpp"
+#include "Core/Instruction/AddR.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -127,6 +128,20 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x7d] = new InstructionMovRR(core);
 	this->_opCodes[0x7e] = new InstructionMovRM(core);
 	this->_opCodes[0x7f] = new InstructionMovRR(core);
+	this->_opCodes[0x80] = new InstructionAddR(core, false);
+	this->_opCodes[0x81] = new InstructionAddR(core, false);
+	this->_opCodes[0x82] = new InstructionAddR(core, false);
+	this->_opCodes[0x83] = new InstructionAddR(core, false);
+	this->_opCodes[0x84] = new InstructionAddR(core, false);
+	this->_opCodes[0x85] = new InstructionAddR(core, false);
+	this->_opCodes[0x87] = new InstructionAddR(core, false);
+	this->_opCodes[0x88] = new InstructionAddR(core, true);
+	this->_opCodes[0x89] = new InstructionAddR(core, true);
+	this->_opCodes[0x8a] = new InstructionAddR(core, true);
+	this->_opCodes[0x8b] = new InstructionAddR(core, true);
+	this->_opCodes[0x8c] = new InstructionAddR(core, true);
+	this->_opCodes[0x8d] = new InstructionAddR(core, true);
+	this->_opCodes[0x8f] = new InstructionAddR(core, true);
 	this->_opCodes[0xeb] = new InstructionXchg(core);
 	this->_opCodes[0xf9] = new InstructionSphl(core);
 }

@@ -40,6 +40,7 @@
 #include "Core/Instruction/AddR.hpp"
 #include "Core/Instruction/AddM.hpp"
 #include "Core/Instruction/AddI.hpp"
+#include "Core/Instruction/SubR.hpp"
 
 #include "Core/Instruction/Stc.hpp"
 
@@ -149,6 +150,20 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x8d] = new InstructionAddR(core, true);
 	this->_opCodes[0x8e] = new InstructionAddM(core, true);
 	this->_opCodes[0x8f] = new InstructionAddR(core, true);
+	this->_opCodes[0x90] = new InstructionSubR(core, false);
+	this->_opCodes[0x91] = new InstructionSubR(core, false);
+	this->_opCodes[0x92] = new InstructionSubR(core, false);
+	this->_opCodes[0x93] = new InstructionSubR(core, false);
+	this->_opCodes[0x94] = new InstructionSubR(core, false);
+	this->_opCodes[0x95] = new InstructionSubR(core, false);
+	this->_opCodes[0x97] = new InstructionSubR(core, false);
+	this->_opCodes[0x98] = new InstructionSubR(core, true);
+	this->_opCodes[0x99] = new InstructionSubR(core, true);
+	this->_opCodes[0x9a] = new InstructionSubR(core, true);
+	this->_opCodes[0x9b] = new InstructionSubR(core, true);
+	this->_opCodes[0x9c] = new InstructionSubR(core, true);
+	this->_opCodes[0x9d] = new InstructionSubR(core, true);
+	this->_opCodes[0x9f] = new InstructionSubR(core, true);
 	this->_opCodes[0xc6] = new InstructionAddI(core, false);
 	this->_opCodes[0xce] = new InstructionAddI(core, true);
 	this->_opCodes[0xeb] = new InstructionXchg(core);

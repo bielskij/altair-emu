@@ -61,6 +61,26 @@ void altair::Core::Alu::clk() {
 					core->bR(Core::BReg::A, valCy);
 				}
 				break;
+
+			case Op::SUB:
+				if (this->clkCount == 2) {
+					uint16_t valCy = (uint16_t) core->bR(Core::BReg::ACT) - (uint16_t) core->bR(Core::BReg::TMP);
+					uint8_t  valAc = (core->bR(Core::BReg::ACT) & 0x0f) - (core->bR(Core::BReg::TMP) + 0x0f);
+
+					if (this->operationCarry) {
+						valCy -= this->fCY();
+						valAc -= this->fCY();
+					}
+
+					this->fZ (valCy);
+					this->fS (valCy);
+					this->fP (valCy);
+					this->fCY(valCy);
+					this->fAC(valAc);
+
+					core->bR(Core::BReg::A, valCy);
+				}
+				break;
 		}
 	}
 }

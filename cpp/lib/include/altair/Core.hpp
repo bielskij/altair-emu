@@ -104,7 +104,8 @@ namespace altair {
 					enum class Op {
 						IDLE,
 
-						ADD
+						ADD,
+						SUB
 					};
 
 				public:

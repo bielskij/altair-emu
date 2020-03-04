@@ -28,7 +28,7 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, adi_clk) {
+CUNIT_TEST(core_instruction, aci_clk) {
 	test::Pio  pio({
 		0xc6, 0x10
 	});
@@ -40,7 +40,7 @@ CUNIT_TEST(core_instruction, adi_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, adi_regs) {
+CUNIT_TEST(core_instruction, aci_regs) {
 	// adi 0x10
 	test::Pio  pio({
 		0xc6, 0x10

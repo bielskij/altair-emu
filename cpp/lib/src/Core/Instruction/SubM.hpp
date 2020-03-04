@@ -21,37 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef CORE_INSTRUCTION_SUBM_H_
+#define CORE_INSTRUCTION_SUBM_H_
 
-#include "cunit.h"
+#include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
 
-#include "test/Core.hpp"
-#include "Core/Pio.hpp"
+namespace altair {
+	class InstructionSubM : public Core::Instruction {
+		private:
+			class MemoryRead : public MachineCycleMemoryRead {
+				public:
+					MemoryRead(Core *core, bool withCarry) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::HL) {
+						this->withCarry = withCarry;
+					}
 
+					bool t3() override {
+						core()->bR(Core::BReg::TMP, core()->pio().getData());
 
-CUNIT_TEST(core_instruction, adi_clk) {
-	test::Pio  pio({
-		0xce, 0x10
-	});
+						core()->alu()->op(Core::Alu::Act::A, Core::Alu::Op::SUB, this->withCarry);
 
-	test::Core core(pio);
+						return this->MachineCycleMemoryRead::t3();
+					}
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 7);
+				private:
+					bool withCarry;
+			};
+
+		public:
+			InstructionSubM(Core *core, bool withCarry) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MemoryRead(core, withCarry));
+			}
+	};
 }
 
-
-CUNIT_TEST(core_instruction, adi_regs) {
-	// stc
-	// aci 0x10
-	test::Pio  pio({
-		0x37, 0xce, 0x10
-	});
-
-	test::Core core(pio);
-
-	core.nextInstruction();
-	core.nextInstruction();
-	core.tick();
-	core.tick();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x11);
-}
+#endif /* CORE_INSTRUCTION_SUBM_H_ */

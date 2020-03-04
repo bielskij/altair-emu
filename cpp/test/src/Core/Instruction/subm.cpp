@@ -28,9 +28,9 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, adi_clk) {
+CUNIT_TEST(core_instruction, subm_clk) {
 	test::Pio  pio({
-		0xce, 0x10
+		0x96
 	});
 
 	test::Core core(pio);
@@ -40,11 +40,11 @@ CUNIT_TEST(core_instruction, adi_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, adi_regs) {
-	// stc
-	// aci 0x10
+CUNIT_TEST(core_instruction, subm_regs) {
+	// mvi a,1
+	// sub m
 	test::Pio  pio({
-		0x37, 0xce, 0x10
+		0x3E, 0x01, 0x96
 	});
 
 	test::Core core(pio);
@@ -53,5 +53,5 @@ CUNIT_TEST(core_instruction, adi_regs) {
 	core.nextInstruction();
 	core.tick();
 	core.tick();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x11);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xc3);
 }

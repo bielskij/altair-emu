@@ -28,7 +28,7 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, adc_clk) {
+CUNIT_TEST(core_instruction, adcr_clk) {
 	test::Pio  pio({
 		0x85
 	});
@@ -40,7 +40,7 @@ CUNIT_TEST(core_instruction, adc_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, adc_regs) {
+CUNIT_TEST(core_instruction, adcr_regs) {
 	// mvi b,1
 	// mvi c,2
 	// mvi d,3

@@ -117,15 +117,23 @@ namespace altair {
 					virtual ~Alu() {
 					}
 
+					inline void set(uint8_t flag) {
+						core->bR(Core::BReg::F, core->bR(Core::BReg::F) | flag);
+					}
+
+					inline void clear(uint8_t flag) {
+						core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~flag);
+					}
+
 					inline bool fZ() const {
 						return (core->bR(Core::BReg::F) & Z) != 0;
 					}
 
 					inline void fZ(uint8_t val) {
 						if (val == 0) {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | Z);
+							set(Z);
 						} else {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~Z);
+							clear(Z);
 						}
 					}
 
@@ -135,9 +143,9 @@ namespace altair {
 
 					inline void fCY(uint16_t val) {
 						if ((val & 0xff00) != 0) {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | CY);
+							set(CY);
 						} else {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~CY);
+							clear(CY);
 						}
 					}
 
@@ -147,9 +155,9 @@ namespace altair {
 
 					inline void fS(uint8_t val) {
 						if ((val & 0x80) != 0) {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | S);
+							set(S);
 						} else {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~S);
+							clear(S);
 						}
 					}
 
@@ -159,9 +167,9 @@ namespace altair {
 
 					inline void fP(uint8_t val) {
 						if (getParityOdd(val)) {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~P);
+							clear(P);
 						} else {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | P);
+							set(P);
 						}
 					}
 
@@ -171,9 +179,9 @@ namespace altair {
 
 					inline void fAC(uint8_t val) {
 						if ((val & 0xf0) != 0) {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) | AC);
+							set(AC);
 						} else {
-							core->bR(Core::BReg::F, core->bR(Core::BReg::F) & ~AC);
+							clear(AC);
 						}
 					}
 

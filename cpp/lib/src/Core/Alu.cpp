@@ -29,11 +29,11 @@ void altair::Core::Alu::reset() {
 	this->clkCount  = 0;
 
 	// Fake requests to set initial state
-	this->fCY(0);
-	this->fZ(1);
-	this->fS(0);
-	this->fP(0);
-	this->fAC(0);
+	clear(CY);
+	clear(Z);
+	clear(S);
+	clear(P);
+	clear(AC);
 }
 
 

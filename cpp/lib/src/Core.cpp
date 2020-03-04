@@ -46,6 +46,9 @@ altair::Core::Core(Pio &pio) : _pio(pio) {
 	for (auto &r : this->_wregs) {
 		r = 0;
 	}
+
+	// Initialize constant value in flag register
+	this->bR(BReg::F, 0x02);
 }
 
 

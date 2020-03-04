@@ -39,6 +39,8 @@
 #include "Core/Instruction/Xchg.hpp"
 #include "Core/Instruction/AddR.hpp"
 
+#include "Core/Instruction/Stc.hpp"
+
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	for (auto &opcode : this->_opCodes) {
@@ -63,6 +65,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x31] = new InstructionLxi(core);
 	this->_opCodes[0x32] = new InstructionSta(core);
 	this->_opCodes[0x36] = new InstructionMviM(core);
+	this->_opCodes[0x37] = new InstructionStc(core);
 	this->_opCodes[0x3a] = new InstructionLda(core);
 	this->_opCodes[0x3e] = new InstructionMviR(core);
 	this->_opCodes[0x40] = new InstructionMovRR(core);

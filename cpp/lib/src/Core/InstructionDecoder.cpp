@@ -39,9 +39,10 @@
 #include "Core/Instruction/Xchg.hpp"
 #include "Core/Instruction/AddR.hpp"
 #include "Core/Instruction/AddM.hpp"
-#include "Core/Instruction/AddI.hpp"
+#include "Core/Instruction/Adi.hpp"
 #include "Core/Instruction/SubR.hpp"
 #include "Core/Instruction/SubM.hpp"
+#include "Core/Instruction/Sui.hpp"
 
 #include "Core/Instruction/Stc.hpp"
 
@@ -167,8 +168,10 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x9d] = new InstructionSubR(core, true);
 	this->_opCodes[0x9e] = new InstructionSubM(core, true);
 	this->_opCodes[0x9f] = new InstructionSubR(core, true);
-	this->_opCodes[0xc6] = new InstructionAddI(core, false);
-	this->_opCodes[0xce] = new InstructionAddI(core, true);
+	this->_opCodes[0xc6] = new InstructionAdi(core, false);
+	this->_opCodes[0xce] = new InstructionAdi(core, true);
+	this->_opCodes[0xd6] = new InstructionSui(core, false);
+	this->_opCodes[0xde] = new InstructionSui(core, true);
 	this->_opCodes[0xeb] = new InstructionXchg(core);
 	this->_opCodes[0xf9] = new InstructionSphl(core);
 }

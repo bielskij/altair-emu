@@ -21,40 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_ADDI_H_
-#define CORE_INSTRUCTION_ADDI_H_
 
-#include "altair/Core.hpp"
-#include "altair/Utils.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
+#include "cunit.h"
 
-namespace altair {
-	class InstructionAddI : public Core::Instruction {
-		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core, bool withCarry) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::PC_INC) {
-						this->withCarry = withCarry;
-					}
+#include "test/Core.hpp"
+#include "Core/Pio.hpp"
 
-					bool t3() override {
-						core()->bR(Core::BReg::TMP, core()->pio().getData());
 
-						core()->alu()->op(Core::Alu::Act::A, Core::Alu::Op::ADD, this->withCarry);
+CUNIT_TEST(core_instruction, sui_clk) {
+	test::Pio  pio({
+		0xde, 0x10
+	});
 
-						return this->MachineCycleMemoryRead::t3();
-					}
+	test::Core core(pio);
 
-				private:
-					bool withCarry;
-			};
-
-		public:
-			InstructionAddI(Core *core, bool withCarry) : Instruction(core) {
-				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core, withCarry));
-			}
-	};
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 7);
 }
 
-#endif /* CORE_INSTRUCTION_ADDI_H_ */
+
+CUNIT_TEST(core_instruction, sui_regs) {
+	// stc
+	// sbi 0x10
+	test::Pio  pio({
+		0x37, 0xde, 0x10
+	});
+
+	test::Core core(pio);
+
+	core.nextInstruction();
+	core.nextInstruction();
+	core.tick();
+	core.tick();
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xef);
+}

@@ -30,7 +30,7 @@
 
 CUNIT_TEST(core_instruction, adi_clk) {
 	test::Pio  pio({
-		0xce, 0x10
+		0xc6, 0x10
 	});
 
 	test::Core core(pio);
@@ -41,17 +41,15 @@ CUNIT_TEST(core_instruction, adi_clk) {
 
 
 CUNIT_TEST(core_instruction, adi_regs) {
-	// stc
-	// aci 0x10
+	// adi 0x10
 	test::Pio  pio({
-		0x37, 0xce, 0x10
+		0xc6, 0x10
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	core.nextInstruction();
 	core.tick();
 	core.tick();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x11);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x10);
 }

@@ -44,52 +44,40 @@ void altair::Core::Alu::clk() {
 	if (this->operation != Op::IDLE) {
 		this->clkCount++;
 
-		switch(this->operation) {
-			case Op::ADD:
-				if (this->clkCount == this->clkDelay) {
-					uint16_t valCy = (uint16_t) core->bR(Core::BReg::ACT) + (uint16_t) core->bR(Core::BReg::TMP);
-					uint8_t  valAc = (core->bR(Core::BReg::ACT) & 0x0f) + (core->bR(Core::BReg::TMP) + 0x0f);
+		if (this->clkCount >= this->clkDelay) {
+			uint16_t valCy = core->bR(Core::BReg::ACT);
+			uint8_t  valAc = valCy & 0x0f;
 
-					if (this->includeCarry) {
-						valCy += this->fCY();
-						valAc += this->fCY();
-					}
+			uint8_t carry = 0;
 
-					this->fZ (valCy);
-					this->fS (valCy);
-					this->fP (valCy);
-					this->fAC(valAc);
-					if (this->updateCarry) {
-						this->fCY(valCy);
-					}
+			if (this->includeCarry) {
+				carry = this->fCY();
+			}
 
-					core->bR(this->dstReg, valCy);
-				}
-				break;
+			switch(this->operation) {
+				case Op::ADD:
+					valCy +=  ((uint16_t)core->bR(Core::BReg::TMP) + carry);
+					valAc += (((uint16_t)core->bR(Core::BReg::TMP) & 0x0f) + carry);
+					break;
 
-			case Op::SUB:
-				if (this->clkCount == this->clkDelay) {
-					uint16_t valCy = (uint16_t) core->bR(Core::BReg::ACT) - (uint16_t) core->bR(Core::BReg::TMP);
-					uint8_t  valAc = (core->bR(Core::BReg::ACT) & 0x0f) - (core->bR(Core::BReg::TMP) + 0x0f);
+				case Op::SUB:
+					valCy -=  ((uint16_t)core->bR(Core::BReg::TMP) + carry);
+					valAc -= (((uint16_t)core->bR(Core::BReg::TMP) & 0x0f) + carry);
+					break;
+			}
 
-					if (this->includeCarry) {
-						valCy -= this->fCY();
-						valAc -= this->fCY();
-					}
+			this->fZ (valCy);
+			this->fS (valCy);
+			this->fP (valCy);
+			this->fAC(valAc);
 
-					this->fZ (valCy);
-					this->fS (valCy);
-					this->fP (valCy);
-					this->fCY(valCy);
-					this->fAC(valAc);
+			if (this->updateCarry) {
+				this->fCY(valCy);
+			}
 
-					if (this->updateCarry) {
-						this->fCY(valCy);
-					}
+			core->bR(this->dstReg, valCy);
 
-					core->bR(this->dstReg, valCy);
-				}
-				break;
+			this->operation = Op::IDLE;
 		}
 	}
 }

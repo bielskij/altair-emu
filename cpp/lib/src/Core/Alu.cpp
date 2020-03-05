@@ -83,23 +83,13 @@ void altair::Core::Alu::clk() {
 }
 
 
-void altair::Core::Alu::op(Act actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
-	switch (actSrc) {
-		case Act::A:
-			core->bR(Core::BReg::ACT, core->bR(Core::BReg::A));
-			break;
+void altair::Core::Alu::op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
+	this->op(core->bR(actSrc), dstReg, operation, includeCarry, updateCarry, clkDelay);
+}
 
-		case Act::C_1:
-			core->bR(Core::BReg::ACT, 1);
-			break;
 
-		case Act::C_M_1:
-			core->bR(Core::BReg::ACT, 0xff);
-			break;
-
-		default:
-			throw std::runtime_error("Unsupported ACT source!");
-	}
+void altair::Core::Alu::op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
+	core->bR(Core::BReg::ACT, actVal);
 
 	this->operation     = operation;
 	this->includeCarry  = includeCarry;

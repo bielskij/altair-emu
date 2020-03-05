@@ -105,12 +105,6 @@ namespace altair {
 					static constexpr uint8_t AC = 1 << 4;
 
 				public:
-					enum class Act {
-						A,
-						C_1,
-						C_M_1
-					};
-
 					enum class Op {
 						IDLE,
 
@@ -197,7 +191,8 @@ namespace altair {
 					}
 
 					void reset();
-					void op(Act actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
+					void op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
+					void op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
 					void clk();
 
 				private:

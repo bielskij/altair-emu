@@ -40,7 +40,10 @@ namespace altair {
 					bool t4() override {
 						core()->bR(Core::BReg::TMP, core()->bR(ddd()));
 
-						core()->alu()->op(1, ddd(), Core::Alu::Op::ADD, false, false, 1);
+						core()->alu()->op(1, ddd(), Core::Alu::Op::ADD, false,
+							Core::Alu::Z | Core::Alu::S | Core::Alu::P | Core::Alu::AC,
+							1
+						);
 
 						return true;
 					}

@@ -29,7 +29,7 @@ void altair::Core::Alu::reset() {
 	this->clkCount      = 0;
 	this->clkDelay      = 0;
 	this->includeCarry  = false;
-	this->updateCarry   = true;
+	this->updateFlags   = 0;
 
 	// Fake requests to set initial state
 	clear(CY);
@@ -66,12 +66,23 @@ void altair::Core::Alu::clk() {
 					break;
 			}
 
-			this->fZ (valCy);
-			this->fS (valCy);
-			this->fP (valCy);
-			this->fAC(valAc);
+			if (this->updateFlags & Z) {
+				this->fZ (valCy);
+			}
 
-			if (this->updateCarry) {
+			if (this->updateFlags & S) {
+				this->fS (valCy);
+			}
+
+			if (this->updateFlags & P) {
+				this->fP (valCy);
+			}
+
+			if (this->updateFlags & AC) {
+				this->fAC(valAc);
+			}
+
+			if (this->updateFlags & CY) {
 				this->fCY(valCy);
 			}
 
@@ -83,17 +94,17 @@ void altair::Core::Alu::clk() {
 }
 
 
-void altair::Core::Alu::op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
-	this->op(core->bR(actSrc), dstReg, operation, includeCarry, updateCarry, clkDelay);
+void altair::Core::Alu::op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
+	this->op(core->bR(actSrc), dstReg, operation, includeCarry, updateFlags, clkDelay);
 }
 
 
-void altair::Core::Alu::op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
+void altair::Core::Alu::op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
 	core->bR(Core::BReg::ACT, actVal);
 
 	this->operation     = operation;
 	this->includeCarry  = includeCarry;
-	this->updateCarry   = updateCarry;
+	this->updateFlags   = updateFlags;
 	this->clkCount      = 0;
 	this->clkDelay      = clkDelay;
 	this->dstReg        = dstReg;

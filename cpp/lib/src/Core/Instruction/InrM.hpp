@@ -40,7 +40,10 @@ namespace altair {
 					bool t3() override {
 						bool ret = this->MachineCycleMemoryRead::t3();
 
-						core()->alu()->op(1, Core::BReg::ACT, Core::Alu::Op::ADD, false, false, 1);
+						core()->alu()->op(1, Core::BReg::ACT, Core::Alu::Op::ADD, false,
+							Core::Alu::Z | Core::Alu::S | Core::Alu::P | Core::Alu::AC,
+							1
+						);
 
 						return ret;
 					}

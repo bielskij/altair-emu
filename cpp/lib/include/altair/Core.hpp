@@ -191,8 +191,8 @@ namespace altair {
 					}
 
 					void reset();
-					void op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
-					void op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
+					void op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay);
+					void op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay);
 					void clk();
 
 				private:
@@ -208,7 +208,7 @@ namespace altair {
 					Core   *core;
 					Op      operation;
 					bool    includeCarry;
-					bool    updateCarry;
+					uint8_t updateFlags;
 					uint8_t clkCount;
 					uint8_t clkDelay;
 

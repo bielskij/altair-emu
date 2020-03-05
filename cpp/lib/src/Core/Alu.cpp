@@ -93,6 +93,10 @@ void altair::Core::Alu::op(Act actSrc, Core::BReg dstReg, Op operation, bool inc
 			core->bR(Core::BReg::ACT, 1);
 			break;
 
+		case Act::C_M_1:
+			core->bR(Core::BReg::ACT, 0xff);
+			break;
+
 		default:
 			throw std::runtime_error("Unsupported ACT source!");
 	}

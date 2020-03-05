@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_INRR_H_
-#define CORE_INSTRUCTION_INRR_H_
+#ifndef CORE_INSTRUCTION_DCRR_H_
+#define CORE_INSTRUCTION_DCRR_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
@@ -30,7 +30,7 @@
 #include "Core/MachineCycle/MemoryRead.hpp"
 
 namespace altair {
-	class InstructionInrR : public Core::Instruction {
+	class InstructionDcrR : public Core::Instruction {
 		private:
 			class Fetch : public MachineCycleFetch {
 				public:
@@ -40,7 +40,7 @@ namespace altair {
 					bool t4() override {
 						core()->bR(Core::BReg::TMP, core()->bR(ddd()));
 
-						core()->alu()->op(Core::Alu::Act::C_1, ddd(), Core::Alu::Op::ADD, false, false, 1);
+						core()->alu()->op(Core::Alu::Act::C_M_1, ddd(), Core::Alu::Op::ADD, false, false, 1);
 
 						return true;
 					}
@@ -51,10 +51,10 @@ namespace altair {
 			};
 
 		public:
-			InstructionInrR(Core *core) : Instruction(core) {
+			InstructionDcrR(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_INRR_H_ */
+#endif /* CORE_INSTRUCTION_DCRR_H_ */

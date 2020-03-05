@@ -99,7 +99,8 @@ namespace altair {
 				public:
 					enum class Act {
 						A,
-						C_1
+						C_1,
+						C_M_1
 					};
 
 					enum class Op {

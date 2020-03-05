@@ -45,6 +45,8 @@
 #include "Core/Instruction/Sui.hpp"
 #include "Core/Instruction/InrR.hpp"
 
+#include "Core/Instruction/DcrR.hpp"
+
 #include "Core/Instruction/Stc.hpp"
 
 
@@ -56,23 +58,29 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x01] = new InstructionLxi(core);
 	this->_opCodes[0x02] = new InstructionStax(core);
 	this->_opCodes[0x04] = new InstructionInrR(core);
+	this->_opCodes[0x05] = new InstructionDcrR(core);
 	this->_opCodes[0x06] = new InstructionMviR(core);
 	this->_opCodes[0x0a] = new InstructionLdax(core);
 	this->_opCodes[0x0c] = new InstructionInrR(core);
+	this->_opCodes[0x0d] = new InstructionDcrR(core);
 	this->_opCodes[0x0e] = new InstructionMviR(core);
 	this->_opCodes[0x11] = new InstructionLxi(core);
 	this->_opCodes[0x12] = new InstructionStax(core);
 	this->_opCodes[0x14] = new InstructionInrR(core);
+	this->_opCodes[0x15] = new InstructionDcrR(core);
 	this->_opCodes[0x16] = new InstructionMviR(core);
 	this->_opCodes[0x1a] = new InstructionLdax(core);
 	this->_opCodes[0x1c] = new InstructionInrR(core);
+	this->_opCodes[0x1d] = new InstructionDcrR(core);
 	this->_opCodes[0x1e] = new InstructionMviR(core);
 	this->_opCodes[0x21] = new InstructionLxi(core);
 	this->_opCodes[0x22] = new InstructionShld(core);
 	this->_opCodes[0x24] = new InstructionInrR(core);
+	this->_opCodes[0x25] = new InstructionDcrR(core);
 	this->_opCodes[0x26] = new InstructionMviR(core);
 	this->_opCodes[0x2a] = new InstructionLhld(core);
 	this->_opCodes[0x2c] = new InstructionInrR(core);
+	this->_opCodes[0x2d] = new InstructionDcrR(core);
 	this->_opCodes[0x2e] = new InstructionMviR(core);
 	this->_opCodes[0x31] = new InstructionLxi(core);
 	this->_opCodes[0x32] = new InstructionSta(core);
@@ -80,6 +88,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x37] = new InstructionStc(core);
 	this->_opCodes[0x3a] = new InstructionLda(core);
 	this->_opCodes[0x3c] = new InstructionInrR(core);
+	this->_opCodes[0x3d] = new InstructionDcrR(core);
 	this->_opCodes[0x3e] = new InstructionMviR(core);
 	this->_opCodes[0x40] = new InstructionMovRR(core);
 	this->_opCodes[0x41] = new InstructionMovRR(core);

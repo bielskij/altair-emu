@@ -49,6 +49,7 @@
 #include "Core/Instruction/DcrM.hpp"
 #include "Core/Instruction/Inx.hpp"
 #include "Core/Instruction/Dcx.hpp"
+#include "Core/Instruction/Dad.hpp"
 
 #include "Core/Instruction/Stc.hpp"
 
@@ -64,6 +65,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x04] = new InstructionInrR(core);
 	this->_opCodes[0x05] = new InstructionDcrR(core);
 	this->_opCodes[0x06] = new InstructionMviR(core);
+	this->_opCodes[0x09] = new InstructionDad(core);
 	this->_opCodes[0x0a] = new InstructionLdax(core);
 	this->_opCodes[0x0b] = new InstructionDcx(core);
 	this->_opCodes[0x0c] = new InstructionInrR(core);
@@ -75,6 +77,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x14] = new InstructionInrR(core);
 	this->_opCodes[0x15] = new InstructionDcrR(core);
 	this->_opCodes[0x16] = new InstructionMviR(core);
+	this->_opCodes[0x19] = new InstructionDad(core);
 	this->_opCodes[0x1a] = new InstructionLdax(core);
 	this->_opCodes[0x1b] = new InstructionDcx(core);
 	this->_opCodes[0x1c] = new InstructionInrR(core);
@@ -86,6 +89,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x24] = new InstructionInrR(core);
 	this->_opCodes[0x25] = new InstructionDcrR(core);
 	this->_opCodes[0x26] = new InstructionMviR(core);
+	this->_opCodes[0x29] = new InstructionDad(core);
 	this->_opCodes[0x2a] = new InstructionLhld(core);
 	this->_opCodes[0x2b] = new InstructionDcx(core);
 	this->_opCodes[0x2c] = new InstructionInrR(core);
@@ -98,6 +102,7 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x35] = new InstructionDcrM(core);
 	this->_opCodes[0x36] = new InstructionMviM(core);
 	this->_opCodes[0x37] = new InstructionStc(core);
+	this->_opCodes[0x39] = new InstructionDad(core);
 	this->_opCodes[0x3a] = new InstructionLda(core);
 	this->_opCodes[0x3b] = new InstructionDcx(core);
 	this->_opCodes[0x3c] = new InstructionInrR(core);

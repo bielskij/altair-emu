@@ -98,7 +98,8 @@ namespace altair {
 
 				public:
 					enum class Act {
-						A
+						A,
+						C_1
 					};
 
 					enum class Op {
@@ -187,7 +188,7 @@ namespace altair {
 					}
 
 					void reset();
-					void op(Act actSrc, Op operation, bool includeCarry);
+					void op(Act actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay);
 					void clk();
 
 				private:
@@ -202,8 +203,12 @@ namespace altair {
 				private:
 					Core   *core;
 					Op      operation;
-					bool    operationCarry;
+					bool    includeCarry;
+					bool    updateCarry;
 					uint8_t clkCount;
+					uint8_t clkDelay;
+
+					Core::BReg dstReg;
 			};
 
 			class MachineCycle {

@@ -25,8 +25,11 @@
 
 
 void altair::Core::Alu::reset() {
-	this->operation = Op::IDLE;
-	this->clkCount  = 0;
+	this->operation     = Op::IDLE;
+	this->clkCount      = 0;
+	this->clkDelay      = 0;
+	this->includeCarry  = false;
+	this->updateCarry   = true;
 
 	// Fake requests to set initial state
 	clear(CY);
@@ -43,11 +46,11 @@ void altair::Core::Alu::clk() {
 
 		switch(this->operation) {
 			case Op::ADD:
-				if (this->clkCount == 2) {
+				if (this->clkCount == this->clkDelay) {
 					uint16_t valCy = (uint16_t) core->bR(Core::BReg::ACT) + (uint16_t) core->bR(Core::BReg::TMP);
 					uint8_t  valAc = (core->bR(Core::BReg::ACT) & 0x0f) + (core->bR(Core::BReg::TMP) + 0x0f);
 
-					if (this->operationCarry) {
+					if (this->includeCarry) {
 						valCy += this->fCY();
 						valAc += this->fCY();
 					}
@@ -55,19 +58,21 @@ void altair::Core::Alu::clk() {
 					this->fZ (valCy);
 					this->fS (valCy);
 					this->fP (valCy);
-					this->fCY(valCy);
 					this->fAC(valAc);
+					if (this->updateCarry) {
+						this->fCY(valCy);
+					}
 
-					core->bR(Core::BReg::A, valCy);
+					core->bR(this->dstReg, valCy);
 				}
 				break;
 
 			case Op::SUB:
-				if (this->clkCount == 2) {
+				if (this->clkCount == this->clkDelay) {
 					uint16_t valCy = (uint16_t) core->bR(Core::BReg::ACT) - (uint16_t) core->bR(Core::BReg::TMP);
 					uint8_t  valAc = (core->bR(Core::BReg::ACT) & 0x0f) - (core->bR(Core::BReg::TMP) + 0x0f);
 
-					if (this->operationCarry) {
+					if (this->includeCarry) {
 						valCy -= this->fCY();
 						valAc -= this->fCY();
 					}
@@ -78,7 +83,11 @@ void altair::Core::Alu::clk() {
 					this->fCY(valCy);
 					this->fAC(valAc);
 
-					core->bR(Core::BReg::A, valCy);
+					if (this->updateCarry) {
+						this->fCY(valCy);
+					}
+
+					core->bR(this->dstReg, valCy);
 				}
 				break;
 		}
@@ -86,17 +95,24 @@ void altair::Core::Alu::clk() {
 }
 
 
-void altair::Core::Alu::op(Act actSrc, Op operation, bool includeCarry) {
+void altair::Core::Alu::op(Act actSrc, Core::BReg dstReg, Op operation, bool includeCarry, bool updateCarry, uint8_t clkDelay) {
 	switch (actSrc) {
 		case Act::A:
 			core->bR(Core::BReg::ACT, core->bR(Core::BReg::A));
+			break;
+
+		case Act::C_1:
+			core->bR(Core::BReg::ACT, 1);
 			break;
 
 		default:
 			throw std::runtime_error("Unsupported ACT source!");
 	}
 
-	this->operation      = operation;
-	this->operationCarry = includeCarry;
-	this->clkCount       = 0;
+	this->operation     = operation;
+	this->includeCarry  = includeCarry;
+	this->updateCarry   = updateCarry;
+	this->clkCount      = 0;
+	this->clkDelay      = clkDelay;
+	this->dstReg        = dstReg;
 }

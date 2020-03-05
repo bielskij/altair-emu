@@ -21,40 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_SUBM_H_
-#define CORE_INSTRUCTION_SUBM_H_
+#ifndef CORE_INSTRUCTION_INRR_H_
+#define CORE_INSTRUCTION_INRR_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/MemoryRead.hpp"
 
 namespace altair {
-	class InstructionSubM : public Core::Instruction {
+	class InstructionInrR : public Core::Instruction {
 		private:
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core, bool withCarry) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::HL) {
-						this->withCarry = withCarry;
+					MemoryRead(Core *core) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::PC_INC) {
 					}
 
 					bool t3() override {
-						core()->bR(Core::BReg::TMP, core()->pio().getData());
+						core()->bR(Core::BReg::TMP, core()->bR(ddd()));
 
-						core()->alu()->op(Core::Alu::Act::A, Core::BReg::A, Core::Alu::Op::SUB, this->withCarry, true, 2);
+						core()->alu()->op(Core::Alu::Act::C_1, ddd(), Core::Alu::Op::ADD, false, false, 1);
 
-						return this->MachineCycleMemoryRead::t3();
+						return true;
 					}
 
-				private:
-					bool withCarry;
+					bool t4() override {
+						return false;
+					}
 			};
 
 		public:
-			InstructionSubM(Core *core, bool withCarry) : Instruction(core) {
+			InstructionInrR(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core, withCarry));
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_SUBM_H_ */
+#endif /* CORE_INSTRUCTION_INRR_H_ */

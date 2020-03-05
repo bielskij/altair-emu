@@ -31,23 +31,10 @@
 
 namespace altair {
 	class InstructionMovRM : public Core::Instruction {
-		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::HL) {
-					}
-
-					bool t3() override {
-						core()->bR(ddd(), core()->pio().getData());
-
-						return this->MachineCycleMemoryRead::t3();
-					}
-			};
-
 		public:
 			InstructionMovRM(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::H, Core::BReg::DDD, false));
 			}
 	};
 }

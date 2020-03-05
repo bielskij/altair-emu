@@ -32,33 +32,11 @@
 
 namespace altair {
 	class InstructionLxi : public Core::Instruction {
-		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core, bool lowbyte) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::PC_INC) {
-						this->lowByte = lowbyte;
-					}
-
-					bool t3() override {
-						if (this->lowByte) {
-							core()->wRL(rp(), core()->pio().getData());
-
-						} else {
-							core()->wRH(rp(), core()->pio().getData());
-						}
-
-						return this->MachineCycleMemoryRead::t3();
-					}
-
-				private:
-					bool lowByte;
-			};
-
 		public:
 			InstructionLxi(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core, true));
-				this->addCycle(new MemoryRead(core, false));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::RP_L, true));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::RP_H, true));
 			}
 	};
 }

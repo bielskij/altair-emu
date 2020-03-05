@@ -33,22 +33,6 @@
 namespace altair {
 	class InstructionStax : public Core::Instruction {
 		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core, MachineCycleMemoryRead::Address addr, Core::BReg dest) : MachineCycleMemoryRead(core, addr) {
-						this->destination = dest;
-					}
-
-					bool t3() override {
-						core()->bR(this->destination, core()->pio().getData());
-
-						return this->MachineCycleMemoryRead::t3();
-					}
-
-				private:
-					Core::BReg destination;
-			};
-
 			class MemoryWrite : public MachineCycleMemoryWrite {
 				public:
 					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core) {

@@ -31,30 +31,13 @@
 
 namespace altair {
 	class InstructionLhld : public Core::Instruction {
-		private:
-			class MemoryRead : public MachineCycleMemoryRead {
-				public:
-					MemoryRead(Core *core, MachineCycleMemoryRead::Address addr, Core::BReg dest) : MachineCycleMemoryRead(core, addr) {
-						this->destination = dest;
-					}
-
-					bool t3() override {
-						core()->bR(this->destination, core()->pio().getData());
-
-						return this->MachineCycleMemoryRead::t3();
-					}
-
-				private:
-					Core::BReg destination;
-			};
-
 		public:
 			InstructionLhld(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core, MachineCycleMemoryRead::Address::PC_INC, Core::BReg::Z));
-				this->addCycle(new MemoryRead(core, MachineCycleMemoryRead::Address::PC_INC, Core::BReg::W));
-				this->addCycle(new MemoryRead(core, MachineCycleMemoryRead::Address::WZ_INC, Core::BReg::L));
-				this->addCycle(new MemoryRead(core, MachineCycleMemoryRead::Address::WZ,     Core::BReg::H));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::W,  Core::BReg::L, true));
+				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::W,  Core::BReg::H, false));
 			}
 	};
 }

@@ -29,49 +29,20 @@
 namespace altair {
 	class MachineCycleMemoryRead : public Core::MachineCycle {
 		public:
-			enum Address {
-				PC_INC,
-				HL,
-				WZ,
-				WZ_INC,
-				B,
-				D
-			};
-
-		public:
-			MachineCycleMemoryRead(Core *core) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
-				this->address = Address::PC_INC;
-			}
-
-			MachineCycleMemoryRead(Core *core, Address addr) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
-				this->address = addr;
+			MachineCycleMemoryRead(Core *core, Core::WReg addr, Core::BReg dest, bool addressInc) : Core::MachineCycle(core, false, false, false, false, false, false, false, true) {
+				this->address    = addr;
+				this->dstReg     = dest;
+				this->addressInc = addressInc;
 			}
 
 			bool t1() override {
 				Core::Pio &pio = this->core()->pio();
 
-				switch (this->address) {
-					case Address::PC_INC:
-						pio.setAddress(this->core()->wR(Core::WReg::PC));
-						break;
-
-					case Address::HL:
-						pio.setAddress(this->core()->wR(Core::WReg::H));
-						break;
-
-					case Address::WZ:
-					case Address::WZ_INC:
-						pio.setAddress(this->core()->wR(Core::WReg::W));
-						break;
-
-					case Address::B:
-						pio.setAddress(this->core()->wR(Core::WReg::B));
-						break;
-
-					case Address::D:
-						pio.setAddress(this->core()->wR(Core::WReg::D));
-						break;
+				if (this->address == Core::WReg::RP) {
+					this->address = rp();
 				}
+
+				pio.setAddress(core()->wR(this->address));
 
 				pio.setData(this->getStatus());
 				pio.setSync(true);
@@ -80,16 +51,13 @@ namespace altair {
 			}
 
 			bool t2() override {
-				Core::Pio &pio = this->core()->pio();
+				Core::Pio &pio = core()->pio();
 
 				pio.setSync(false);
 				pio.setDbin(true);
 
-				if (this->address == Address::PC_INC) {
-					this->core()->wR(Core::WReg::PC, this->core()->wR(Core::WReg::PC) + 1);
-
-				} else if (this->address == Address::WZ_INC) {
-					this->core()->wR(Core::WReg::W, this->core()->wR(Core::WReg::W) + 1);
+				if (this->addressInc) {
+					core()->wR(this->address, core()->wR(this->address) + 1);
 				}
 
 				return true;
@@ -98,18 +66,32 @@ namespace altair {
 			bool t3() override {
 				Core::Pio &pio = this->core()->pio();
 
+				if (this->dstReg == Core::BReg::RP_H) {
+					core()->wRH(rp(), pio.getData());
+
+				} else if (this->dstReg == Core::BReg::RP_L) {
+					core()->wRL(rp(), pio.getData());
+
+				} else {
+					if (this->dstReg == Core::BReg::SSS) {
+						this->dstReg = sss();
+
+					} else if (this->dstReg == Core::BReg::DDD) {
+						this->dstReg = ddd();
+					}
+
+					core()->bR(this->dstReg, pio.getData());
+				}
+
 				pio.setDbin(false);
 
 				return false;
 			}
 
-		protected:
-			void setAddress(Address addr) {
-				this->address = addr;
-			}
-
 		private:
-			Address address;
+			Core::WReg address;
+			Core::BReg dstReg;
+			bool       addressInc;
 	};
 }
 

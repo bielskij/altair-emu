@@ -33,16 +33,16 @@ namespace altair {
 		private:
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core, bool withCarry) : MachineCycleMemoryRead(core, MachineCycleMemoryRead::Address::HL) {
+					MemoryRead(Core *core, bool withCarry) : MachineCycleMemoryRead(core, Core::WReg::H, Core::BReg::TMP, false) {
 						this->withCarry = withCarry;
 					}
 
 					bool t3() override {
-						core()->bR(Core::BReg::TMP, core()->pio().getData());
+						bool ret = this->MachineCycleMemoryRead::t3();
 
 						core()->alu()->op(Core::Alu::Act::A, Core::BReg::A, Core::Alu::Op::ADD, this->withCarry, true, 2);
 
-						return this->MachineCycleMemoryRead::t3();
+						return ret;
 					}
 
 				private:

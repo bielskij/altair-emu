@@ -36,7 +36,11 @@ namespace altair {
 			// ACT - temporary accumulator (ALU)
 			// TMP - temporary (ALU)
 			enum class BReg : uint8_t {
-				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, COUNT
+				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, COUNT,
+
+				// Special register declaration - used in MachineCycle to
+				// determine dynamic register
+				DDD, SSS, RP_H, RP_L
 			};
 
 			// IMPORTANT: !! Do not change reg order !!
@@ -46,7 +50,11 @@ namespace altair {
 			enum class WReg : uint8_t {
 				SP, PC,
 				B, D, H, W, // Virtual registers, wrappers on byte reg pairs
-				COUNT
+				COUNT,
+
+				// Special register declaration - used in MachineCycle to
+				// determine dynamic register
+				RP
 			};
 
 			// IMPORTANT: !! Do not change reg order !!

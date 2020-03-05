@@ -44,8 +44,9 @@
 #include "Core/Instruction/SubM.hpp"
 #include "Core/Instruction/Sui.hpp"
 #include "Core/Instruction/InrR.hpp"
-
+#include "Core/Instruction/InrM.hpp"
 #include "Core/Instruction/DcrR.hpp"
+#include "Core/Instruction/DcrM.hpp"
 
 #include "Core/Instruction/Stc.hpp"
 
@@ -84,6 +85,8 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_opCodes[0x2e] = new InstructionMviR(core);
 	this->_opCodes[0x31] = new InstructionLxi(core);
 	this->_opCodes[0x32] = new InstructionSta(core);
+	this->_opCodes[0x34] = new InstructionInrM(core);
+	this->_opCodes[0x35] = new InstructionDcrM(core);
 	this->_opCodes[0x36] = new InstructionMviM(core);
 	this->_opCodes[0x37] = new InstructionStc(core);
 	this->_opCodes[0x3a] = new InstructionLda(core);

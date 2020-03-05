@@ -32,35 +32,10 @@
 
 namespace altair {
 	class InstructionStax : public Core::Instruction {
-		private:
-			class MemoryWrite : public MachineCycleMemoryWrite {
-				public:
-					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core) {
-					}
-
-					bool t1() override {
-						switch (rp()) {
-							case Core::WReg::B: this->setAddress(Address::B); break;
-							case Core::WReg::D: this->setAddress(Address::D); break;
-							default:
-								throw std::runtime_error("Unknown address!");
-						}
-
-						return this->MachineCycleMemoryWrite::t1();
-					}
-
-					bool t3() override {
-						// TMP -> data
-						core()->pio().setData(core()->bR(Core::BReg::A));
-
-						return this->MachineCycleMemoryWrite::t3();
-					}
-			};
-
 		public:
 			InstructionStax(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryWrite(core));
+				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::RP, Core::BReg::A, false));
 			}
 	};
 }

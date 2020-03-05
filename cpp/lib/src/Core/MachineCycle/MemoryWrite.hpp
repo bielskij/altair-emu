@@ -31,47 +31,20 @@
 namespace altair {
 	class MachineCycleMemoryWrite : public Core::MachineCycle {
 		public:
-			enum Address {
-				HL,
-				WZ,
-				WZ_INC,
-				B,
-				D
-			};
-
-		public:
-			MachineCycleMemoryWrite(Core *core) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
-				this->addr = Address::HL;
-			}
-
-			MachineCycleMemoryWrite(Core *core, Address address) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
-				this->addr = address;
+			MachineCycleMemoryWrite(Core *core, Core::WReg addr, Core::BReg src, bool addressInc) : Core::MachineCycle(core, false, true, false, false, false, false, false, false) {
+				this->address    = addr;
+				this->srcReg     = src;
+				this->addressInc = addressInc;
 			}
 
 			bool t1() override {
 				Core::Pio &pio = this->core()->pio();
 
-				switch (this->addr) {
-					case Address::HL:
-						pio.setAddress(this->core()->wR(Core::WReg::H));
-						break;
-
-					case Address::WZ:
-					case Address::WZ_INC:
-						pio.setAddress(this->core()->wR(Core::WReg::W));
-						break;
-
-					case Address::B:
-						pio.setAddress(this->core()->wR(Core::WReg::B));
-						break;
-
-					case Address::D:
-						pio.setAddress(this->core()->wR(Core::WReg::D));
-						break;
-
-					default:
-						throw std::runtime_error("Invalid addressing!");
+				if (this->address == Core::WReg::RP) {
+					this->address = rp();
 				}
+
+				pio.setAddress(core()->wR(this->address));
 
 				pio.setData(this->getStatus());
 				pio.setSync(true);
@@ -84,8 +57,8 @@ namespace altair {
 
 				pio.setSync(false);
 
-				if (this->addr == Address::WZ_INC) {
-					this->core()->wR(Core::WReg::W, this->core()->wR(Core::WReg::W) + 1);
+				if (this->addressInc) {
+					this->core()->wR(this->address, this->core()->wR(this->address) + 1);
 				}
 
 				return true;
@@ -94,18 +67,32 @@ namespace altair {
 			bool t3() override {
 				Core::Pio &pio = this->core()->pio();
 
+				if (this->srcReg == Core::BReg::RP_H) {
+					pio.setData(core()->wRH(rp()));
+
+				} else if (this->srcReg == Core::BReg::RP_L) {
+					pio.setData(core()->wRL(rp()));
+
+				} else {
+					if (this->srcReg == Core::BReg::SSS) {
+						this->srcReg = sss();
+
+					} else if (this->srcReg == Core::BReg::DDD) {
+						this->srcReg = ddd();
+					}
+
+					pio.setData(core()->bR(this->srcReg));
+				}
+
 				pio.setWr(true);
 
 				return false;
 			}
 
-		protected:
-			void setAddress(Address addr) {
-				this->addr = addr;
-			}
-
 		private:
-			Address addr;
+			Core::WReg address;
+			Core::BReg srcReg;
+			bool       addressInc;
 	};
 }
 

@@ -31,30 +31,13 @@
 
 namespace altair {
 	class InstructionShld : public Core::Instruction {
-		private:
-			class MemoryWrite : public MachineCycleMemoryWrite {
-				public:
-					MemoryWrite(Core *core, MachineCycleMemoryWrite::Address addr, Core::BReg src) : MachineCycleMemoryWrite(core, addr) {
-						this->src = src;
-					}
-
-					bool t3() override {
-						core()->pio().setData(core()->bR(src));
-
-						return this->MachineCycleMemoryWrite::t3();
-					}
-
-				private:
-					Core::BReg src;
-			};
-
 		public:
 			InstructionShld(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true));
-				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true));
-				this->addCycle(new MemoryWrite(core, MachineCycleMemoryWrite::Address::WZ_INC, Core::BReg::L));
-				this->addCycle(new MemoryWrite(core, MachineCycleMemoryWrite::Address::WZ,     Core::BReg::H));
+				this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::Z, true));
+				this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::W, true));
+				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::W,  Core::BReg::L, true));
+				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::W,  Core::BReg::H, false));
 			}
 	};
 }

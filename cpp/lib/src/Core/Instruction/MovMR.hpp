@@ -45,23 +45,10 @@ namespace altair {
 					}
 			};
 
-			class MemoryWrite : public MachineCycleMemoryWrite {
-				public:
-					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core, MachineCycleMemoryWrite::Address::HL) {
-					}
-
-					bool t3() override {
-						// TMP -> data
-						core()->pio().setData(core()->bR(Core::BReg::TMP));
-
-						return this->MachineCycleMemoryWrite::t3();
-					}
-			};
-
 		public:
 			InstructionMovMR(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
-				this->addCycle(new MemoryWrite(core));
+				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::TMP, false));
 			}
 	};
 }

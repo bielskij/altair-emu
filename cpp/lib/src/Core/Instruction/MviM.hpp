@@ -32,25 +32,11 @@
 
 namespace altair {
 	class InstructionMviM : public Core::Instruction {
-		private:
-			class MemoryWrite : public MachineCycleMemoryWrite {
-				public:
-					MemoryWrite(Core *core) : MachineCycleMemoryWrite(core, MachineCycleMemoryWrite::Address::HL) {
-					}
-
-					bool t3() override {
-						// TMP -> data
-						core()->pio().setData(core()->bR(Core::BReg::TMP));
-
-						return this->MachineCycleMemoryWrite::t3();
-					}
-			};
-
 		public:
 			InstructionMviM(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::TMP, true));
-				this->addCycle(new MemoryWrite(core));
+				this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::TMP, true));
+				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::TMP, false));
 			}
 	};
 }

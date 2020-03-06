@@ -45,8 +45,9 @@ void altair::Core::Alu::clk() {
 		this->clkCount++;
 
 		if (this->clkCount >= this->clkDelay) {
-			uint16_t valCy = core->bR(Core::BReg::ACT);
-			uint8_t  valAc = valCy & 0x0f;
+			uint8_t  valTmp = core->bR(Core::BReg::TMP);
+			uint16_t valCy  = core->bR(Core::BReg::ACT);
+			uint8_t  valAc  = valCy & 0x0f;
 
 			uint8_t carry = 0;
 
@@ -56,14 +57,36 @@ void altair::Core::Alu::clk() {
 
 			switch(this->operation) {
 				case Op::ADD:
-					valCy +=  ((uint16_t)core->bR(Core::BReg::TMP) + carry);
-					valAc += (((uint16_t)core->bR(Core::BReg::TMP) & 0x0f) + carry);
+					valCy +=  ((uint16_t)valTmp + carry);
+					valAc += (((uint16_t)valTmp & 0x0f) + carry);
 					break;
 
 				case Op::SUB:
-					valCy -=  ((uint16_t)core->bR(Core::BReg::TMP) + carry);
-					valAc -= (((uint16_t)core->bR(Core::BReg::TMP) & 0x0f) + carry);
+					valCy -=  ((uint16_t)valTmp + carry);
+					valAc -= (((uint16_t)valTmp & 0x0f) + carry);
 					break;
+
+				case Op::AD:
+					{
+						if (((valCy & 0x0f) > 0x09) || this->fAC()) {
+							valCy += 0x06;
+							valAc += 0x06;
+						}
+
+						if (((valCy & 0xf0) > 0x90) || this->fCY()) {
+							valCy += 0x60;
+						}
+					}
+					break;
+
+				case Op::AND:
+					{
+						// 8085 always set AC flag in case of AND operation!
+						if (((valTmp & 0x08) | (valCy & 0x08)) != 0) {
+							valAc = 0xff;
+						}
+						valCy &= valTmp;
+					}
 			}
 
 			if (this->updateFlags & Z) {
@@ -108,4 +131,8 @@ void altair::Core::Alu::op(uint8_t actVal, Core::BReg dstReg, Op operation, bool
 	this->clkCount      = 0;
 	this->clkDelay      = clkDelay;
 	this->dstReg        = dstReg;
+
+	if (this->clkDelay == 0) {
+		this->clk();
+	}
 }

@@ -26,6 +26,7 @@
 #define CORE_PIO_HPP_
 
 #include <vector>
+#include <stdexcept>
 #include "test/Core.hpp"
 
 namespace test {
@@ -70,6 +71,9 @@ namespace test {
 
 		public:
 			uint8_t mem(uint16_t addr) {
+				if (addr >= this->program.size()) {
+					throw std::runtime_error("Read outside memory!");
+				}
 				return this->program[addr];
 			}
 	};

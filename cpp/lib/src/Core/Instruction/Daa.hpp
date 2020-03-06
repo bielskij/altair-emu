@@ -21,27 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef CORE_INSTRUCTION_DAA_H_
+#define CORE_INSTRUCTION_DAA_H_
+
 #include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
 
+namespace altair {
+	class InstructionDaa : public Core::Instruction {
+		private:
+			class Fetch : public MachineCycleFetch {
+				public:
+					Fetch(Core *core) : MachineCycleFetch(core) {
+					}
 
-const std::set<altair::Core::BReg> altair::Core::Instruction::_allBregs = {
-	Core::BReg::B, Core::BReg::C, Core::BReg::D, Core::BReg::E,
-	Core::BReg::H, Core::BReg::L, Core::BReg::A
-};
+					bool t4() override {
+						core()->alu()->op(Core::BReg::A, Core::BReg::A, Core::Alu::Op::AD, false,
+							Core::Alu::Z | Core::Alu::S | Core::Alu::P | Core::Alu::CY | Core::Alu::AC,
+							0
+						);
 
+						return MachineCycleFetch::t4();
+					}
+			};
 
-altair::Core::Instruction::Instruction(Core *core) {
-	this->_core        = core;
-	this->_cycleIdx    = 0;
-	this->_cyclesCount = 0;
+		public:
+			InstructionDaa(Core *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
+			}
+	};
 }
 
-
-altair::Core::Instruction::~Instruction() {
-
-}
-
-
-void altair::Core::Instruction::addCycle(MachineCycle *cycle) {
-	this->_cycles[this->_cyclesCount++] = cycle;
-}
+#endif /* CORE_INSTRUCTION_DAA_H_ */

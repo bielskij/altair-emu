@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
+#include <set>
+#include <vector>
 
 namespace altair {
 	class Core {
@@ -109,7 +111,10 @@ namespace altair {
 						IDLE,
 
 						ADD,
-						SUB
+						SUB,
+						AD, // Adjust decimal
+
+						AND
 					};
 
 				public:
@@ -234,45 +239,19 @@ namespace altair {
 
 				protected:
 					inline Core::BReg sss() const {
-						return binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
+						return InstructionDecoder::binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
 					}
 
 					inline Core::BReg ddd() const {
-						return binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+						return InstructionDecoder::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 					inline Core::WReg rp() const {
-						return binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
+						return InstructionDecoder::binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
 					}
 
 					inline Core::BReg ccc() const {
-						return binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
-					}
-
-				private:
-					static inline Core::BReg binToBreg(uint8_t val) {
-						switch (val) {
-							case 0x00: return BReg::B;
-							case 0x01: return BReg::C;
-							case 0x02: return BReg::D;
-							case 0x03: return BReg::E;
-							case 0x04: return BReg::H;
-							case 0x05: return BReg::L;
-							case 0x07: return BReg::A;
-							default:
-								throw std::runtime_error("Invalid code!");
-						}
-					}
-
-					static inline Core::WReg binToWreg(uint8_t val) {
-						switch (val) {
-							case 0x00: return WReg::B;
-							case 0x01: return WReg::D;
-							case 0x02: return WReg::H;
-							case 0x03: return WReg::SP;
-							default:
-								throw std::runtime_error("Invalid code!");
-						}
+						return InstructionDecoder::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 				private:
@@ -296,6 +275,10 @@ namespace altair {
 						this->_cycleIdx = 0;
 					}
 
+					const std::set<uint8_t> &getOpcodes() const {
+						return this->_opcodes;
+					}
+
 				protected:
 					Instruction(Core *core);
 					void addCycle(MachineCycle *cycle);
@@ -304,11 +287,95 @@ namespace altair {
 						return this->_core;
 					}
 
+					inline void addCode(uint8_t code) {
+						this->_opcodes.insert(code);
+					}
+
+					inline void addCodeSSS(uint8_t baseCode, Core::BReg sss) {
+						if (sss == Core::BReg::COUNT) {
+							this->addAllBreg(baseCode, 0);
+
+						} else {
+							this->addBreg(baseCode, sss, 0);
+						}
+					}
+
+					inline void addCodeDDD(uint8_t baseCode, Core::BReg ddd) {
+						if (ddd == Core::BReg::COUNT) {
+							this->addAllBreg(baseCode, 3);
+
+						} else {
+							this->addBreg(baseCode, ddd, 3);
+						}
+					}
+
+					inline void addCodeDDDSSS(uint8_t baseCode, Core::BReg ddd, Core::BReg sss) {
+						if (ddd == Core::BReg::COUNT) {
+							for (auto &d : _allBregs) {
+								if (sss == Core::BReg::COUNT) {
+									for (auto &s : _allBregs) {
+										addBreg(baseCode, d, s);
+									}
+
+								} else {
+									addBreg(baseCode, d, sss);
+								}
+							}
+
+						} else if (sss == Core::BReg::COUNT) {
+							for (auto &s : _allBregs) {
+								addBreg(baseCode, ddd, s);
+							}
+
+						} else {
+							addBreg(baseCode, ddd, sss);
+						}
+					}
+
+					inline void addCodeRP(uint8_t baseCode, Core::WReg rp) {
+						if (rp == Core::WReg::COUNT) {
+							this->addAllWreg(baseCode);
+
+						} else {
+							this->addWreg(baseCode, rp);
+						}
+					}
+
+				private:
+					inline void addBreg(uint8_t baseCode, Core::BReg ddd, Core::BReg sss) {
+						this->_opcodes.insert(baseCode | (InstructionDecoder::bregToBin(ddd) << 3) | InstructionDecoder::bregToBin(sss));
+					}
+
+					inline void addBreg(uint8_t baseCode, Core::BReg reg, uint8_t offset) {
+						this->_opcodes.insert(baseCode | (InstructionDecoder::bregToBin(reg) << offset));
+					}
+
+					inline void addAllBreg(uint8_t baseCode, uint8_t offset) {
+						for (auto &b : _allBregs) {
+							addBreg(baseCode, b, offset);
+						}
+					}
+
+					inline void addWreg(uint8_t baseCode, Core::WReg reg) {
+						this->_opcodes.insert(baseCode | (InstructionDecoder::wregToBin(reg) << 4));
+					}
+
+					inline void addAllWreg(uint8_t baseCode) {
+						addWreg(baseCode, Core::WReg::B);
+						addWreg(baseCode, Core::WReg::D);
+						addWreg(baseCode, Core::WReg::H);
+						addWreg(baseCode, Core::WReg::SP);
+					}
+
 				private:
 					uint8_t       _cycleIdx;
 					MachineCycle *_cycles[5];
 					uint8_t       _cyclesCount;
 					Core         *_core;
+
+					std::set<uint8_t> _opcodes;
+
+					static const std::set<Core::BReg> _allBregs;
 			};
 
 			class InstructionDecoder {
@@ -318,8 +385,60 @@ namespace altair {
 
 					Instruction *decode(uint8_t binaryInstruction);
 
+				public:
+					static inline Core::BReg binToBreg(uint8_t val) {
+						switch (val) {
+							case 0x00: return BReg::B;
+							case 0x01: return BReg::C;
+							case 0x02: return BReg::D;
+							case 0x03: return BReg::E;
+							case 0x04: return BReg::H;
+							case 0x05: return BReg::L;
+							case 0x07: return BReg::A;
+							default:
+								throw std::runtime_error("Invalid code!");
+						}
+					}
+
+					static inline uint8_t bregToBin(Core::BReg reg) {
+						switch (reg) {
+							case Core::BReg::B: return 0x00;
+							case Core::BReg::C: return 0x01;
+							case Core::BReg::D: return 0x02;
+							case Core::BReg::E: return 0x03;
+							case Core::BReg::H: return 0x04;
+							case Core::BReg::L: return 0x05;
+							case Core::BReg::A: return 0x07;
+							default:
+								throw std::runtime_error("Invalid BReg!");
+						}
+					}
+
+					static inline Core::WReg binToWreg(uint8_t val) {
+						switch (val) {
+							case 0x00: return WReg::B;
+							case 0x01: return WReg::D;
+							case 0x02: return WReg::H;
+							case 0x03: return WReg::SP;
+							default:
+								throw std::runtime_error("Invalid code!");
+						}
+					}
+
+					static inline uint8_t wregToBin(Core::WReg reg) {
+						switch (reg) {
+							case Core::WReg::B:  return 0x00;
+							case Core::WReg::D:  return 0x01;
+							case Core::WReg::H:  return 0x02;
+							case Core::WReg::SP: return 0x03;
+							default:
+								throw std::runtime_error("Invalid WReg!");
+						}
+					}
+
 				private:
-					Instruction *_opCodes[255];
+					Instruction *_instructionLut[255];
+					std::vector<Instruction *> _instructions;
 			};
 
 		private:

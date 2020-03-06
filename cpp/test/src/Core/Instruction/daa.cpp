@@ -28,30 +28,64 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, sbi_clk) {
+CUNIT_TEST(core_instruction, daa_clk) {
 	test::Pio  pio({
-		0xde, 0x10
+		0x27
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 7);
+	CUNIT_ASSERT_EQ(pio.clkCount, 4);
 }
 
 
-CUNIT_TEST(core_instruction, sbi_regs) {
-	// stc
-	// sbi 0x10
+CUNIT_TEST(core_instruction, daa_val_flags) {
+	// daa
+	// mvi a,0x0a
+	// daa
+	// mvi a,0xa0
+	// daa
+	// mvi a,0xaa
+	// daa
 	test::Pio  pio({
-		0x37, 0xde, 0x10
+		0x27, 0x3E, 0x0A, 0x27, 0x3E, 0xA0, 0x27, 0x3E, 0xAA, 0x27
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0);
+	CUNIT_ASSERT_FALSE(core.alu()->fAC());
+	CUNIT_ASSERT_FALSE(core.alu()->fCY());
+	CUNIT_ASSERT_TRUE(core.alu()->fP());
+	CUNIT_ASSERT_FALSE(core.alu()->fS());
+	CUNIT_ASSERT_TRUE(core.alu()->fZ());
+
 	core.nextInstruction();
-	core.tick();
-	core.tick();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xef);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x10);
+	CUNIT_ASSERT_TRUE(core.alu()->fAC());
+	CUNIT_ASSERT_FALSE(core.alu()->fCY());
+	CUNIT_ASSERT_FALSE(core.alu()->fP());
+	CUNIT_ASSERT_FALSE(core.alu()->fS());
+	CUNIT_ASSERT_FALSE(core.alu()->fZ());
+
+	core.nextInstruction();
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x06);
+	CUNIT_ASSERT_FALSE(core.alu()->fAC());
+	CUNIT_ASSERT_TRUE(core.alu()->fCY());
+	CUNIT_ASSERT_TRUE(core.alu()->fP());
+	CUNIT_ASSERT_FALSE(core.alu()->fS());
+	CUNIT_ASSERT_FALSE(core.alu()->fZ());
+
+	core.nextInstruction();
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x10);
+	CUNIT_ASSERT_TRUE(core.alu()->fAC());
+	CUNIT_ASSERT_TRUE(core.alu()->fCY());
+	CUNIT_ASSERT_FALSE(core.alu()->fP());
+	CUNIT_ASSERT_FALSE(core.alu()->fS());
+	CUNIT_ASSERT_FALSE(core.alu()->fZ());
 }

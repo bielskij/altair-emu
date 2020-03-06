@@ -44,7 +44,7 @@ CUNIT_TEST(core_instruction, dcrm_regs) {
 	// mvi l,3
 	// inr m
 	test::Pio  pio({
-		0x2E, 0x03, 0x35
+		0x2E, 0x03, 0x35, 0x00
 	});
 
 	test::Core core(pio);

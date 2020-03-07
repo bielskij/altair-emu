@@ -39,10 +39,10 @@ namespace altair {
 				Core::Pio &pio = this->core()->pio();
 
 				if (this->address == Core::WReg::RP) {
-					this->address = rp();
+					pio.setAddress(core()->wR(rp()));
+				} else {
+					pio.setAddress(core()->wR(this->address));
 				}
-
-				pio.setAddress(core()->wR(this->address));
 
 				pio.setData(this->getStatus());
 				pio.setSync(true);
@@ -57,7 +57,11 @@ namespace altair {
 				pio.setDbin(true);
 
 				if (this->addressInc) {
-					core()->wR(this->address, core()->wR(this->address) + 1);
+					if (this->address == Core::WReg::RP) {
+						core()->wR(rp(), core()->wR(rp()) + 1);
+					} else {
+						core()->wR(this->address, core()->wR(this->address) + 1);
+					}
 				}
 
 				return true;
@@ -74,13 +78,14 @@ namespace altair {
 
 				} else {
 					if (this->dstReg == Core::BReg::SSS) {
-						this->dstReg = sss();
+						core()->bR(sss(), pio.getData());
 
 					} else if (this->dstReg == Core::BReg::DDD) {
-						this->dstReg = ddd();
-					}
+						core()->bR(ddd(), pio.getData());
 
-					core()->bR(this->dstReg, pio.getData());
+					} else {
+						core()->bR(this->dstReg, pio.getData());
+					}
 				}
 
 				pio.setDbin(false);

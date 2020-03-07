@@ -21,20 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MOVMR_H_
-#define CORE_INSTRUCTION_MOVMR_H_
+#ifndef CORE_INSTRUCTION_MOV_HPP_
+#define CORE_INSTRUCTION_MOV_HPP_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/MemoryRead.hpp"
 #include "Core/MachineCycle/MemoryWrite.hpp"
 
 namespace altair {
-	class InstructionMovMR : public Core::Instruction {
+	class InstructionMov : public Core::Instruction {
+		public:
+			enum Mode {
+				RR,
+				MR,
+				RM
+			};
+
 		private:
-			class Fetch : public altair::MachineCycleFetch {
+			class FetchRR : public altair::MachineCycleFetch {
 				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
+					FetchRR(Core *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						// SSS -> TMP
+						core()->bR(Core::BReg::TMP, core()->bR(sss()));
+
+						return true;
+					}
+
+					bool t5() override {
+						// TMP -> DDD
+						core()->bR(ddd(), core()->bR(Core::BReg::TMP));
+
+						return false;
+					}
+			};
+
+			class FetchMr : public altair::MachineCycleFetch {
+				public:
+					FetchMr(Core *core) : MachineCycleFetch(core) {
 					}
 
 					bool t4() override {
@@ -46,11 +74,36 @@ namespace altair {
 			};
 
 		public:
-			InstructionMovMR(Core *core) : Instruction(core) {
-				this->addCycle(new Fetch(core));
-				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::TMP, false));
+			InstructionMov(Core *core, Mode mode) : Instruction(core) {
+				switch (mode) {
+					case Mode::RR:
+						{
+							this->addCycle(new FetchRR(core));
+
+							this->addCodeDDDSSS(0x40, Core::BReg::COUNT, Core::BReg::COUNT);
+						}
+						break;
+
+					case Mode::RM:
+						{
+							this->addCycle(new MachineCycleFetch(core));
+							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::H, Core::BReg::DDD, false));
+
+							this->addCodeDDD(0x46, Core::BReg::COUNT);
+						}
+						break;
+
+					case Mode::MR:
+						{
+							this->addCycle(new FetchMr(core));
+							this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::TMP, false));
+
+							this->addCodeSSS(0x70, Core::BReg::COUNT);
+						}
+						break;
+				}
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_MOVMR_H_ */
+#endif /* CORE_INSTRUCTION_MOV_HPP_ */

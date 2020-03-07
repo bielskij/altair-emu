@@ -374,7 +374,6 @@ namespace altair {
 					Core         *_core;
 
 					std::set<uint8_t> _opcodes;
-
 					static const std::set<Core::BReg> _allBregs;
 			};
 

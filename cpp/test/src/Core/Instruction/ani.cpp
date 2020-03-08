@@ -28,9 +28,9 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, anam_clk) {
+CUNIT_TEST(core_instruction, ani_clk) {
 	test::Pio  pio({
-		0xa6
+		0xe6
 	});
 
 	test::Core core(pio);
@@ -40,17 +40,15 @@ CUNIT_TEST(core_instruction, anam_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, anam_regs) {
-	// mvi l,0x07
+CUNIT_TEST(core_instruction, ani_regs) {
 	// mvi a,0xff
-	// ana m
+	// ani 0xa5
 	test::Pio  pio({
-		0x2e, 0x07, 0x3e, 0xff, 0xa6, 0x00, 0x00, 0xa5
+		0x3e, 0xff, 0xe6, 0xa5
 	});
 
 	test::Core core(pio);
 
-	core.nextInstruction();
 	core.nextInstruction();
 	core.nextInstruction();
 	core.tick();

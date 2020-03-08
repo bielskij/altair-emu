@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_INRM_H_
-#define CORE_INSTRUCTION_INRM_H_
+#ifndef CORE_INSTRUCTION_DCR_H_
+#define CORE_INSTRUCTION_DCR_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
@@ -30,8 +30,35 @@
 #include "Core/MachineCycle/MemoryRead.hpp"
 
 namespace altair {
-	class InstructionInrM : public Core::Instruction {
+	class InstructionDcr : public Core::Instruction {
+		public:
+			enum Mode {
+				R,
+				M
+			};
+
 		private:
+			class Fetch : public MachineCycleFetch {
+				public:
+					Fetch(Core *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						core()->bR(Core::BReg::TMP, core()->bR(ddd()));
+
+						core()->alu()->op(0xff, ddd(), Core::Alu::Op::ADD, false,
+							Core::Alu::Z | Core::Alu::S | Core::Alu::P | Core::Alu::AC,
+							1
+						);
+
+						return true;
+					}
+
+					bool t5() override {
+						return false;
+					}
+			};
+
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
 					MemoryRead(Core *core) : MachineCycleMemoryRead(core, Core::WReg::H, Core::BReg::TMP, false) {
@@ -40,7 +67,7 @@ namespace altair {
 					bool t3() override {
 						bool ret = this->MachineCycleMemoryRead::t3();
 
-						core()->alu()->op(1, Core::BReg::ACT, Core::Alu::Op::ADD, false,
+						core()->alu()->op(0xff, Core::BReg::ACT, Core::Alu::Op::ADD, false,
 							Core::Alu::Z | Core::Alu::S | Core::Alu::P | Core::Alu::AC,
 							1
 						);
@@ -50,12 +77,28 @@ namespace altair {
 			};
 
 		public:
-			InstructionInrM(Core *core) : Instruction(core) {
-				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MemoryRead(core));
-				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H, Core::BReg::ACT, false));
+			InstructionDcr(Core *core, Mode mode) : Instruction(core) {
+				switch (mode) {
+					case Mode::R:
+						{
+							this->addCycle(new Fetch(core));
+
+							this->addCodeDDD(0x05, Core::BReg::COUNT);
+						}
+						break;
+
+					case Mode::M:
+						{
+							this->addCycle(new MachineCycleFetch(core));
+							this->addCycle(new MemoryRead(core));
+							this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H, Core::BReg::ACT, false));
+
+							this->addCode(0x35);
+						}
+						break;
+				}
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_INRM_H_ */
+#endif /* CORE_INSTRUCTION_DCR_H_ */

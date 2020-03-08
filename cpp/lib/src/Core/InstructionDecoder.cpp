@@ -37,10 +37,8 @@
 #include "Core/Instruction/Xchg.hpp"
 #include "Core/Instruction/Add.hpp"
 #include "Core/Instruction/Sub.hpp"
-#include "Core/Instruction/InrR.hpp"
-#include "Core/Instruction/InrM.hpp"
-#include "Core/Instruction/DcrR.hpp"
-#include "Core/Instruction/DcrM.hpp"
+#include "Core/Instruction/Inr.hpp"
+#include "Core/Instruction/Dcr.hpp"
 #include "Core/Instruction/Inx.hpp"
 #include "Core/Instruction/Dcx.hpp"
 #include "Core/Instruction/Dad.hpp"
@@ -48,6 +46,8 @@
 #include "Core/Instruction/Stc.hpp"
 #include "Instruction/Add.hpp"
 #include "Instruction/Ana.hpp"
+#include "Instruction/Dcr.hpp"
+#include "Instruction/Inr.hpp"
 #include "Instruction/Mov.hpp"
 #include "Instruction/Sub.hpp"
 
@@ -75,6 +75,12 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructions.push_back(new InstructionMov(core, InstructionMov::MR));
 	this->_instructions.push_back(new InstructionMov(core, InstructionMov::RM));
 
+	this->_instructions.push_back(new InstructionInr(core, InstructionInr::R));
+	this->_instructions.push_back(new InstructionInr(core, InstructionInr::M));
+
+	this->_instructions.push_back(new InstructionDcr(core, InstructionDcr::R));
+	this->_instructions.push_back(new InstructionDcr(core, InstructionDcr::M));
+
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;
 	}
@@ -82,52 +88,36 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructionLut[0x01] = new InstructionLxi(core);
 	this->_instructionLut[0x02] = new InstructionStax(core);
 	this->_instructionLut[0x03] = new InstructionInx(core);
-	this->_instructionLut[0x04] = new InstructionInrR(core);
-	this->_instructionLut[0x05] = new InstructionDcrR(core);
 	this->_instructionLut[0x06] = new InstructionMviR(core);
 	this->_instructionLut[0x09] = new InstructionDad(core);
 	this->_instructionLut[0x0a] = new InstructionLdax(core);
 	this->_instructionLut[0x0b] = new InstructionDcx(core);
-	this->_instructionLut[0x0c] = new InstructionInrR(core);
-	this->_instructionLut[0x0d] = new InstructionDcrR(core);
 	this->_instructionLut[0x0e] = new InstructionMviR(core);
 	this->_instructionLut[0x11] = new InstructionLxi(core);
 	this->_instructionLut[0x12] = new InstructionStax(core);
 	this->_instructionLut[0x13] = new InstructionInx(core);
-	this->_instructionLut[0x14] = new InstructionInrR(core);
-	this->_instructionLut[0x15] = new InstructionDcrR(core);
 	this->_instructionLut[0x16] = new InstructionMviR(core);
 	this->_instructionLut[0x19] = new InstructionDad(core);
 	this->_instructionLut[0x1a] = new InstructionLdax(core);
 	this->_instructionLut[0x1b] = new InstructionDcx(core);
-	this->_instructionLut[0x1c] = new InstructionInrR(core);
-	this->_instructionLut[0x1d] = new InstructionDcrR(core);
 	this->_instructionLut[0x1e] = new InstructionMviR(core);
 	this->_instructionLut[0x21] = new InstructionLxi(core);
 	this->_instructionLut[0x22] = new InstructionShld(core);
 	this->_instructionLut[0x23] = new InstructionInx(core);
-	this->_instructionLut[0x24] = new InstructionInrR(core);
-	this->_instructionLut[0x25] = new InstructionDcrR(core);
 	this->_instructionLut[0x26] = new InstructionMviR(core);
 	this->_instructionLut[0x27] = new InstructionDaa(core);
 	this->_instructionLut[0x29] = new InstructionDad(core);
 	this->_instructionLut[0x2a] = new InstructionLhld(core);
 	this->_instructionLut[0x2b] = new InstructionDcx(core);
-	this->_instructionLut[0x2c] = new InstructionInrR(core);
-	this->_instructionLut[0x2d] = new InstructionDcrR(core);
 	this->_instructionLut[0x2e] = new InstructionMviR(core);
 	this->_instructionLut[0x31] = new InstructionLxi(core);
 	this->_instructionLut[0x32] = new InstructionSta(core);
 	this->_instructionLut[0x33] = new InstructionInx(core);
-	this->_instructionLut[0x34] = new InstructionInrM(core);
-	this->_instructionLut[0x35] = new InstructionDcrM(core);
 	this->_instructionLut[0x36] = new InstructionMviM(core);
 	this->_instructionLut[0x37] = new InstructionStc(core);
 	this->_instructionLut[0x39] = new InstructionDad(core);
 	this->_instructionLut[0x3a] = new InstructionLda(core);
 	this->_instructionLut[0x3b] = new InstructionDcx(core);
-	this->_instructionLut[0x3c] = new InstructionInrR(core);
-	this->_instructionLut[0x3d] = new InstructionDcrR(core);
 	this->_instructionLut[0x3e] = new InstructionMviR(core);
 	this->_instructionLut[0xeb] = new InstructionXchg(core);
 	this->_instructionLut[0xf9] = new InstructionSphl(core);

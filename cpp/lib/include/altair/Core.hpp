@@ -114,7 +114,9 @@ namespace altair {
 						SUB,
 						AD, // Adjust decimal
 
-						AND
+						AND,
+						XOR,
+						OR,
 					};
 
 				public:

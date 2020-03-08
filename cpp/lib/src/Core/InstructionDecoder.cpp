@@ -44,12 +44,15 @@
 #include "Core/Instruction/Dad.hpp"
 #include "Core/Instruction/Daa.hpp"
 #include "Core/Instruction/Stc.hpp"
-#include "Instruction/Add.hpp"
-#include "Instruction/Ana.hpp"
-#include "Instruction/Dcr.hpp"
-#include "Instruction/Inr.hpp"
-#include "Instruction/Mov.hpp"
-#include "Instruction/Sub.hpp"
+#include "Core/Instruction/Add.hpp"
+#include "Core/Instruction/Ana.hpp"
+#include "Core/Instruction/Dcr.hpp"
+#include "Core/Instruction/Inr.hpp"
+#include "Core/Instruction/Mov.hpp"
+#include "Core/Instruction/Sub.hpp"
+#include "Core/Instruction/Xra.hpp"
+#include "Core/Instruction/Ora.hpp"
+
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -80,6 +83,14 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 
 	this->_instructions.push_back(new InstructionDcr(core, InstructionDcr::R));
 	this->_instructions.push_back(new InstructionDcr(core, InstructionDcr::M));
+
+	this->_instructions.push_back(new InstructionXra(core, InstructionXra::R));
+	this->_instructions.push_back(new InstructionXra(core, InstructionXra::M));
+	this->_instructions.push_back(new InstructionXra(core, InstructionXra::I));
+
+	this->_instructions.push_back(new InstructionOra(core, InstructionOra::R));
+	this->_instructions.push_back(new InstructionOra(core, InstructionOra::M));
+	this->_instructions.push_back(new InstructionOra(core, InstructionOra::I));
 
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;

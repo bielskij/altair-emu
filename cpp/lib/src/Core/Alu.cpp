@@ -87,6 +87,21 @@ void altair::Core::Alu::clk() {
 						}
 						valCy &= valTmp;
 					}
+					break;
+
+				case Op::XOR:
+					{
+						valCy ^= valTmp;
+						valAc  = 0;
+					}
+					break;
+
+				case Op::OR:
+					{
+						valCy |= valTmp;
+						valAc  = 0;
+					}
+					break;
 			}
 
 			if (this->updateFlags & Z) {

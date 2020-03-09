@@ -52,7 +52,7 @@
 #include "Core/Instruction/Sub.hpp"
 #include "Core/Instruction/Xra.hpp"
 #include "Core/Instruction/Ora.hpp"
-
+#include "Core/Instruction/Cmp.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -91,6 +91,10 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructions.push_back(new InstructionOra(core, InstructionOra::R));
 	this->_instructions.push_back(new InstructionOra(core, InstructionOra::M));
 	this->_instructions.push_back(new InstructionOra(core, InstructionOra::I));
+
+	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::R));
+	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::M));
+	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::I));
 
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;

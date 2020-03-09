@@ -154,7 +154,7 @@ namespace altair {
 					}
 
 					inline void fCY(uint16_t val) {
-						if ((val & 0xff00) != 0) {
+						if ((val & 0x0100) != 0) {
 							set(CY);
 						} else {
 							clear(CY);

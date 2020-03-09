@@ -124,7 +124,9 @@ void altair::Core::Alu::clk() {
 				this->fCY(valCy);
 			}
 
-			core->bR(this->dstReg, valCy);
+			if (this->dstReg != Core::BReg::COUNT) {
+				core->bR(this->dstReg, valCy);
+			}
 
 			this->operation = Op::IDLE;
 		}

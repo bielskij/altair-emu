@@ -38,7 +38,7 @@ namespace altair {
 			// ACT - temporary accumulator (ALU)
 			// TMP - temporary (ALU)
 			enum class BReg : uint8_t {
-				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, SPL, SPH, COUNT,
+				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, SPL, SPH, PCL, PCH, COUNT,
 
 				// Special register declaration - used in MachineCycle to
 				// determine dynamic register
@@ -50,8 +50,7 @@ namespace altair {
 			// SP - Stack pointer
 			// W  - temporary
 			enum class WReg : uint8_t {
-				PC,
-				SP, B, D, H, W, // Virtual registers, wrappers on byte reg pairs
+				PC, SP, B, D, H, W, // Virtual registers, wrappers on byte reg pairs
 				COUNT,
 
 				// Special register declaration - used in MachineCycle to
@@ -447,8 +446,7 @@ namespace altair {
 
 		private:
 			// General purpose registers + temporary internals
-			uint8_t  _bregs[static_cast<uint8_t>(BReg::COUNT)];
-			uint16_t _wregs[static_cast<uint8_t>(WReg::COUNT) - 5];
+			uint8_t _bregs[static_cast<uint8_t>(BReg::COUNT)];
 
 			Instruction  *_i;
 			MachineCycle *_cycle;
@@ -492,8 +490,11 @@ namespace altair {
 					case WReg::SP:
 						return ((uint16_t) this->bR(BReg::SPH) << 8) | this->bR(BReg::SPL);
 
+					case WReg::PC:
+						return ((uint16_t) this->bR(BReg::PCH) << 8) | this->bR(BReg::PCL);
+
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg)];
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 
@@ -524,8 +525,13 @@ namespace altair {
 						this->bR(BReg::SPL, val);
 						break;
 
+					case WReg::PC:
+						this->bR(BReg::PCH, val >> 8);
+						this->bR(BReg::PCL, val);
+						break;
+
 					default:
-						this->_wregs[static_cast<uint8_t>(reg)] = val;
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 
@@ -536,9 +542,10 @@ namespace altair {
 					case WReg::H:  return BReg::L;
 					case WReg::W:  return BReg::Z;
 					case WReg::SP: return BReg::SPL;
+					case WReg::PC: return BReg::PCL;
+					default:
+						throw std::runtime_error("Not supported register pair!");
 				}
-
-				throw std::runtime_error("Not supported register pair!");
 			}
 
 			inline uint8_t wRL(WReg reg) {
@@ -548,8 +555,9 @@ namespace altair {
 					case WReg::H:  return this->bR(BReg::L);
 					case WReg::W:  return this->bR(BReg::Z);
 					case WReg::SP: return this->bR(BReg::SPL);
+					case WReg::PC: return this->bR(BReg::PCL);
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg)];
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 
@@ -560,12 +568,9 @@ namespace altair {
 					case WReg::H:  this->bR(BReg::L,   val); break;
 					case WReg::W:  this->bR(BReg::Z,   val); break;
 					case WReg::SP: this->bR(BReg::SPL, val); break;
+					case WReg::PC: this->bR(BReg::PCL, val); break;
 					default:
-						{
-							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg)];
-
-							r = (r & 0xff00) | val;
-						}
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 
@@ -576,9 +581,10 @@ namespace altair {
 					case WReg::H:  return BReg::H;
 					case WReg::W:  return BReg::W;
 					case WReg::SP: return BReg::SPH;
+					case WReg::PC: return BReg::PCH;
+					default:
+						throw std::runtime_error("Not supported register pair!");
 				}
-
-				throw std::runtime_error("Not supported register pair!");
 			}
 
 			inline uint8_t wRH(WReg reg) {
@@ -588,8 +594,9 @@ namespace altair {
 					case WReg::H:  return this->bR(BReg::H);
 					case WReg::W:  return this->bR(BReg::W);
 					case WReg::SP: return this->bR(BReg::SPH);
+					case WReg::PC: return this->bR(BReg::PCH);
 					default:
-						return this->_wregs[static_cast<uint8_t>(reg)] >> 8;
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 
@@ -600,12 +607,9 @@ namespace altair {
 					case WReg::H:  this->bR(BReg::H,   val); break;
 					case WReg::W:  this->bR(BReg::W,   val); break;
 					case WReg::SP: this->bR(BReg::SPH, val); break;
+					case WReg::PC: this->bR(BReg::PCH, val); break;
 					default:
-						{
-							uint16_t &r = this->_wregs[static_cast<uint8_t>(reg)];
-
-							r = (r & 0x00ff) | ((uint16_t) val << 8);
-						}
+						throw std::runtime_error("Not supported register pair!");
 				}
 			}
 

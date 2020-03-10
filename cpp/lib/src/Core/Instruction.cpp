@@ -29,6 +29,12 @@ const std::set<altair::Core::BReg> altair::Core::Instruction::_allBregs = {
 	Core::BReg::H, Core::BReg::L, Core::BReg::A
 };
 
+const std::set<altair::Core::Cond> altair::Core::Instruction::_allConds = {
+	Core::Cond::NOT_ZERO, Core::Cond::ZERO, Core::Cond::NO_CARRY,
+	Core::Cond::CARRY, Core::Cond::PARITY_ODD, Core::Cond::PARITY_EVEN,
+	Core::Cond::PLUS, Core::Cond::MINUS,
+};
+
 
 altair::Core::Instruction::Instruction(Core *core) {
 	this->_core        = core;
@@ -44,4 +50,6 @@ altair::Core::Instruction::~Instruction() {
 
 void altair::Core::Instruction::addCycle(MachineCycle *cycle) {
 	this->_cycles[this->_cyclesCount++] = cycle;
+
+	cycle->setParent(this);
 }

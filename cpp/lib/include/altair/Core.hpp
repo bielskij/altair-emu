@@ -67,7 +67,9 @@ namespace altair {
 				PARITY_ODD,
 				PARITY_EVEN,
 				PLUS,
-				MINUS
+				MINUS,
+
+				COUNT
 			};
 
 			class Pio {
@@ -203,6 +205,7 @@ namespace altair {
 					void op(Core::BReg actSrc, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay);
 					void op(uint8_t actVal, Core::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay);
 					void clk();
+					bool checkCondition(Core::Cond condition);
 
 				private:
 					static inline bool getParityOdd(uint8_t val) {
@@ -224,6 +227,7 @@ namespace altair {
 					Core::BReg dstReg;
 			};
 
+			class Instruction;
 			class MachineCycle {
 				public:
 					MachineCycle(Core *cpu, bool inta, bool wo, bool stack, bool hlta, bool out, bool m1, bool inp, bool memr);
@@ -241,6 +245,14 @@ namespace altair {
 						return this->_core;
 					}
 
+					inline void setParent(Instruction *i) {
+						this->_parent = i;
+					}
+
+					inline Instruction *parent() const {
+						return this->_parent;
+					}
+
 				protected:
 					inline Core::BReg sss() const {
 						return InstructionDecoder::binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
@@ -254,13 +266,14 @@ namespace altair {
 						return InstructionDecoder::binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
 					}
 
-					inline Core::BReg ccc() const {
-						return InstructionDecoder::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+					inline Core::Cond ccc() const {
+						return InstructionDecoder::binToCond((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 				private:
-					Core   *_core;
-					uint8_t _status;
+					Core        *_core;
+					uint8_t      _status;
+					Instruction *_parent;
 			};
 
 			class Instruction {
@@ -279,6 +292,12 @@ namespace altair {
 						this->_cycleIdx = 0;
 					}
 
+					// Finishes current instruction even if there are more cycles available
+					// Used in conditional instructions
+					inline void finish() {
+						this->_cycleIdx = this->_cyclesCount;
+					}
+
 					const std::set<uint8_t> &getOpcodes() const {
 						return this->_opcodes;
 					}
@@ -293,6 +312,17 @@ namespace altair {
 
 					inline void addCode(uint8_t code) {
 						this->_opcodes.insert(code);
+					}
+
+					inline void addCodeCCC(uint8_t baseCode, Core::Cond cond) {
+						if (cond == Cond::COUNT) {
+							for (auto &c : _allConds) {
+								this->_opcodes.insert(baseCode | (InstructionDecoder::condToBin(c) << 3));
+							}
+
+						} else {
+							this->_opcodes.insert(baseCode | (InstructionDecoder::condToBin(cond) << 3));
+						}
 					}
 
 					inline void addCodeSSS(uint8_t baseCode, Core::BReg sss) {
@@ -379,6 +409,7 @@ namespace altair {
 
 					std::set<uint8_t> _opcodes;
 					static const std::set<Core::BReg> _allBregs;
+					static const std::set<Core::Cond> _allConds;
 			};
 
 			class InstructionDecoder {
@@ -389,6 +420,38 @@ namespace altair {
 					Instruction *decode(uint8_t binaryInstruction);
 
 				public:
+					static inline Core::Cond binToCond(uint8_t val) {
+						switch (val) {
+							case 0: return Core::Cond::NOT_ZERO;
+							case 1: return Core::Cond::ZERO;
+							case 2: return Core::Cond::NO_CARRY;
+							case 3: return Core::Cond::CARRY;
+							case 4: return Core::Cond::PARITY_ODD;
+							case 5: return Core::Cond::PARITY_EVEN;
+							case 6: return Core::Cond::PLUS;
+							case 7: return Core::Cond::MINUS;
+							default:
+								throw std::runtime_error("Invalid code!");
+						}
+					}
+
+					static inline uint8_t condToBin(Cond cond) {
+						switch (cond) {
+							case Cond::NOT_ZERO:    return 0;
+							case Cond::ZERO:        return 1;
+							case Cond::NO_CARRY:    return 2;
+							case Cond::CARRY:       return 3;
+							case Cond::PARITY_ODD:  return 4;
+							case Cond::PARITY_EVEN: return 5;
+							case Cond::PLUS:        return 6;
+							case Cond::MINUS:       return 7;
+							default:
+								throw std::runtime_error("Invalid condition!");
+						}
+
+						return 0xff;
+					}
+
 					static inline Core::BReg binToBreg(uint8_t val) {
 						switch (val) {
 							case 0x00: return BReg::B;

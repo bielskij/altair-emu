@@ -188,3 +188,21 @@ void altair::Core::Alu::op(uint8_t actVal, Core::BReg dstReg, Op operation, bool
 		this->clk();
 	}
 }
+
+
+bool altair::Core::Alu::checkCondition(Core::Cond condition) {
+	switch (condition) {
+		case Cond::CARRY:       return fCY();
+		case Cond::NO_CARRY:    return ! fCY();
+		case Cond::MINUS:       return fS();
+		case Cond::PLUS:        return ! fS();
+		case Cond::ZERO:        return fZ();
+		case Cond::NOT_ZERO:    return ! fZ();
+		case Cond::PARITY_EVEN: return fP();
+		case Cond::PARITY_ODD:  return ! fP();
+		default:
+			throw std::runtime_error("Not supported condition!");
+	}
+
+	return false;
+}

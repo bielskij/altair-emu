@@ -21,49 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "altair/Core.hpp"
+
+#include "cunit.h"
+
+#include "test/Core.hpp"
+#include "Core/Pio.hpp"
 
 
-altair::Core::MachineCycle::MachineCycle(Core *core, bool inta, bool wo, bool stack, bool hlta, bool out, bool m1, bool inp, bool memr) {
-	this->_core   = core;
-	this->_status = 0;
-	this->_parent = nullptr;
+CUNIT_TEST(core_instruction, jmpc_clk) {
+	test::Pio  pio({
+		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+	});
 
-	if (inta)  this->_status |= (1 << 0);
-	if (wo)    this->_status |= (1 << 1);
-	if (stack) this->_status |= (1 << 2);
-	if (hlta)  this->_status |= (1 << 3);
-	if (out)   this->_status |= (1 << 4);
-	if (m1)    this->_status |= (1 << 5);
-	if (inp)   this->_status |= (1 << 6);
-	if (memr)  this->_status |= (1 << 7);
+	test::Core core(pio);
+
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 5);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 16);
 }
 
 
-altair::Core::MachineCycle::~MachineCycle() {
+CUNIT_TEST(core_instruction, jmpc_c) {
+	// jc 0x0007
+	// jnc 0x0007
+	test::Pio  pio({
+		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+	});
 
-};
+	test::Core core(pio);
 
-bool altair::Core::MachineCycle::t1() {
-	return false;
-}
-
-bool altair::Core::MachineCycle::t2() {
-	return false;
-}
-
-bool altair::Core::MachineCycle::t3() {
-	return false;
-}
-
-bool altair::Core::MachineCycle::t4() {
-	return false;
-}
-
-bool altair::Core::MachineCycle::t5() {
-	return false;
-}
-
-uint8_t altair::Core::MachineCycle::getStatus() const {
-	return this->_status;
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
 }

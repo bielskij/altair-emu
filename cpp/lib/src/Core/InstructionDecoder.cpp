@@ -56,6 +56,7 @@
 #include "Core/Instruction/Cma.hpp"
 #include "Core/Instruction/Cmc.hpp"
 #include "Core/Instruction/Stc.hpp"
+#include "Core/Instruction/Jmp.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -106,6 +107,9 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 
 	this->_instructions.push_back(new InstructionCma(core));
 	this->_instructions.push_back(new InstructionCmc(core));
+
+	this->_instructions.push_back(new InstructionJmp(core, InstructionJmp::Mode::UNCONDITIONED));
+	this->_instructions.push_back(new InstructionJmp(core, InstructionJmp::Mode::CONDITIONED));
 
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;

@@ -62,8 +62,12 @@ void altair::Core::Alu::clk() {
 					break;
 
 				case Op::SUB:
-					valCy -=  ((uint16_t)valTmp + carry);
-					valAc -= (((uint16_t)valTmp & 0x0f) + carry);
+					{
+						// subtraction is implemented on adders.
+						valTmp ^= 0xff;
+						valCy = (valCy + valTmp + (carry ^ 1)) ^ 0x0100;
+						valAc = (valAc + (valTmp & 0x0f) + (carry ^ 1));
+					}
 					break;
 
 				case Op::AD:

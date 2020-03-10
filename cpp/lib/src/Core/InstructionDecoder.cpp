@@ -43,7 +43,6 @@
 #include "Core/Instruction/Dcx.hpp"
 #include "Core/Instruction/Dad.hpp"
 #include "Core/Instruction/Daa.hpp"
-#include "Core/Instruction/Stc.hpp"
 #include "Core/Instruction/Add.hpp"
 #include "Core/Instruction/Ana.hpp"
 #include "Core/Instruction/Dcr.hpp"
@@ -53,6 +52,10 @@
 #include "Core/Instruction/Xra.hpp"
 #include "Core/Instruction/Ora.hpp"
 #include "Core/Instruction/Cmp.hpp"
+#include "Core/Instruction/Rot.hpp"
+#include "Core/Instruction/Cma.hpp"
+#include "Core/Instruction/Cmc.hpp"
+#include "Core/Instruction/Stc.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -95,6 +98,14 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::R));
 	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::M));
 	this->_instructions.push_back(new InstructionCmp(core, InstructionCmp::I));
+
+	this->_instructions.push_back(new InstructionRot(core, InstructionRot::RIGHT, false));
+	this->_instructions.push_back(new InstructionRot(core, InstructionRot::RIGHT, true));
+	this->_instructions.push_back(new InstructionRot(core, InstructionRot::LEFT,  false));
+	this->_instructions.push_back(new InstructionRot(core, InstructionRot::LEFT,  true));
+
+	this->_instructions.push_back(new InstructionCma(core));
+	this->_instructions.push_back(new InstructionCmc(core));
 
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;

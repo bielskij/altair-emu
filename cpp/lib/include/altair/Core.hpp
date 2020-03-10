@@ -117,6 +117,9 @@ namespace altair {
 						AND,
 						XOR,
 						OR,
+
+						ROT_R,
+						ROT_L
 					};
 
 				public:

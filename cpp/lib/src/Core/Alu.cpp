@@ -106,6 +106,37 @@ void altair::Core::Alu::clk() {
 						valAc  = 0;
 					}
 					break;
+
+				case Op::ROT_R:
+					{
+						uint16_t newCarry = (valCy & 0x01) << 8;
+
+						// No A7 bit
+						valCy = newCarry | (valCy >> 1);
+
+						// Set A7 bit
+						if (this->includeCarry) {
+							valCy |= (this->fCY() << 7);
+						} else {
+							valCy |= (newCarry >> 1);
+						}
+
+					}
+					break;
+
+				case Op::ROT_L:
+					{
+						uint16_t newCarry = (valCy & 0x80) << 1;
+
+						valCy = newCarry | ((valCy << 1) & 0xff);
+
+						if (this->includeCarry) {
+							valCy |= this->fCY();
+						} else {
+							valCy |= (newCarry >> 8);
+						}
+					}
+					break;
 			}
 
 			if (this->updateFlags & Z) {

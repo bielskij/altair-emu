@@ -21,31 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_FETCH_HPP_
-#define CORE_MACHINECYCLE_FETCH_HPP_
+#ifndef CORE_MACHINECYCLE_OUTPUTWRITE_HPP_
+#define CORE_MACHINECYCLE_OUTPUTWRITE_HPP_
 
 #include "altair/Core.hpp"
 
 namespace altair {
 	class MachineCycleOutputWrite : public Core::MachineCycle {
 		public:
-			MachineCycleOutputWrite(Core *core) : Core::MachineCycle(core, false, false, false, false, true, false, false, false) {
+			MachineCycleOutputWrite(Core *core) : Core::MachineCycle(core, false, true, false, false, true, false, false, false) {
 			}
 
 			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setAddress(core()->wR(Core::WReg::W));
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
 			}
 
 			bool t2() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setSync(false);
+
+				return true;
 			}
 
 			bool t3() override {
-			}
+				Core::Pio &pio = this->core()->pio();
 
-			bool t4() override {
+				pio.setData(core()->bR(Core::BReg::A));
+				pio.setWr(true);
+
+				return false;
 			}
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_FETCH_HPP_ */
+#endif /* CORE_MACHINECYCLE_OUTPUTWRITE_HPP_ */

@@ -64,6 +64,7 @@
 #include "Core/Instruction/Push.hpp"
 #include "Core/Instruction/Pop.hpp"
 #include "Core/Instruction/Xthl.hpp"
+#include "Core/Instruction/Io.hpp"
 #include "Core/Instruction/Nop.hpp"
 
 
@@ -135,6 +136,9 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructions.push_back(new InstructionPop(core, false));
 
 	this->_instructions.push_back(new InstructionXthl(core));
+
+	this->_instructions.push_back(new InstructionIo(core, true));
+	this->_instructions.push_back(new InstructionIo(core, false));
 
 	this->_instructions.push_back(new InstructionNop(core));
 

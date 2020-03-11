@@ -217,3 +217,75 @@ CUNIT_TEST(core_cycles, read_stack) {
 	CUNIT_ASSERT_EQ(pio.clkCount, 17);
 	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0010);
 }
+
+
+CUNIT_TEST(core_cycles, input_read) {
+	test::Pio pio({
+		0xdb
+	});
+
+	test::Core core(pio);
+
+	core.nextCycle(); // fetch
+	core.nextCycle(); // memory read
+
+	// input read
+	core.tick();
+	CUNIT_ASSERT_EQ(pio.address, 0x0000);
+	CUNIT_ASSERT_EQ(pio.data,    0x40);
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 8);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_TRUE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 9);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 10);
+}
+
+
+CUNIT_TEST(core_cycles, output_write) {
+	test::Pio pio({
+		0xd3
+	});
+
+	test::Core core(pio);
+
+	core.nextCycle(); // fetch
+	core.nextCycle(); // memory read
+
+	core.tick();
+	CUNIT_ASSERT_EQ(pio.address, 0x0000);
+	CUNIT_ASSERT_EQ(pio.data,    0x12);
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 8);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 9);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_TRUE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 10);
+	CUNIT_ASSERT_EQ(pio.getData(), 0);
+}

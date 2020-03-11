@@ -21,46 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_INPUTREAD_HPP_
-#define CORE_MACHINECYCLE_INPUTREAD_HPP_
+#ifndef CORE_INSTRUCTION_IO_H_
+#define CORE_INSTRUCTION_IO_H_
 
 #include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/MemoryRead.hpp"
+#include "Core/MachineCycle/InputRead.hpp"
+#include "Core/MachineCycle/OutputWrite.hpp"
 
 namespace altair {
-	class MachineCycleInputRead : public Core::MachineCycle {
+	class InstructionIo : public Core::Instruction {
+		private:
+			class MemoryRead : public MachineCycleMemoryRead {
+				public:
+					MemoryRead(Core *core) : MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true) {
+					}
+
+					bool t3() override {
+						bool ret = MachineCycleMemoryRead::t3();
+
+						core()->bR(Core::BReg::W, core()->bR(Core::BReg::Z));
+
+						return ret;
+					}
+			};
+
 		public:
-			MachineCycleInputRead(Core *core) : Core::MachineCycle(core, false, false, false, false, false, false, true, false) {
-			}
+			InstructionIo(Core *core, bool inOperation) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MemoryRead(core));
 
-			bool t1() override {
-				Core::Pio &pio = this->core()->pio();
+				if (inOperation) {
+					this->addCycle(new MachineCycleInputRead(core));
 
-				pio.setAddress(core()->wR(Core::WReg::W));
-				pio.setData(this->getStatus());
-				pio.setSync(true);
+					this->addCode(0xdb);
 
-				return true;
-			}
+				} else {
+					this->addCycle(new MachineCycleOutputWrite(core));
 
-			bool t2() override {
-				Core::Pio &pio = core()->pio();
-
-				pio.setSync(false);
-				pio.setDbin(true);
-
-				return true;
-			}
-
-			bool t3() override {
-				Core::Pio &pio = this->core()->pio();
-
-				core()->bR(Core::BReg::A, pio.getData());
-
-				pio.setDbin(false);
-
-				return false;
+					this->addCode(0xd3);
+				}
 			}
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_INPUTREAD_HPP_ */
+#endif /* CORE_INSTRUCTION_IO_H_ */

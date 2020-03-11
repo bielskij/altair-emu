@@ -21,46 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_INPUTREAD_HPP_
-#define CORE_MACHINECYCLE_INPUTREAD_HPP_
 
-#include "altair/Core.hpp"
+#include "cunit.h"
 
-namespace altair {
-	class MachineCycleInputRead : public Core::MachineCycle {
-		public:
-			MachineCycleInputRead(Core *core) : Core::MachineCycle(core, false, false, false, false, false, false, true, false) {
-			}
+#include "test/Core.hpp"
+#include "Core/Pio.hpp"
 
-			bool t1() override {
-				Core::Pio &pio = this->core()->pio();
 
-				pio.setAddress(core()->wR(Core::WReg::W));
-				pio.setData(this->getStatus());
-				pio.setSync(true);
+CUNIT_TEST(core_instruction, in_clk) {
+	test::Pio  pio({
+		0xdb, 0x45
+	});
 
-				return true;
-			}
+	test::Core core(pio);
 
-			bool t2() override {
-				Core::Pio &pio = core()->pio();
-
-				pio.setSync(false);
-				pio.setDbin(true);
-
-				return true;
-			}
-
-			bool t3() override {
-				Core::Pio &pio = this->core()->pio();
-
-				core()->bR(Core::BReg::A, pio.getData());
-
-				pio.setDbin(false);
-
-				return false;
-			}
-	};
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(pio.clkCount, 10);
 }
 
-#endif /* CORE_MACHINECYCLE_INPUTREAD_HPP_ */
+
+CUNIT_TEST(core_instruction, in_regs) {
+	// in 0x45
+	test::Pio  pio({
+		0xdb, 0x45
+	});
+
+	test::Core core(pio);
+
+	core.nextCycle();
+	core.nextCycle();
+	core.tick();
+	core.tick();
+	pio.data = 0xa5;
+	core.tick();
+
+	CUNIT_ASSERT_EQ(pio.address, 0x4545);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xa5);
+}

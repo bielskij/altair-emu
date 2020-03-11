@@ -21,41 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef CORE_INSTRUCTION_PCHL_H_
+#define CORE_INSTRUCTION_PCHL_H_
 
-#include "cunit.h"
+#include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
 
-#include "test/Core.hpp"
-#include "Core/Pio.hpp"
+namespace altair {
+	class InstructionPchl : public Core::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(Core *core) : MachineCycleFetch(core) {
+					}
 
+					bool t4() override {
+						MachineCycleFetch::t4();
 
-CUNIT_TEST(core_instruction, shld_clk) {
-	test::Pio  pio({
-		0x22, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	});
+						return true;
+					}
 
-	test::Core core(pio);
+					bool t5() override {
+						core()->wR(Core::WReg::PC, core()->wR(Core::WReg::H));
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 16);
+						return this->MachineCycleFetch::t5();
+					}
+			};
+
+		public:
+			InstructionPchl(Core *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
+
+				this->addCode(0xe9);
+			}
+	};
 }
 
-
-CUNIT_TEST(core_instruction, shld) {
-	// mvi h, 0x10
-	// mvi l, 0x20
-	// shld 0x0008
-	test::Pio  pio({
-		0x26, 0x10, 0x2E, 0x20, 0x22, 0x08, 0x00, 0x00, 0x00, 0x00
-	});
-
-	test::Core core(pio);
-
-	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.mem(0x08), 0x0);
-	CUNIT_ASSERT_EQ(pio.mem(0x09), 0x0);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.mem(0x08), 0x20);
-	CUNIT_ASSERT_EQ(pio.mem(0x09), 0x10);
-}
+#endif /* CORE_INSTRUCTION_PCHL_H_ */

@@ -28,9 +28,9 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, jmpc_clk) {
+CUNIT_TEST(core_instruction, retc_clk) {
 	test::Pio  pio({
-		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+		0xd8, 0xd0, 0x00, 0x00
 	});
 
 	test::Core core(pio);
@@ -42,65 +42,81 @@ CUNIT_TEST(core_instruction, jmpc_clk) {
 }
 
 
-CUNIT_TEST(core_instruction, jmpc_c) {
-	// jc 0x0007
-	// jnc 0x0007
+CUNIT_TEST(core_instruction, retc_c) {
+	// lxi sp,0x0007
+	// rc
+	// rnc
 	test::Pio  pio({
-		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x07, 0x00, 0xd8, 0xd0, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0004);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0007);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0000);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0009);
 }
 
 
-CUNIT_TEST(core_instruction, jmpc_n) {
-	// jz 0x0007
-	// jnz 0x0007
+CUNIT_TEST(core_instruction, retc_n) {
+	// lxi sp,0x0007
+	// rz
+	// rnz
 	test::Pio  pio({
-		0xca, 0x07, 0x00, 0xc2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x07, 0x00, 0xc8, 0xc0, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0004);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0007);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0000);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0009);
 }
 
 
-CUNIT_TEST(core_instruction, jmpc_s) {
-	// jm 0x0007
-	// jp 0x0007
+CUNIT_TEST(core_instruction, retc_s) {
+	// lxi sp,0x0007
+	// rm
+	// rp
 	test::Pio  pio({
-		0xfa, 0x07, 0x00, 0xf2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x07, 0x00, 0xf8, 0xf0, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0004);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0007);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0000);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0009);
 }
 
 
-CUNIT_TEST(core_instruction, jmpc_p) {
-	// jpe 0x0007
-	// jpo 0x0007
+CUNIT_TEST(core_instruction, retc_p) {
+	// lxi sp,0x0007
+	// rpe
+	// rpo
 	test::Pio  pio({
-		0xea, 0x07, 0x00, 0xe2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x07, 0x00, 0xe8, 0xe0, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0004);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0007);
+	core.nextInstruction();
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0000);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0009);
 }

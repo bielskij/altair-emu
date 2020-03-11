@@ -28,79 +28,34 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, jmpc_clk) {
+CUNIT_TEST(core_instruction, call_clk) {
 	test::Pio  pio({
-		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x0f, 0x00, 0xcd, 0x34, 0x12, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 5);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 16);
+	CUNIT_ASSERT_EQ(pio.clkCount, 27);
 }
 
 
-CUNIT_TEST(core_instruction, jmpc_c) {
-	// jc 0x0007
-	// jnc 0x0007
+CUNIT_TEST(core_instruction, call_regs) {
+	// lxi sp,0x000f
+	// call 0x1234
 	test::Pio  pio({
-		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+		0x31, 0x0f, 0x00, 0xcd, 0x34, 0x12, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
-}
-
-
-CUNIT_TEST(core_instruction, jmpc_n) {
-	// jz 0x0007
-	// jnz 0x0007
-	test::Pio  pio({
-		0xca, 0x07, 0x00, 0xc2, 0x07, 0x00, 0x00, 0x00
-	});
-
-	test::Core core(pio);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
-}
-
-
-CUNIT_TEST(core_instruction, jmpc_s) {
-	// jm 0x0007
-	// jp 0x0007
-	test::Pio  pio({
-		0xfa, 0x07, 0x00, 0xf2, 0x07, 0x00, 0x00, 0x00
-	});
-
-	test::Core core(pio);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
-}
-
-
-CUNIT_TEST(core_instruction, jmpc_p) {
-	// jpe 0x0007
-	// jpo 0x0007
-	test::Pio  pio({
-		0xea, 0x07, 0x00, 0xe2, 0x07, 0x00, 0x00, 0x00
-	});
-
-	test::Core core(pio);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0003);
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x0007);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x000D);
+	CUNIT_ASSERT_EQ(pio.mem(0x000D), 0x06);
+	CUNIT_ASSERT_EQ(pio.mem(0x000E), 0x00);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 0x1234);
 }

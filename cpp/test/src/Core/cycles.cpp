@@ -128,3 +128,92 @@ CUNIT_TEST(core_cycles, write_memory) {
 	CUNIT_ASSERT_FALSE(pio.wait);
 	CUNIT_ASSERT_EQ(pio.getData(), 0);
 }
+
+
+CUNIT_TEST(core_cycles, write_stack) {
+	// lxi sp,0x000f
+	// call 0x1234
+	test::Pio  pio({
+		0x31, 0x0f, 0x00, 0xcd, 0x34, 0x12, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	});
+
+	test::Core core(pio);
+
+	// lxi
+	core.nextInstruction();
+
+	// call
+	core.nextCycle(); // Fetch
+	core.nextCycle(); // Memory read
+	core.nextCycle(); // Memory read
+
+	// Stack write
+	core.tick();
+	CUNIT_ASSERT_EQ(pio.address, 0x000e);
+	CUNIT_ASSERT_EQ(pio.data,    0x06);
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 22);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 23);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_TRUE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 24);
+	CUNIT_ASSERT_EQ(pio.getData(), 0);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x000d);
+}
+
+
+CUNIT_TEST(core_cycles, read_stack) {
+	// lxi sp,0x000f
+	// ret
+	test::Pio pio({
+		0x31, 0x0f, 0x00, 0xc9
+	});
+
+	test::Core core(pio);
+
+	// lxi
+	core.nextInstruction();
+
+	core.nextCycle(); // Fetch
+
+	// stack read
+	core.tick();
+	CUNIT_ASSERT_EQ(pio.address, 0x000f);
+	CUNIT_ASSERT_EQ(pio.data,    0x84);
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 15);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 4);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_TRUE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 16);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 4);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_EQ(pio.clkCount, 17);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0010);
+}

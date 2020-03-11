@@ -21,31 +21,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_FETCH_HPP_
-#define CORE_MACHINECYCLE_FETCH_HPP_
+#ifndef CORE_MACHINECYCLE_STACKREAD_HPP_
+#define CORE_MACHINECYCLE_STACKREAD_HPP_
 
 #include "altair/Core.hpp"
 
 namespace altair {
 	class MachineCycleStackRead : public Core::MachineCycle {
 		public:
-			MachineCycleStackRead(Core *core) : Core::MachineCycle(core, false, false, true, false, false, false, false, true) {
+			MachineCycleStackRead(Core *core, Core::BReg dstReg, bool stackIncrease) : Core::MachineCycle(core, false, false, true, false, false, false, false, true) {
+				this->stackIncrease = stackIncrease;
+				this->dstReg        = dstReg;
 			}
 
 			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setAddress(core()->wR(Core::WReg::SP));
+
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
 			}
 
 			bool t2() override {
+				Core::Pio &pio = core()->pio();
 
+				pio.setSync(false);
+				pio.setDbin(true);
+
+				if (this->stackIncrease) {
+					core()->wR(Core::WReg::SP, core()->wR(Core::WReg::SP) + 1);
+				}
+
+				return true;
 			}
 
 			bool t3() override {
+				Core::Pio &pio = this->core()->pio();
+
+				if (this->dstReg == Core::BReg::RP_H) {
+					core()->wRH(rp(), pio.getData());
+
+				} else if (this->dstReg == Core::BReg::RP_L) {
+					core()->wRL(rp(), pio.getData());
+
+				} else {
+					core()->bR(this->dstReg, pio.getData());
+				}
+
+				pio.setDbin(false);
+
+				return false;
 			}
 
-			bool t4() override {
-			}
+		private:
+			bool       stackIncrease;
+			Core::BReg dstReg;
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_FETCH_HPP_ */
+#endif /* CORE_MACHINECYCLE_STACKREAD_HPP_ */

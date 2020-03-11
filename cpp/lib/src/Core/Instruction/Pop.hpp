@@ -21,64 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_STACKWRITE_HPP_
-#define CORE_MACHINECYCLE_STACKWRITE_HPP_
+#ifndef CORE_INSTRUCTION_POP_H_
+#define CORE_INSTRUCTION_POP_H_
 
 #include "altair/Core.hpp"
+#include "altair/Utils.hpp"
+#include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/StackWrite.hpp"
 
 namespace altair {
-	class MachineCycleStackWrite : public Core::MachineCycle {
+	class InstructionPop : public Core::Instruction {
 		public:
-			MachineCycleStackWrite(Core *core, Core::BReg src, bool stackDecrease) : Core::MachineCycle(core, false, true, true, false, false, false, false, false) {
-				this->stackDecrease = stackDecrease;
-				this->srcReg        = src;
-			}
+			InstructionPop(Core *core, bool popRp) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
 
-			bool t1() override {
-				Core::Pio &pio = this->core()->pio();
+				if (popRp) {
+					this->addCycle(new MachineCycleStackRead(core, Core::BReg::RP_L, true));
+					this->addCycle(new MachineCycleStackRead(core, Core::BReg::RP_H, true));
 
-				pio.setAddress(core()->wR(Core::WReg::SP));
-
-				pio.setData(this->getStatus());
-				pio.setSync(true);
-
-				return true;
-			}
-
-			bool t2() override {
-				Core::Pio &pio = this->core()->pio();
-
-				pio.setSync(false);
-
-				if (this->stackDecrease) {
-					this->core()->wR(Core::WReg::SP, this->core()->wR(Core::WReg::SP) - 1);
-				}
-
-				return true;
-			}
-
-			bool t3() override {
-				Core::Pio &pio = this->core()->pio();
-
-				if (this->srcReg == Core::BReg::RP_H) {
-					pio.setData(core()->wRH(rp()));
-
-				} else if (this->srcReg == Core::BReg::RP_L) {
-					pio.setData(core()->wRL(rp()));
+					// SP reg cannot be specified
+					this->addCodeRP(0xc1, Core::WReg::B);
+					this->addCodeRP(0xc1, Core::WReg::D);
+					this->addCodeRP(0xc1, Core::WReg::H);
 
 				} else {
-					pio.setData(core()->bR(this->srcReg));
+					this->addCycle(new MachineCycleStackRead(core, Core::BReg::F, true));
+					this->addCycle(new MachineCycleStackRead(core, Core::BReg::A, true));
+
+					this->addCode(0xf1);
 				}
-
-				pio.setWr(true);
-
-				return false;
 			}
-
-		private:
-			Core::BReg srcReg;
-			bool       stackDecrease;
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_STACKWRITE_HPP_ */
+#endif /* CORE_INSTRUCTION_POP_H_ */

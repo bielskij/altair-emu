@@ -314,6 +314,12 @@ namespace altair {
 						this->_opcodes.insert(code);
 					}
 
+					inline void addCodeNNN(uint8_t baseCode) {
+						for (int i = 0; i < 8; i++) {
+							this->_opcodes.insert(baseCode | (i << 3));
+						}
+					}
+
 					inline void addCodeCCC(uint8_t baseCode, Core::Cond cond) {
 						if (cond == Cond::COUNT) {
 							for (auto &c : _allConds) {
@@ -503,7 +509,7 @@ namespace altair {
 					}
 
 				private:
-					Instruction *_instructionLut[255];
+					Instruction *_instructionLut[256];
 					std::vector<Instruction *> _instructions;
 			};
 

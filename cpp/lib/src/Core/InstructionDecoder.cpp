@@ -57,6 +57,13 @@
 #include "Core/Instruction/Cmc.hpp"
 #include "Core/Instruction/Stc.hpp"
 #include "Core/Instruction/Jmp.hpp"
+#include "Core/Instruction/Call.hpp"
+#include "Core/Instruction/Ret.hpp"
+#include "Core/Instruction/Rst.hpp"
+#include "Core/Instruction/Pchl.hpp"
+#include "Core/Instruction/Push.hpp"
+#include "Core/Instruction/Pop.hpp"
+#include "Core/Instruction/Nop.hpp"
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
@@ -110,6 +117,23 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 
 	this->_instructions.push_back(new InstructionJmp(core, InstructionJmp::Mode::UNCONDITIONED));
 	this->_instructions.push_back(new InstructionJmp(core, InstructionJmp::Mode::CONDITIONED));
+
+	this->_instructions.push_back(new InstructionCall(core, InstructionCall::Mode::UNCONDITIONED));
+	this->_instructions.push_back(new InstructionCall(core, InstructionCall::Mode::CONDITIONED));
+
+	this->_instructions.push_back(new InstructionRet(core, InstructionRet::Mode::UNCONDITIONED));
+	this->_instructions.push_back(new InstructionRet(core, InstructionRet::Mode::CONDITIONED));
+
+	this->_instructions.push_back(new InstructionRst(core));
+	this->_instructions.push_back(new InstructionPchl(core));
+
+	this->_instructions.push_back(new InstructionPush(core, true));
+	this->_instructions.push_back(new InstructionPush(core, false));
+
+	this->_instructions.push_back(new InstructionPop(core, true));
+	this->_instructions.push_back(new InstructionPop(core, false));
+
+	this->_instructions.push_back(new InstructionNop(core));
 
 	for (auto &opcode : this->_instructionLut) {
 		opcode = nullptr;

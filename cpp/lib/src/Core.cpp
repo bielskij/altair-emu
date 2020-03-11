@@ -35,9 +35,10 @@ altair::Core::Core(Pio &pio) : _pio(pio) {
 	this->_decoder    = new InstructionDecoder(this);
 	this->_alu        = new Alu(this);
 
-	this->_i     = nullptr;
-	this->_cycle = nullptr;
-	this->_state = 0;
+	this->_i      = nullptr;
+	this->_cycle  = nullptr;
+	this->_state  = 0;
+	this->_inteFF = false;
 
 	for (auto &r : this->_bregs) {
 		r = 0;

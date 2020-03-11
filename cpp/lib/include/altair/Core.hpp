@@ -526,6 +526,8 @@ namespace altair {
 			MachineCycle      *_fetchCycle;
 			uint8_t            _state; // Current state
 
+			bool _inteFF;
+
 		public:
 			Core(Pio &pio);
 			virtual ~Core();
@@ -688,6 +690,14 @@ namespace altair {
 
 			inline Alu *alu() const {
 				return this->_alu;
+			}
+
+			inline bool inteFF() const {
+				return this->_inteFF;
+			}
+
+			inline void inteFF(bool enable) {
+				this->_inteFF = enable;
 			}
 
 		protected:

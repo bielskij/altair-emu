@@ -25,8 +25,7 @@
 
 #include "Core/Instruction/Mov.hpp"
 #include "Core/Instruction/Sphl.hpp"
-#include "Core/Instruction/MviR.hpp"
-#include "Core/Instruction/MviM.hpp"
+#include "Core/Instruction/Mvi.hpp"
 #include "Core/Instruction/Lxi.hpp"
 #include "Core/Instruction/Lda.hpp"
 #include "Core/Instruction/Sta.hpp"
@@ -70,6 +69,13 @@
 
 
 altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
+	this->_instructions.push_back(new InstructionMov(core, InstructionMov::RR));
+	this->_instructions.push_back(new InstructionMov(core, InstructionMov::MR));
+	this->_instructions.push_back(new InstructionMov(core, InstructionMov::RM));
+
+	this->_instructions.push_back(new InstructionMvi(core, InstructionMvi::R));
+	this->_instructions.push_back(new InstructionMvi(core, InstructionMvi::M));
+
 	this->_instructions.push_back(new InstructionAna(core, InstructionAna::R));
 	this->_instructions.push_back(new InstructionAna(core, InstructionAna::M));
 	this->_instructions.push_back(new InstructionAna(core, InstructionAna::I));
@@ -87,10 +93,6 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructions.push_back(new InstructionSub(core, InstructionSub::M, false));
 	this->_instructions.push_back(new InstructionSub(core, InstructionSub::I, true));
 	this->_instructions.push_back(new InstructionSub(core, InstructionSub::I, false));
-
-	this->_instructions.push_back(new InstructionMov(core, InstructionMov::RR));
-	this->_instructions.push_back(new InstructionMov(core, InstructionMov::MR));
-	this->_instructions.push_back(new InstructionMov(core, InstructionMov::RM));
 
 	this->_instructions.push_back(new InstructionInr(core, InstructionInr::R));
 	this->_instructions.push_back(new InstructionInr(core, InstructionInr::M));
@@ -153,37 +155,29 @@ altair::Core::InstructionDecoder::InstructionDecoder(Core *core) {
 	this->_instructionLut[0x01] = new InstructionLxi(core);
 	this->_instructionLut[0x02] = new InstructionStax(core);
 	this->_instructionLut[0x03] = new InstructionInx(core);
-	this->_instructionLut[0x06] = new InstructionMviR(core);
 	this->_instructionLut[0x09] = new InstructionDad(core);
 	this->_instructionLut[0x0a] = new InstructionLdax(core);
 	this->_instructionLut[0x0b] = new InstructionDcx(core);
-	this->_instructionLut[0x0e] = new InstructionMviR(core);
 	this->_instructionLut[0x11] = new InstructionLxi(core);
 	this->_instructionLut[0x12] = new InstructionStax(core);
 	this->_instructionLut[0x13] = new InstructionInx(core);
-	this->_instructionLut[0x16] = new InstructionMviR(core);
 	this->_instructionLut[0x19] = new InstructionDad(core);
 	this->_instructionLut[0x1a] = new InstructionLdax(core);
 	this->_instructionLut[0x1b] = new InstructionDcx(core);
-	this->_instructionLut[0x1e] = new InstructionMviR(core);
 	this->_instructionLut[0x21] = new InstructionLxi(core);
 	this->_instructionLut[0x22] = new InstructionShld(core);
 	this->_instructionLut[0x23] = new InstructionInx(core);
-	this->_instructionLut[0x26] = new InstructionMviR(core);
 	this->_instructionLut[0x27] = new InstructionDaa(core);
 	this->_instructionLut[0x29] = new InstructionDad(core);
 	this->_instructionLut[0x2a] = new InstructionLhld(core);
 	this->_instructionLut[0x2b] = new InstructionDcx(core);
-	this->_instructionLut[0x2e] = new InstructionMviR(core);
 	this->_instructionLut[0x31] = new InstructionLxi(core);
 	this->_instructionLut[0x32] = new InstructionSta(core);
 	this->_instructionLut[0x33] = new InstructionInx(core);
-	this->_instructionLut[0x36] = new InstructionMviM(core);
 	this->_instructionLut[0x37] = new InstructionStc(core);
 	this->_instructionLut[0x39] = new InstructionDad(core);
 	this->_instructionLut[0x3a] = new InstructionLda(core);
 	this->_instructionLut[0x3b] = new InstructionDcx(core);
-	this->_instructionLut[0x3e] = new InstructionMviR(core);
 	this->_instructionLut[0xeb] = new InstructionXchg(core);
 	this->_instructionLut[0xf9] = new InstructionSphl(core);
 

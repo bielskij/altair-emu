@@ -122,7 +122,9 @@ void test::Pio::clk() {
 	}
 
 	if (this->wr) {
-		this->program[this->address] = this->data;
+		if (this->address < this->program.size()) {
+			this->program[this->address] = this->data;
+		}
 	}
 
 	this->clkCount++;

@@ -21,22 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_INSTRUCTION_MVIR_H_
-#define CORE_INSTRUCTION_MVIR_H_
+#ifndef CORE_INSTRUCTION_MVI_H_
+#define CORE_INSTRUCTION_MVI_H_
 
 #include "altair/Core.hpp"
 #include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 #include "Core/MachineCycle/MemoryRead.hpp"
+#include "Core/MachineCycle/MemoryWrite.hpp"
 
 namespace altair {
-	class InstructionMviR : public Core::Instruction {
+	class InstructionMvi : public Core::Instruction {
 		public:
-			InstructionMviR(Core *core) : Instruction(core) {
-				this->addCycle(new MachineCycleFetch(core));
-				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::DDD, true));
+			enum Mode {
+				R,
+				M
+			};
+
+		public:
+			InstructionMvi(Core *core, Mode mode) : Instruction(core) {
+				if (mode == Mode::R) {
+					this->addCycle(new MachineCycleFetch(core));
+					this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::DDD, true));
+
+					this->addCodeDDD(0x06, Core::BReg::COUNT);
+
+				} else {
+					this->addCycle(new MachineCycleFetch(core));
+					this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::TMP, true));
+					this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::TMP, false));
+
+					this->addCode(0x36);
+				}
 			}
 	};
 }
 
-#endif /* CORE_INSTRUCTION_MVIR_H_ */
+#endif /* CORE_INSTRUCTION_MVI_H_ */

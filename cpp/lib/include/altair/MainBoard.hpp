@@ -58,6 +58,9 @@ namespace altair {
 			uint8_t din() const override;
 			void din(uint8_t data) override;
 
+			virtual bool mwrt() const override;
+			virtual void mwrt(bool val) override;
+
 			bool sm1() const override;
 			void sm1(bool val) override;
 			bool sout() const override;
@@ -91,6 +94,7 @@ namespace altair {
 			uint16_t _a;
 			uint8_t  _di;
 			uint8_t  _do;
+
 			// CPU control flags
 			bool _sm1, _sout, _sinp, _sinta, _swo, _sstack, _smemr, _shlta;
 

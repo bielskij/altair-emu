@@ -47,38 +47,31 @@ altair::MainBoard::MainBoard() {
 	this->_pwr    = false;
 }
 
-
 void altair::MainBoard::clk() {
 	for (auto c : _connectors) {
 		c->onClk();
 	}
 }
 
-
 void altair::MainBoard::onClk() {
 	// Nothing to do
 }
-
 
 uint8_t altair::MainBoard::vi() const {
 	return 0;
 }
 
-
 uint16_t altair::MainBoard::a() const {
 	return this->_a;
 }
-
 
 void altair::MainBoard::a(uint16_t address) {
 	this->_a = address;
 }
 
-
 uint8_t altair::MainBoard::dout() const {
 	return this->_do;
 }
-
 
 void altair::MainBoard::dout(uint8_t data) {
 	this->_do = data;
@@ -88,11 +81,17 @@ uint8_t altair::MainBoard::din() const {
 	return this->_di;
 }
 
-
 void altair::MainBoard::din(uint8_t data) {
 	this->_di = data;
 }
 
+bool altair::MainBoard::mwrt() const {
+	return this->_mwrt;
+}
+
+void altair::MainBoard::mwrt(bool val) {
+	this->_mwrt = val;
+}
 
 bool altair::MainBoard::sm1() const {
 	return this->_sm1;

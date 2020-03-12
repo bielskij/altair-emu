@@ -30,17 +30,34 @@
 namespace altair {
 	namespace card {
 		class Cpu : public Card {
-			protected:
+			public:
 				class ClkSource {
 					public:
 						ClkSource(altair::Cpu *cpu) {
-							this->cpu = cpu;
+							this->_cpu       = cpu;
+							this->_stop      = false;
+							this->_frequency = 1000000; // 1MHz
+							this->_tickNanoseconds = 1000000000 / this->_frequency;
+						}
+
+						virtual ~ClkSource() {
+						}
+
+						void loop();
+
+						void stop() {
+							this->_stop = true;
 						}
 
 					private:
-						altair::Cpu *cpu;
+						altair::Cpu *_cpu;
+
+						bool _stop;
+						int  _frequency;
+						int  _tickNanoseconds;
 				};
 
+			protected:
 				class PioImpl : public altair::Cpu::Pio {
 					public:
 						PioImpl(Connector *conn) {
@@ -78,8 +95,12 @@ namespace altair {
 					this->_clk = new ClkSource(this->_cpu);
 				}
 
-				card::Connector *getConnector() override {
+				inline card::Connector *getConnector() override {
 					return &this->_connector;
+				}
+
+				inline ClkSource *getClock() const {
+					return this->_clk;
 				}
 
 			private:

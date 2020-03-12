@@ -22,7 +22,44 @@
  * SOFTWARE.
  */
 
+#include <chrono>
+#include <thread>
+
 #include "altair/Card/Cpu.hpp"
+
+void altair::card::Cpu::ClkSource::loop() {
+	auto lastCheckClk = std::chrono::steady_clock::now();
+	int  ticksNumber  = 0;
+	int  ticksTurn    = 0;
+
+	while (! this->_stop) {
+		while (! this->_stop && (ticksTurn < 1000)) {
+			this->_cpu->tick();
+
+			ticksTurn++;
+		}
+
+		ticksNumber += ticksTurn;
+		ticksTurn    = 0;
+
+		if (! this->_stop) {
+			auto ticksTime   = ticksNumber * this->_tickNanoseconds;
+			auto elaspedTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+				std::chrono::steady_clock::now() - lastCheckClk
+			).count();
+
+			if (ticksTime - elaspedTime > 30000000) {
+				std::this_thread::sleep_for(
+					std::chrono::nanoseconds(ticksTime - elaspedTime)
+				);
+
+				lastCheckClk = std::chrono::steady_clock::now();
+				ticksNumber  = 0;
+			}
+		}
+	}
+}
+
 
 bool altair::card::Cpu::PioImpl::getReset() {
 #warning "TODO implement"

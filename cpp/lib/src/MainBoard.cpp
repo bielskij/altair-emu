@@ -48,6 +48,9 @@ altair::MainBoard::MainBoard() {
 }
 
 void altair::MainBoard::clk() {
+	// Apply pull ups
+	this->din(0xff);
+
 	for (auto c : _connectors) {
 		c->onClk();
 	}

@@ -21,49 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef ALTAIR_CARD_SIMPLECONNECTOR_HPP_
-#define ALTAIR_CARD_SIMPLECONNECTOR_HPP_
+#ifndef ALTAIR_UTILS_IMAGELOADER_HPP_
+#define ALTAIR_UTILS_IMAGELOADER_HPP_
 
 namespace altair {
-	namespace card {
-		class SimpleConnector : public Connector {
+	namespace utils {
+		class ImageLoader {
 			public:
-				SimpleConnector(uint16_t addressMask) : Connector() {
-					this->addressMask = addressMask;
+				virtual ~ImageLoader() {
 				}
 
-				SimpleConnector() : Connector() {
-					this->addressMask = 0xffff;
+				virtual bool nextByte(uint16_t &address, uint8_t &val) = 0;
+				virtual void rewind() = 0;
+
+			protected:
+				ImageLoader() {
 				}
 
-				virtual void onClk() {
-					if (this->pdbin()) {
-						if (this->smemr()) {
-							this->din(this->onMemoryRead(this->a()));
-
-						} else if (this->sinp()) {
-							this->din(this->onIn(this->a()));
-						}
-
-					} else if (this->mwrt()) {
-						this->onMemoryWrite(this->a(), this->dout());
-
-					} else if (this->sout() && this->pwr()) {
-						this->onOut(this->addressMask, this->dout());
-					}
+				ImageLoader(const ImageLoader &) {
 				}
-
-				virtual uint8_t onMemoryRead(uint16_t address) = 0;
-				virtual void    onMemoryWrite(uint16_t address, uint8_t data) = 0;
-				virtual uint8_t onIn(uint8_t number) = 0;
-				virtual void    onOut(uint8_t number, uint8_t data) = 0;
-
-			private:
-				uint16_t addressMask;
 		};
 	}
 }
 
 
 
-#endif /* ALTAIR_CARD_SIMPLECONNECTOR_HPP_ */
+#endif /* ALTAIR_UTILS_IMAGELOADER_HPP_ */

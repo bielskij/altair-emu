@@ -21,55 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <signal.h>
-#include <unistd.h>
+#ifndef ALTAIR_CARD_SIMPLECONNECTOR_HPP_
+#define ALTAIR_CARD_SIMPLECONNECTOR_HPP_
 
-#include "altair/MainBoard.hpp"
-#include "altair/Card/Cpu.hpp"
-#include "altair/Card/Mcs16.hpp"
+namespace altair {
+	namespace card {
+		class SimpleConnector : public Connector {
+			public:
+				SimpleConnector() : Connector() {
+				}
 
-#include "altair/utils/ImageLoaderFactory.hpp"
+				virtual void onClk() {
+					if (this->pdbin()) {
+						if (this->smemr()) {
+							uint8_t val;
 
+							if (this->onMemoryRead(this->a(), val)) {
+								this->din(val);
+							}
 
-#define DEBUG_LEVEL 5
-#include "common/debug.h"
+						} else if (this->sinp()) {
+							this->din(this->onIn(this->a()));
+						}
 
+					} else if (this->pwr()) {
+						if (this->sout()) {
+							this->onOut(this->a(), this->dout());
 
-static altair::card::Cpu::ClkSource *clk = nullptr;
+						} else {
+							this->onMemoryWrite(this->a(), this->dout());
+						}
+					}
+				}
 
-
-static void _signalHandler(int signo) {
-	clk->stop();
+				virtual bool    onMemoryRead(uint16_t address, uint8_t &val) = 0;
+				virtual void    onMemoryWrite(uint16_t address, uint8_t data) = 0;
+				virtual uint8_t onIn(uint8_t number) = 0;
+				virtual void    onOut(uint8_t number, uint8_t data) = 0;
+		};
+	}
 }
 
 
-int main(int argc, char *argv[]) {
-	altair::MainBoard board;
 
-	signal(SIGINT, _signalHandler);
-
-	{
-		altair::card::Cpu *cpuCard = new altair::card::Cpu();
-
-		clk = cpuCard->getClock();
-
-		board.addCard(cpuCard);
-	}
-
-	{
-		auto loader = altair::utils::ImageLoaderFactory::getLoader("asdasd.bin");
-
-		if (loader) {
-			uint16_t address;
-			uint8_t  data;
-
-			loader->nextByte(address, data);
-		}
-	}
-
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::COOO));
-
-	clk->loop();
-
-	return 0;
-}
+#endif /* ALTAIR_CARD_SIMPLECONNECTOR_HPP_ */

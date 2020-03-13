@@ -24,6 +24,8 @@
 #ifndef ALTAIR_UTILS_HPP_
 #define ALTAIR_UTILS_HPP_
 
+#include <algorithm>
+
 #include "altair/Core.hpp"
 
 namespace altair {
@@ -40,6 +42,70 @@ namespace altair {
 					case Core::BReg::L: return "l";
 					default: return "?";
 				}
+			}
+
+			static uint8_t hexToBin(const char hex[2]) {
+				uint8_t ret = 0;
+				uint8_t i = 0;
+
+				while (i != 2) {
+					char x = hex[i];
+					uint8_t shift = 4 * (1 - i);
+
+					if (x >= '0' && x <= '9') {
+						ret |= ((x - '0') << shift);
+
+					} else if (x >= 'A' && x <= 'F') {
+						ret |= ((x - 'A' + 10) << shift);
+
+					} else {
+						ret |= ((x - 'a' + 10) << shift);
+					}
+
+					i++;
+				}
+
+				return ret;
+			}
+
+			static inline std::string toLower(const std::string &str) {
+				std::string ret;
+
+				if (str.empty()) {
+					return ret;
+				}
+
+				std::transform(str.begin(), str.end(), ret.begin(), ::tolower);
+
+				return ret;
+			}
+
+			static std::string trimRight(const std::string &text, const std::string &trim) {
+				std::string ret = text;
+
+				size_t found = ret.find_last_not_of(trim);
+
+				if (found != std::string::npos) {
+					ret.erase(found + 1);
+				} else {
+					ret.clear();
+				}
+
+				return ret;
+			}
+
+			static std::string trimLeft(const std::string &text, const std::string &trim) {
+				size_t strBegin = text.find_first_not_of(trim);
+				if (strBegin == std::string::npos) {
+					return ""; // no content
+
+				} else {
+					return text.substr(strBegin);
+				}
+			}
+
+			static std::string trim(const std::string &text, const std::string &trim) {
+				return trimLeft(trimRight(text, trim), trim);
 			}
 	};
 }

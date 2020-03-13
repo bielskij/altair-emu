@@ -94,7 +94,7 @@ void altair::card::Cpu::PioImpl::setWr(bool active) {
 }
 
 void altair::card::Cpu::PioImpl::setSync(bool active) {
-
+	this->conn->psync(active);
 }
 
 void altair::card::Cpu::PioImpl::setHoldAck(bool active) {
@@ -122,18 +122,15 @@ void altair::card::Cpu::PioImpl::clk() {
 	if (this->conn->psync()) {
 		uint8_t val = conn->dout();
 
-		conn->sinta (val & 0x01);
-		conn->swo   (val & 0x02);
-		conn->sstack(val & 0x04);
-		conn->shlta (val & 0x08);
-		conn->sout  (val & 0x10);
-		conn->sm1   (val & 0x20);
-		conn->sinp  (val & 0x40);
-		conn->smemr (val & 0x80);
+		conn->sinta ((val & 0x01) != 0);
+		conn->swo   ((val & 0x02) != 0);
+		conn->sstack((val & 0x04) != 0);
+		conn->shlta ((val & 0x08) != 0);
+		conn->sout  ((val & 0x10) != 0);
+		conn->sm1   ((val & 0x20) != 0);
+		conn->sinp  ((val & 0x40) != 0);
+		conn->smemr ((val & 0x80) != 0);
 	}
-
-	// Memory write signal
-	conn->mwrt(conn->pwr() && ! conn->sout());
 
 	conn->clk();
 }

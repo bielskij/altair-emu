@@ -21,55 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include <signal.h>
-#include <unistd.h>
+#ifndef ALTAIR_UTILS_IMAGELOADERFACTORY_HPP_
+#define ALTAIR_UTILS_IMAGELOADERFACTORY_HPP_
 
-#include "altair/MainBoard.hpp"
-#include "altair/Card/Cpu.hpp"
-#include "altair/Card/Mcs16.hpp"
+#include <memory>
 
-#include "altair/utils/ImageLoaderFactory.hpp"
+#include "altair/utils/ImageHexLoader.hpp"
 
+namespace altair {
+	namespace utils {
+		class ImageLoaderFactory {
+			public:
+				static std::unique_ptr<ImageLoader> getLoader(const std::string &path) {
+					if (ImageHexLoader::probe(path)) {
+						auto ret = std::unique_ptr<ImageHexLoader>(new ImageHexLoader());
 
-#define DEBUG_LEVEL 5
-#include "common/debug.h"
+						ret->open(path);
 
+						return ret;
+					}
 
-static altair::card::Cpu::ClkSource *clk = nullptr;
+					return std::unique_ptr<ImageLoader>();
+				}
 
-
-static void _signalHandler(int signo) {
-	clk->stop();
+			private:
+				ImageLoaderFactory() = delete;
+				ImageLoaderFactory(const ImageLoaderFactory&) = delete;
+		};
+	}
 }
 
 
-int main(int argc, char *argv[]) {
-	altair::MainBoard board;
-
-	signal(SIGINT, _signalHandler);
-
-	{
-		altair::card::Cpu *cpuCard = new altair::card::Cpu();
-
-		clk = cpuCard->getClock();
-
-		board.addCard(cpuCard);
-	}
-
-	{
-		auto loader = altair::utils::ImageLoaderFactory::getLoader("asdasd.bin");
-
-		if (loader) {
-			uint16_t address;
-			uint8_t  data;
-
-			loader->nextByte(address, data);
-		}
-	}
-
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::COOO));
-
-	clk->loop();
-
-	return 0;
-}
+#endif /* ALTAIR_UTILS_IMAGELOADERFACTORY_HPP_ */

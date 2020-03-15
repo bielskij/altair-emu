@@ -27,6 +27,9 @@
 #include "altair/MainBoard.hpp"
 #include "altair/Card/Cpu.hpp"
 #include "altair/Card/Mcs16.hpp"
+#include "altair/Card/Sio.hpp"
+
+#include "altair/Card/devel/Writer.hpp"
 
 #include "altair/utils/ImageLoaderFactory.hpp"
 
@@ -56,18 +59,26 @@ int main(int argc, char *argv[]) {
 		board.addCard(cpuCard);
 	}
 
-	{
-		auto loader = altair::utils::ImageLoaderFactory::getLoader("asdasd.bin");
+	// RAM
+	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::COOO));
+	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::OCOO));
+	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::OOCO));
+
+	board.addCard(new altair::card::Sio(0x00, altair::card::Sio::B19200));
+
+	if (argc > 1) {
+		auto loader = altair::utils::ImageLoaderFactory::getLoader(argv[1]);
 
 		if (loader) {
-			uint16_t address;
-			uint8_t  data;
+			altair::card::DevelWriter *writer = new altair::card::DevelWriter();
 
-			loader->nextByte(address, data);
+			DBG(("Loading image from: %s", argv[1]));
+
+			board.addCard(writer);
+
+			writer->loadFrom(loader.get());
 		}
 	}
-
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::COOO));
 
 	clk->loop();
 

@@ -21,49 +21,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef ALTAIR_CARD_SIMPLECONNECTOR_HPP_
-#define ALTAIR_CARD_SIMPLECONNECTOR_HPP_
+#ifndef ALTAIR_CARD_DEVEL_WRITER_CPP_
+#define ALTAIR_CARD_DEVEL_WRITER_CPP_
+
+#include "altair/utils/ImageLoader.hpp"
 
 namespace altair {
 	namespace card {
-		class SimpleConnector : public Connector {
+		class DevelWriter : public Card, public Connector {
 			public:
-				SimpleConnector() : Connector() {
+				DevelWriter() {
 				}
 
-				virtual void onClk() {
-					if (this->pdbin()) {
-						uint8_t val;
+				card::Connector *getConnector() override {
+					return this;
+				}
 
-						if (this->smemr()) {
-							if (this->onMemoryRead(this->a(), val)) {
-								this->din(val);
-							}
+				void loadFrom(altair::utils::ImageLoader *loader) {
+					uint16_t address;
+					uint8_t  data;
 
-						} else if (this->sinp()) {
-							if (this->onIn(this->a(), val)) {
-								this->din(val);
-							}
+					loader->rewind();
+
+					while (loader->nextByte(address, data)) {
+						{
+							this->psync(true);
+
+							this->sinta(false);
+							this->swo(true);
+							this->sstack(false);
+							this->shlta(false);
+							this->sout(false);
+							this->sm1(false);
+							this->sinp(false);
+							this->smemr(false);
+
+							this->a(address);
 						}
+						this->clk();
 
-					} else if (this->pwr()) {
-						if (this->sout()) {
-							this->onOut(this->a(), this->dout());
-
-						} else {
-							this->onMemoryWrite(this->a(), this->dout());
+						{
+							this->psync(false);
 						}
+						this->clk();
+
+						{
+							this->dout(data);
+
+							this->pwr(true);
+						}
+						this->clk();
+
+						this->pwr(false);
 					}
 				}
-
-				virtual bool onMemoryRead(uint16_t address, uint8_t &val) = 0;
-				virtual void onMemoryWrite(uint16_t address, uint8_t data) = 0;
-				virtual bool onIn(uint8_t number, uint8_t &val) = 0;
-				virtual void onOut(uint8_t number, uint8_t data) = 0;
 		};
 	}
 }
 
-
-
-#endif /* ALTAIR_CARD_SIMPLECONNECTOR_HPP_ */
+#endif /* ALTAIR_CARD_DEVEL_WRITER_CPP_ */

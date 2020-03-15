@@ -72,8 +72,10 @@ namespace altair {
 				std::string ret;
 
 				if (str.empty()) {
-					return ret;
+					return str;
 				}
+
+				ret.resize(str.size());
 
 				std::transform(str.begin(), str.end(), ret.begin(), ::tolower);
 
@@ -106,6 +108,27 @@ namespace altair {
 
 			static std::string trim(const std::string &text, const std::string &trim) {
 				return trimLeft(trimRight(text, trim), trim);
+			}
+
+			static std::string getFileExtension(const std::string &path) {
+				std::string extension;
+
+				if (path.empty()) {
+					return path;
+				}
+
+				{
+					size_t idx = path.find_last_of('.');
+					if (idx != std::string::npos) {
+						extension = path.substr(idx);
+					}
+				}
+
+				if (! extension.empty()) {
+					extension = toLower(extension);
+				}
+
+				return extension;
 			}
 	};
 }

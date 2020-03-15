@@ -72,6 +72,7 @@ namespace altair {
 							for (int i = 1; i < this->line.length() - 3; i += 2) {
 								checksumCalc += Utils::hexToBin(this->line.c_str() + i);
 							}
+							checksumCalc = 0x100 - checksumCalc;
 
 							if (checksumCalc != checksumFile) {
 								throw std::invalid_argument("Invalid ihex line (bad crc)! '" + this->line + "'");
@@ -120,7 +121,9 @@ namespace altair {
 				}
 
 				static bool probe(const std::string &path) {
-					if (Utils::toLower(path.substr(path.find_last_of('.'))) == "hex") {
+					std::string extension = Utils::getFileExtension(path);
+
+					if (extension == ".hex") {
 						return true;
 					}
 

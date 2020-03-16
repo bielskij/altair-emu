@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <algorithm>
 
 #include "altair/Card.hpp"
 #include "altair/Card/Connector.hpp"
@@ -44,6 +45,20 @@ namespace altair {
 
 				this->_connectors.push_back(card->getConnector());
 				this->_connectors.back()->connect(this);
+			}
+
+			void removeCard(Card *card) {
+				this->_connectors.erase(
+					std::remove(
+						this->_connectors.begin(), this->_connectors.end(), card->getConnector()
+					), this->_connectors.end()
+				);
+
+				this->_cards.erase(
+					std::remove(
+						this->_cards.begin(), this->_cards.end(), card
+					), this->_cards.end()
+				);
 			}
 
 			// ---------- Connector methods

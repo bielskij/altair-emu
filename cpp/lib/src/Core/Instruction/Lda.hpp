@@ -25,7 +25,6 @@
 #define CORE_INSTRUCTION_LDA_H_
 
 #include "altair/Core.hpp"
-#include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 #include "Core/MachineCycle/MemoryRead.hpp"
 #include "Core/MachineCycle/MemoryWrite.hpp"

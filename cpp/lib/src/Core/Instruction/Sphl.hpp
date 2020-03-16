@@ -24,8 +24,8 @@
 #ifndef CORE_INSTRUCTION_SPHL_HPP_
 #define CORE_INSTRUCTION_SPHL_HPP_
 
+#include "common/Utils.hpp"
 #include "altair/Core.hpp"
-#include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 
 namespace altair {

@@ -25,7 +25,6 @@
 #define CORE_INSTRUCTION_RET_H_
 
 #include "altair/Core.hpp"
-#include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 #include "Core/MachineCycle/StackRead.hpp"
 

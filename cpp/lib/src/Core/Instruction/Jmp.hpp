@@ -25,7 +25,6 @@
 #define CORE_INSTRUCTION_JMP_H_
 
 #include "altair/Core.hpp"
-#include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 
 namespace altair {

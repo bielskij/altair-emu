@@ -24,6 +24,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include "common/Ini.hpp"
+
 #include "altair/MainBoard.hpp"
 #include "altair/Card/Cpu.hpp"
 #include "altair/Card/Mcs16.hpp"
@@ -46,10 +48,97 @@ static void _signalHandler(int signo) {
 }
 
 
+static altair::card::Mcs16::Sw1 stringToSw1(const std::string &str) {
+	if (str == "0") return altair::card::Mcs16::Sw1::COOO;
+	if (str == "1") return altair::card::Mcs16::Sw1::OCOO;
+	if (str == "2") return altair::card::Mcs16::Sw1::OOCO;
+	if (str == "3") return altair::card::Mcs16::Sw1::OOOC;
+
+	throw std::invalid_argument("Invalid bank number!");
+}
+
+
+static altair::card::Sio::BaudRate stringToSioBaud(const std::string &str) {
+	if (str == "110")   return altair::card::Sio::B110;
+	if (str == "150")   return altair::card::Sio::B150;
+	if (str == "300")   return altair::card::Sio::B300;
+	if (str == "600")   return altair::card::Sio::B600;
+	if (str == "1200")  return altair::card::Sio::B1200;
+	if (str == "2400")  return altair::card::Sio::B2400;
+	if (str == "4800")  return altair::card::Sio::B4800;
+	if (str == "9600")  return altair::card::Sio::B9600;
+	if (str == "19200") return altair::card::Sio::B19200;
+
+	throw std::invalid_argument("Invalid baudrate value!");
+}
+
+
 int main(int argc, char *argv[]) {
 	altair::MainBoard board;
 
 	signal(SIGINT, _signalHandler);
+
+	common::Ini configuration;
+
+	if (configuration.parse(argv[1])) {
+		common::Ini::Section *global = nullptr;
+
+		for (auto &i : configuration.getSections()) {
+			if (i->getName() == "global") {
+				global = i;
+
+				continue;
+			}
+
+			if (i->getName() == "load") {
+				continue;
+			}
+
+			if (i->getName() == "88-16mcs") {
+				board.addCard(new altair::card::Mcs16(stringToSw1(i->getValue("bank"))));
+
+				continue;
+			}
+
+			if (i->getName() == "88-sio") {
+				board.addCard(new altair::card::Sio(
+					common::Utils::toUint8(i->getValue("port")),
+					stringToSioBaud(i->getValue("baudrate")))
+				);
+
+				continue;
+			}
+		}
+
+		// Load executables into memory
+		{
+			auto &loadables = configuration.get("load");
+
+			if (! loadables.empty()) {
+				std::string configBaseDir = common::Utils::dirname(common::Utils::getRealPath(argv[1]));
+
+				altair::card::DevelWriter *writer = new altair::card::DevelWriter();
+
+				board.addCard(writer);
+
+				for (auto &l : loadables) {
+					std::string loadablePath = l->getValue("file");
+
+					if (loadablePath[0] != '/') {
+						loadablePath = configBaseDir + "/" + loadablePath;
+					}
+
+					DBG(("Loading: %s", loadablePath.c_str()));
+
+					auto loader = altair::utils::ImageLoaderFactory::getLoader(loadablePath);
+
+					writer->loadFrom(loader.get());
+				}
+
+				board.removeCard(writer);
+			}
+		}
+	}
 
 	{
 		altair::card::Cpu *cpuCard = new altair::card::Cpu();
@@ -57,27 +146,6 @@ int main(int argc, char *argv[]) {
 		clk = cpuCard->getClock();
 
 		board.addCard(cpuCard);
-	}
-
-	// RAM
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::COOO));
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::OCOO));
-	board.addCard(new altair::card::Mcs16(altair::card::Mcs16::Sw1::OOCO));
-
-	board.addCard(new altair::card::Sio(0x00, altair::card::Sio::B19200));
-
-	if (argc > 1) {
-		auto loader = altair::utils::ImageLoaderFactory::getLoader(argv[1]);
-
-		if (loader) {
-			altair::card::DevelWriter *writer = new altair::card::DevelWriter();
-
-			DBG(("Loading image from: %s", argv[1]));
-
-			board.addCard(writer);
-
-			writer->loadFrom(loader.get());
-		}
 	}
 
 	clk->loop();

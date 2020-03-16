@@ -24,9 +24,8 @@
 #ifndef ALTAIR_UTILS_IMAGEHEXLOADER_HPP_
 #define ALTAIR_UTILS_IMAGEHEXLOADER_HPP_
 
-
+#include "common/Utils.hpp"
 #include "altair/utils/ImageFileLoader.hpp"
-#include "altair/Utils.hpp"
 
 namespace altair {
 	namespace utils {
@@ -47,7 +46,7 @@ namespace altair {
 							uint8_t nextByte = this->ImageFileLoader::nextByte();
 
 							if (nextByte == '\n') {
-								this->line = Utils::trim(this->line, " \t\r\n");
+								this->line = common::Utils::trim(this->line, " \t\r\n");
 
 								if (! this->line.empty()) {
 									break;
@@ -66,11 +65,11 @@ namespace altair {
 
 						// validate checksum
 						{
-							uint8_t checksumFile = Utils::hexToBin(this->line.c_str() + (this->line.size() - 2));
+							uint8_t checksumFile = common::Utils::hexToBin(this->line.c_str() + (this->line.size() - 2));
 							uint8_t checksumCalc = 0;
 
 							for (int i = 1; i < this->line.length() - 3; i += 2) {
-								checksumCalc += Utils::hexToBin(this->line.c_str() + i);
+								checksumCalc += common::Utils::hexToBin(this->line.c_str() + i);
 							}
 							checksumCalc = 0x100 - checksumCalc;
 
@@ -79,8 +78,8 @@ namespace altair {
 							}
 						}
 
-						uint8_t  recordType    = Utils::hexToBin(this->line.c_str() + 7);
-						uint16_t recordAddress = (Utils::hexToBin(this->line.c_str() + 3) << 8) | Utils::hexToBin(this->line.c_str() + 5);
+						uint8_t  recordType    = common::Utils::hexToBin(this->line.c_str() + 7);
+						uint16_t recordAddress = (common::Utils::hexToBin(this->line.c_str() + 3) << 8) | common::Utils::hexToBin(this->line.c_str() + 5);
 
 						// EOF record
 						if (this->line.length() == 11 && (recordType != 0x01)) {
@@ -102,7 +101,7 @@ namespace altair {
 
 					if (! this->line.empty()) {
 						address = this->addressOffset++;
-						val     = Utils::hexToBin(this->line.c_str() + this->lineOffset);
+						val     = common::Utils::hexToBin(this->line.c_str() + this->lineOffset);
 
 						this->lineOffset += 2;
 
@@ -121,7 +120,7 @@ namespace altair {
 				}
 
 				static bool probe(const std::string &path) {
-					std::string extension = Utils::getFileExtension(path);
+					std::string extension = common::Utils::getFileExtension(path);
 
 					if (extension == ".hex") {
 						return true;

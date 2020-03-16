@@ -24,8 +24,9 @@
 #ifndef CORE_INSTRUCTION_MOV_HPP_
 #define CORE_INSTRUCTION_MOV_HPP_
 
+#include "common/Utils.hpp"
+
 #include "altair/Core.hpp"
-#include "altair/Utils.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
 #include "Core/MachineCycle/MemoryRead.hpp"
 #include "Core/MachineCycle/MemoryWrite.hpp"

@@ -21,29 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef ALTAIR_UTILS_HPP_
-#define ALTAIR_UTILS_HPP_
+#ifndef COMMON_UTILS_HPP_
+#define COMMON_UTILS_HPP_
 
+#include <limits.h>
+#include <stdlib.h>
+
+#include <cstring>
 #include <algorithm>
 
 #include "altair/Core.hpp"
 
-namespace altair {
+namespace common {
 	class Utils {
 		public:
-			static inline std::string bregToString(Core::BReg reg) {
-				switch (reg) {
-					case Core::BReg::A: return "a";
-					case Core::BReg::B: return "b";
-					case Core::BReg::C: return "c";
-					case Core::BReg::D: return "d";
-					case Core::BReg::E: return "e";
-					case Core::BReg::H: return "h";
-					case Core::BReg::L: return "l";
-					default: return "?";
-				}
-			}
-
 			static uint8_t hexToBin(const char hex[2]) {
 				uint8_t ret = 0;
 				uint8_t i = 0;
@@ -130,7 +121,46 @@ namespace altair {
 
 				return extension;
 			}
+
+			static uint8_t toUint8(const std::string &str) {
+				return atoi(str.c_str());
+			}
+
+			static std::string getRealPath(const std::string &path) {
+				std::string ret;
+
+				{
+					char resolved[PATH_MAX];
+
+					realpath(path.c_str(), resolved);
+
+					ret = resolved;
+				}
+
+				return ret;
+			}
+
+			static std::string dirname(const std::string &path) {
+				if(path == "") {
+					return std::string("");
+				}
+
+				size_t found = path.find_last_of("/\\");
+				if(found == std::string::npos) {
+					return std::string(".");
+
+				} else if(found == 0) {
+					return std::string(path.begin(),path.begin() + 1);
+
+				} else if(found == path.length() - 1) {
+					std::string redo = std::string(path.begin(), path.end() - 1);
+
+					return dirname(redo);
+				}
+
+				return std::string(path.begin(), path.begin() + found);
+			}
 	};
 }
 
-#endif /* ALTAIR_UTILS_HPP_ */
+#endif /* COMMON_UTILS_HPP_ */

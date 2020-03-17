@@ -289,3 +289,56 @@ CUNIT_TEST(core_cycles, output_write) {
 	CUNIT_ASSERT_EQ(pio.clkCount, 10);
 	CUNIT_ASSERT_EQ(pio.getData(), 0);
 }
+
+
+CUNIT_TEST(core_cycles, interrupt) {
+	test::Pio pio({
+		0xfb, 0x00
+	});
+
+	test::Core core(pio);
+
+	CUNIT_ASSERT_FALSE(pio.inte);
+	core.nextInstruction();
+	CUNIT_ASSERT_TRUE(pio.inte);
+
+	core.tick();
+	pio.setInt(true);
+	core.nextInstruction();
+	pio.setInt(false);
+	CUNIT_ASSERT_EQ(pio.clkCount, 8);
+	CUNIT_ASSERT_TRUE(pio.inte);
+
+	core.tick();
+	CUNIT_ASSERT_EQ(pio.address, 0x0002);
+	CUNIT_ASSERT_EQ(pio.data,    0x21);
+	CUNIT_ASSERT_TRUE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_FALSE(pio.inte);
+	CUNIT_ASSERT_EQ(pio.clkCount, 9);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 2);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_TRUE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_FALSE(pio.inte);
+	CUNIT_ASSERT_EQ(pio.clkCount, 10);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 2);
+
+	// RST instruction
+	pio.setData(0xff);
+
+	core.tick();
+	CUNIT_ASSERT_FALSE(pio.sync);
+	CUNIT_ASSERT_FALSE(pio.dbin);
+	CUNIT_ASSERT_FALSE(pio.wr);
+	CUNIT_ASSERT_FALSE(pio.wait);
+	CUNIT_ASSERT_FALSE(pio.inte);
+	CUNIT_ASSERT_EQ(pio.clkCount, 11);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 2);
+	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::IR), 0xff);
+}

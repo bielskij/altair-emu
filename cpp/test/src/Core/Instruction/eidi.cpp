@@ -37,7 +37,7 @@ CUNIT_TEST(core_instruction, ei) {
 
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_TRUE(core.inteFF());
+	CUNIT_ASSERT_TRUE(core.intePin());
 }
 
 
@@ -50,5 +50,5 @@ CUNIT_TEST(core_instruction, di) {
 
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_FALSE(core.inteFF());
+	CUNIT_ASSERT_FALSE(core.intePin());
 }

@@ -37,7 +37,7 @@ namespace altair {
 					}
 
 					bool t4() override {
-						core()->inteFF(this->enable);
+						core()->intePin(this->enable);
 
 						return false;
 					}

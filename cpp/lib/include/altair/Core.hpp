@@ -82,6 +82,7 @@ namespace altair {
 					virtual bool getInt()   = 0;
 					virtual bool getReady() = 0;
 
+					virtual void setInt(bool active)     = 0;
 					virtual void setInte(bool active)    = 0;
 					virtual void setDbin(bool active)    = 0;
 					virtual void setWr(bool active)      = 0;
@@ -524,9 +525,11 @@ namespace altair {
 			InstructionDecoder*_decoder;
 			Pio               &_pio;
 			MachineCycle      *_fetchCycle;
+			MachineCycle      *_interruptCycle;
 			uint8_t            _state; // Current state
 
 			bool _inteFF;
+			bool _intePin;
 
 		public:
 			Core(Pio &pio);
@@ -698,6 +701,16 @@ namespace altair {
 
 			inline void inteFF(bool enable) {
 				this->_inteFF = enable;
+			}
+
+			inline bool intePin() const {
+				return this->_intePin;
+			}
+
+			inline void intePin(bool enable) {
+				this->_intePin = enable;
+
+				this->_pio.setInte(this->_intePin);
 			}
 
 		protected:

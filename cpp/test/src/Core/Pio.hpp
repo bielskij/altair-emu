@@ -40,6 +40,8 @@ namespace test {
 			bool dbin;
 			bool wr;
 			bool wait;
+			bool intr;
+			bool inte;
 
 			std::vector<uint8_t> program;
 
@@ -52,12 +54,15 @@ namespace test {
 				this->dbin     = false;
 				this->wr       = false;
 				this->wait     = false;
+				this->intr     = false;
+				this->inte     = false;
 			}
 
 			bool getInt() override;
 			bool getHold() override;
 			bool getReady() override;
 			bool getReset() override;
+			void setInt(bool active) override;
 			void setWr(bool active) override;
 			void setDbin(bool active) override;
 			void setInte(bool active) override;

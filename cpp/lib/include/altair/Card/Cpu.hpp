@@ -70,6 +70,7 @@ namespace altair {
 						bool getInt() override;
 						bool getReady() override;
 
+						void setInt(bool active) override;
 						void setInte(bool active) override;
 						void setDbin(bool active) override;
 						void setWr(bool active) override;

@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_FETCH_HPP_
-#define CORE_MACHINECYCLE_FETCH_HPP_
+#ifndef CORE_MACHINECYCLE_INTERRUPT_HPP_
+#define CORE_MACHINECYCLE_INTERRUPT_HPP_
 
 #include "altair/Core.hpp"
 
@@ -33,19 +33,44 @@ namespace altair {
 			}
 
 			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setAddress(this->core()->wR(Core::WReg::PC));
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				// Disable interrupts
+				pio.setInte(false);
+
+				return true;
 			}
 
 			bool t2() override {
+				Core::Pio &pio = this->core()->pio();
 
+				pio.setSync(false);
+				pio.setDbin(true);
+
+				return true;
 			}
 
 			bool t3() override {
+				Core::Pio &pio = this->core()->pio();
+
+				this->core()->bR(Core::BReg::IR, pio.getData());
+				pio.setDbin(false);
+
+				return true;
 			}
 
 			bool t4() override {
+				return true;
+			}
+
+			bool t5() override {
+				return false;
 			}
 	};
 }
 
-#endif /* CORE_MACHINECYCLE_FETCH_HPP_ */
+#endif /* CORE_MACHINECYCLE_INTERRUPT_HPP_ */

@@ -25,20 +25,23 @@
 
 #include "altair/Cpu.hpp"
 #include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/Interrupt.hpp"
 
 #define DEBUG_LEVEL 5
 #include "common/debug.h"
 
 
 altair::Core::Core(Pio &pio) : _pio(pio) {
-	this->_fetchCycle = new MachineCycleFetch(this);
-	this->_decoder    = new InstructionDecoder(this);
-	this->_alu        = new Alu(this);
+	this->_fetchCycle     = new MachineCycleFetch(this);
+	this->_interruptCycle = new MachineCycleInterrupt(this);
+	this->_decoder        = new InstructionDecoder(this);
+	this->_alu            = new Alu(this);
 
-	this->_i      = nullptr;
-	this->_cycle  = nullptr;
-	this->_state  = 0;
-	this->_inteFF = false;
+	this->_i       = nullptr;
+	this->_cycle   = nullptr;
+	this->_state   = 0;
+	this->_inteFF  = false;
+	this->_intePin = false;
 
 	for (auto &r : this->_bregs) {
 		r = 0;
@@ -88,7 +91,7 @@ void altair::Core::tick() {
 
 	// No instruction there. Do fetch
 	if (this->_cycle == nullptr){
-		this->_cycle = this->_fetchCycle;
+		this->_cycle = this->inteFF() ? this->_interruptCycle : this->_fetchCycle;
 	}
 	{
 		bool nextCycle = false;
@@ -139,6 +142,8 @@ void altair::Core::tick() {
 			this->_cycle = this->_i->nextCycle();
 			if (this->_cycle == nullptr) {
 				this->_i     = nullptr;
+
+				this->inteFF(this->pio().getInt() && this->intePin());
 			}
 		}
 	}

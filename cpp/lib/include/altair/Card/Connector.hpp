@@ -123,6 +123,13 @@ namespace altair {
 				virtual bool psync() const   { return other->psync(); }
 				virtual void psync(bool val) { other->psync(val); }
 
+				// The processor recognizes an interrupt request on this line at the end
+				// of the current instruction or while halted. If the processor is in the HOLD
+				// state or the interrupt enable flip-flop is reset, it will not honor the
+				// request.
+				virtual bool pint() const   { return other->pint(); }
+				virtual void pint(bool val) { other->pint(val); }
+
 			private:
 				Connector *other;
 		};

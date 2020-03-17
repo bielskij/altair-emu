@@ -29,11 +29,13 @@
 
 bool test::Pio::getInt() {
 	DBG(("CALL"));
-	return false;
+
+	return this->intr;
 }
 
 bool test::Pio::getHold() {
 	DBG(("CALL"));
+
 	return false;
 }
 
@@ -47,6 +49,13 @@ bool test::Pio::getReady() {
 bool test::Pio::getReset() {
 	DBG(("CALL"));
 	return false;
+}
+
+
+void test::Pio::setInt(bool active) {
+	DBG(("CALL %d", active));
+
+	this->intr = active;
 }
 
 
@@ -66,6 +75,8 @@ void test::Pio::setDbin(bool active) {
 
 void test::Pio::setInte(bool active) {
 	DBG(("CALL"));
+
+	this->inte = active;
 }
 
 

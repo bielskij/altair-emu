@@ -65,6 +65,7 @@ namespace altair {
 			void clk() override;
 			void onClk() override;
 			uint8_t vi() const override;
+			void vi(uint8_t val) override;
 
 			uint16_t a() const override;
 			void a(uint16_t address) override;

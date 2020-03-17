@@ -22,13 +22,12 @@ loop	nop
 ;    to branch to a a 2nd device to check. 
 
 	org	038h		;RST7 entry address
-	push	a		;save A and status flags
+	push	psw		;save A and status flags
 ;	in	00h		;verify a new character present
 ;	rrc			;lsb has new data flag
 ;	jc	nextDev		no character, try next device
 	in	01h		;read the character
 	out	01h		;echo it
-	pop	a		;restore A and status flags
+	pop	psw		;restore A and status flags
 	ei			;re-enable 8080 interrupts
 	ret
-

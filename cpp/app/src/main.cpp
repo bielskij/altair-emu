@@ -30,6 +30,7 @@
 #include "altair/Card/Cpu.hpp"
 #include "altair/Card/Mcs16.hpp"
 #include "altair/Card/Sio.hpp"
+#include "altair/Card/VI.hpp"
 
 #include "altair/Card/devel/Writer.hpp"
 
@@ -96,6 +97,12 @@ int main(int argc, char *argv[]) {
 
 			if (i->getName() == "88-16mcs") {
 				board.addCard(new altair::card::Mcs16(stringToSw1(i->getValue("bank"))));
+
+				continue;
+			}
+
+			if (i->getName() == "88-iv") {
+				board.addCard(new altair::card::VI(common::Utils::toUint8(i->getValue("port"))));
 
 				continue;
 			}

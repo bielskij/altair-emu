@@ -50,6 +50,7 @@ altair::MainBoard::MainBoard() {
 void altair::MainBoard::clk() {
 	// Apply pull ups
 	this->din(0xff);
+	this->vi(0xff);
 
 	for (auto c : _connectors) {
 		c->onClk();
@@ -61,7 +62,11 @@ void altair::MainBoard::onClk() {
 }
 
 uint8_t altair::MainBoard::vi() const {
-	return 0;
+	return this->_vi;
+}
+
+void altair::MainBoard::vi(uint8_t val) {
+	this->_vi = val;
 }
 
 uint16_t altair::MainBoard::a() const {

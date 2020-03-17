@@ -51,9 +51,8 @@ namespace altair {
 				virtual void onClk() {
 				}
 
-				virtual uint8_t vi() const {
-					return other->vi();
-				}
+				virtual uint8_t vi() const      { return other->vi(); }
+				virtual void    vi(uint8_t val) { other->vi(val); }
 
 				virtual uint16_t a() const           { return other->a(); }
 				virtual void     a(uint16_t address) { other->a(address); }

@@ -34,9 +34,9 @@ namespace altair {
 				class ClkSource {
 					public:
 						ClkSource(altair::Cpu *cpu) {
-							this->_cpu       = cpu;
-							this->_stop      = false;
-							this->_frequency = 1000000; // 1MHz
+							this->_cpu             = cpu;
+							this->_stop            = false;
+							this->_frequency       = 2000000; // 1MHz
 							this->_tickNanoseconds = 1000000000 / this->_frequency;
 						}
 

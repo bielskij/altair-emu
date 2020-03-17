@@ -59,6 +59,7 @@ namespace test {
 			}
 
 			bool getInt() override;
+			bool getInte() override;
 			bool getHold() override;
 			bool getReady() override;
 			bool getReset() override;

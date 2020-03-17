@@ -37,7 +37,7 @@ namespace altair {
 					}
 
 					bool t4() override {
-						core()->intePin(this->enable);
+						core()->pio().setInte(this->enable);
 
 						return false;
 					}

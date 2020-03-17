@@ -46,6 +46,7 @@ altair::MainBoard::MainBoard() {
 	this->_psync  = false;
 	this->_pwr    = false;
 	this->_pint   = false;
+	this->_pinte  = false;
 }
 
 void altair::MainBoard::clk() {
@@ -196,4 +197,11 @@ bool altair::MainBoard::pint() const {
 
 void altair::MainBoard::pint(bool val) {
 	this->_pint = val;
+}
+
+bool altair::MainBoard::pinte() const {
+	return this->_pinte;
+}
+void altair::MainBoard::pinte(bool val) {
+	this->_pinte = val;
 }

@@ -102,6 +102,8 @@ namespace altair {
 			void psync(bool val) override;
 			bool pint() const override;
 			void pint(bool val) override;
+			bool pinte() const override;
+			void pinte(bool val) override;
 
 		private:
 			std::vector<Card *>            _cards;
@@ -117,7 +119,7 @@ namespace altair {
 			bool _sm1, _sout, _sinp, _sinta, _swo, _sstack, _smemr, _shlta;
 
 			// CPU control pins
-			bool _pdbin, _pwr, _psync, _pint;
+			bool _pdbin, _pwr, _psync, _pint, _pinte;
 
 			// Other bus pins
 			bool _mwrt;

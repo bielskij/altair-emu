@@ -80,6 +80,7 @@ namespace altair {
 					virtual bool getReset() = 0;
 					virtual bool getHold()  = 0;
 					virtual bool getInt()   = 0;
+					virtual bool getInte()  = 0;
 					virtual bool getReady() = 0;
 
 					virtual void setInt(bool active)     = 0;
@@ -89,7 +90,6 @@ namespace altair {
 					virtual void setSync(bool active)    = 0;
 					virtual void setHoldAck(bool active) = 0;
 					virtual void setWait(bool active)    = 0;
-
 
 					virtual uint8_t getData()            = 0;
 					virtual void    setData(uint8_t val) = 0;
@@ -528,8 +528,7 @@ namespace altair {
 			MachineCycle      *_interruptCycle;
 			uint8_t            _state; // Current state
 
-			bool _inteFF;
-			bool _intePin;
+			bool _intFF;
 
 		public:
 			Core(Pio &pio);
@@ -695,22 +694,12 @@ namespace altair {
 				return this->_alu;
 			}
 
-			inline bool inteFF() const {
-				return this->_inteFF;
+			inline bool intFF() const {
+				return this->_intFF;
 			}
 
-			inline void inteFF(bool enable) {
-				this->_inteFF = enable;
-			}
-
-			inline bool intePin() const {
-				return this->_intePin;
-			}
-
-			inline void intePin(bool enable) {
-				this->_intePin = enable;
-
-				this->_pio.setInte(this->_intePin);
+			inline void intFF(bool enable) {
+				this->_intFF = enable;
 			}
 
 		protected:

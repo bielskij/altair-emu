@@ -75,13 +75,17 @@ bool altair::card::Cpu::PioImpl::getInt() {
 	return this->conn->pint();
 }
 
+bool altair::card::Cpu::PioImpl::getInte() {
+	return this->conn->pinte();
+}
+
 bool altair::card::Cpu::PioImpl::getReady() {
 #warning "TODO implement"
 	return true;
 }
 
 void altair::card::Cpu::PioImpl::setInte(bool active) {
-
+	this->conn->pinte(active);
 }
 
 void altair::card::Cpu::PioImpl::setInt(bool active) {

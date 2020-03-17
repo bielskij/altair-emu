@@ -33,6 +33,12 @@ bool test::Pio::getInt() {
 	return this->intr;
 }
 
+bool test::Pio::getInte() {
+	DBG(("CALL"));
+
+	return this->inte;
+}
+
 bool test::Pio::getHold() {
 	DBG(("CALL"));
 

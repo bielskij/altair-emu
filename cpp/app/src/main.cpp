@@ -74,6 +74,21 @@ static altair::card::Sio::BaudRate stringToSioBaud(const std::string &str) {
 }
 
 
+static altair::card::Sio::IntLevel stringToSioIntLevel(const std::string &str) {
+	if (str == "sl")  return altair::card::Sio::IntLevel::SL;
+	if (str == "vi0") return altair::card::Sio::IntLevel::VI0;
+	if (str == "vi1") return altair::card::Sio::IntLevel::VI1;
+	if (str == "vi2") return altair::card::Sio::IntLevel::VI2;
+	if (str == "vi3") return altair::card::Sio::IntLevel::VI3;
+	if (str == "vi4") return altair::card::Sio::IntLevel::VI4;
+	if (str == "vi5") return altair::card::Sio::IntLevel::VI5;
+	if (str == "vi6") return altair::card::Sio::IntLevel::VI6;
+	if (str == "vi7") return altair::card::Sio::IntLevel::VI7;
+
+	throw std::invalid_argument("Invalid interrupt level value!");
+}
+
+
 int main(int argc, char *argv[]) {
 	altair::MainBoard board;
 
@@ -108,9 +123,13 @@ int main(int argc, char *argv[]) {
 			}
 
 			if (i->getName() == "88-sio") {
-				board.addCard(new altair::card::Sio(
-					common::Utils::toUint8(i->getValue("port")),
-					stringToSioBaud(i->getValue("baudrate")))
+				board.addCard(
+					new altair::card::Sio(
+						common::Utils::toUint8(i->getValue("port")),
+						stringToSioBaud(i->getValue("baudrate")),
+						stringToSioIntLevel(i->getValue("int-lvl-in")),
+						stringToSioIntLevel(i->getValue("int-lvl-out"))
+					)
 				);
 
 				continue;

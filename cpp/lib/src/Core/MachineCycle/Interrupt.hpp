@@ -38,7 +38,7 @@ namespace altair {
 				pio.setAddress(this->core()->wR(Core::WReg::PC));
 				pio.setData(this->getStatus());
 				pio.setSync(true);
-
+printf("SET FALSE\n");
 				// Disable interrupts
 				pio.setInte(false);
 
@@ -50,6 +50,9 @@ namespace altair {
 
 				pio.setSync(false);
 				pio.setDbin(true);
+
+				// Clear internal interrupt flag
+				core()->intFF(false);
 
 				return true;
 			}

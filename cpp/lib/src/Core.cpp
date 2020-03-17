@@ -37,11 +37,10 @@ altair::Core::Core(Pio &pio) : _pio(pio) {
 	this->_decoder        = new InstructionDecoder(this);
 	this->_alu            = new Alu(this);
 
-	this->_i       = nullptr;
-	this->_cycle   = nullptr;
-	this->_state   = 0;
-	this->_inteFF  = false;
-	this->_intePin = false;
+	this->_i      = nullptr;
+	this->_cycle  = nullptr;
+	this->_state  = 0;
+	this->_intFF  = false;
 
 	for (auto &r : this->_bregs) {
 		r = 0;
@@ -91,10 +90,12 @@ void altair::Core::tick() {
 
 	// No instruction there. Do fetch
 	if (this->_cycle == nullptr){
-		this->_cycle = this->inteFF() ? this->_interruptCycle : this->_fetchCycle;
+		this->_cycle = this->intFF() ? this->_interruptCycle : this->_fetchCycle;
 	}
+
 	{
 		bool nextCycle = false;
+		bool decodeIr  = false;
 
 		switch (this->_state) {
 			case 0:
@@ -108,18 +109,7 @@ void altair::Core::tick() {
 			case 2:
 				nextCycle = ! this->_cycle->t3();
 
-				if (this->_cycle == this->_fetchCycle) {
-					this->_i = this->_decoder->decode(this->bR(BReg::IR));
-					if (this->_i == nullptr) {
-						ERR(("Not supported opcode: %02x", this->bR(BReg::IR)));
-
-						throw std::runtime_error("Not supported opcode!");
-					}
-
-					this->_i->reset();
-
-					this->_cycle = this->_i->nextCycle();
-				}
+				decodeIr = (this->_cycle == this->_fetchCycle);
 				break;
 
 			case 3:
@@ -128,7 +118,27 @@ void altair::Core::tick() {
 
 			case 4:
 				nextCycle = ! this->_cycle->t5();
+
+				decodeIr = (this->_cycle == this->_interruptCycle);
+#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
+				if (decodeIr) {
+					DBG(("Interrupt! %02x", this->bR(BReg::IR)));
+				}
+#endif
 				break;
+		}
+
+		if (decodeIr) {
+			this->_i = this->_decoder->decode(this->bR(BReg::IR));
+			if (this->_i == nullptr) {
+				ERR(("Not supported opcode: %02x", this->bR(BReg::IR)));
+
+				throw std::runtime_error("Not supported opcode!");
+			}
+
+			this->_i->reset();
+
+			this->_cycle = this->_i->nextCycle();
 		}
 
 		this->_pio.clk();
@@ -143,7 +153,7 @@ void altair::Core::tick() {
 			if (this->_cycle == nullptr) {
 				this->_i     = nullptr;
 
-				this->inteFF(this->pio().getInt() && this->intePin());
+				this->intFF(this->pio().getInt() && this->pio().getInte());
 			}
 		}
 	}

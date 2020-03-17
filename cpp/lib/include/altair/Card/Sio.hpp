@@ -44,15 +44,30 @@ namespace altair {
 					B19200
 				};
 
+				enum IntLevel {
+					VI0, // Vectored interrupt (88-VI)
+					VI1,
+					VI2,
+					VI3,
+					VI4,
+					VI5,
+					VI6,
+					VI7,
+
+					SL, // Single level interrupt (PINT)
+				};
+
 			public:
 				// Only even value available
-				Sio(uint8_t address, BaudRate baudrate) {
+				Sio(uint8_t address, BaudRate baudrate, IntLevel inLvl = SL, IntLevel outLvl = SL) {
 					if (address & 0x01) {
 						throw std::invalid_argument("Only even address is allowed!");
 					}
 
-					this->_address  = address;
-					this->_baudrate = baudrate;
+					this->_address   = address;
+					this->_baudrate  = baudrate;
+					this->_intInLvl  = inLvl;
+					this->_intOutLvl = outLvl;
 
 					this->_intIn   = false;
 					this->_intOut  = false;
@@ -64,14 +79,14 @@ namespace altair {
 
 			protected:
 				// Connector methods
-				bool onMemoryRead(uint16_t address, uint8_t &val) {
+				bool onMemoryRead(uint16_t address, uint8_t &val) override {
 					return false;
 				}
 
-				void onMemoryWrite(uint16_t address, uint8_t data) {
+				void onMemoryWrite(uint16_t address, uint8_t data) override {
 				}
 
-				bool onIn(uint8_t number, uint8_t &val) {
+				bool onIn(uint8_t number, uint8_t &val) override {
 					if (this->_address == number) {
 						val = 0x81;
 
@@ -94,7 +109,7 @@ namespace altair {
 					return false;
 				}
 
-				void onOut(uint8_t number, uint8_t data) {
+				void onOut(uint8_t number, uint8_t data) override {
 					if (this->_address == number) {
 						if (data & 0x01) {
 							this->_intIn = true;
@@ -109,14 +124,58 @@ namespace altair {
 					}
 				}
 
+				void onClk() override {
+					SimpleConnector::onClk();
+
+					if (this->_intIn) {
+						bool canRead = this->_terminal.canRead();
+
+						if (this->_intInLvl == SL) {
+							this->pint(canRead);
+
+						} else {
+							uint8_t ivVal = this->vi();
+
+							if (canRead) {
+								ivVal |= (1 << this->_intInLvl);
+							} else {
+								ivVal &= ~(1 << this->_intInLvl);
+							}
+
+							this->vi(ivVal);
+						}
+					}
+
+					if (this->_intOut) {
+						bool canWrite = this->_terminal.canWrite();
+
+						if (this->_intOutLvl == SL) {
+							this->pint(canWrite);
+
+						} else {
+							uint8_t ivVal = this->vi();
+
+							if (canWrite) {
+								ivVal |= (1 << this->_intOutLvl);
+							} else {
+								ivVal &= ~(1 << this->_intOutLvl);
+							}
+
+							this->vi(ivVal);
+						}
+					}
+				}
+
 			private:
 				altair::utils::Terminal _terminal;
 
 				uint8_t  _address;
 				BaudRate _baudrate;
 
-				bool _intIn;
-				bool _intOut;
+				bool     _intIn;
+				IntLevel _intInLvl;
+				bool     _intOut;
+				IntLevel _intOutLvl;
 		};
 	}
 }

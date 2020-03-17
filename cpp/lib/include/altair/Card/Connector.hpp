@@ -130,6 +130,13 @@ namespace altair {
 				virtual bool pint() const   { return other->pint(); }
 				virtual void pint(bool val) { other->pint(val); }
 
+				// Processor command/control output signal indicating interrupts are enabled:
+				// indicates the content of the CPU internal flip-flop; F-F may be set or reset by
+				// EI and DI instruction and inhibits interrupts from being accepted by the CPU
+				// if it is reset
+				virtual bool pinte() const   { return other->pinte(); }
+				virtual void pinte(bool val) { other->pinte(val); }
+
 			private:
 				Connector *other;
 		};

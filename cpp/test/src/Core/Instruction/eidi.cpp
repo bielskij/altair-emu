@@ -38,6 +38,7 @@ CUNIT_TEST(core_instruction, ei) {
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 4);
 	CUNIT_ASSERT_TRUE(pio.getInte());
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
 }
 
 
@@ -51,4 +52,5 @@ CUNIT_TEST(core_instruction, di) {
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 4);
 	CUNIT_ASSERT_FALSE(pio.getInte());
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
 }

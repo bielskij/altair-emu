@@ -58,7 +58,7 @@ namespace altair {
 			// ----------- M, I
 			class MemoryRead : public MachineCycleMemoryRead {
 				public:
-					MemoryRead(Core *core, Core::WReg srcReg) : MachineCycleMemoryRead(core, srcReg, Core::BReg::TMP, false) {
+					MemoryRead(Core *core, Core::WReg srcReg, bool inc) : MachineCycleMemoryRead(core, srcReg, Core::BReg::TMP, inc) {
 					}
 
 					bool t3() override {
@@ -87,7 +87,7 @@ namespace altair {
 					case Mode::M:
 						{
 							this->addCycle(new MachineCycleFetch(core));
-							this->addCycle(new MemoryRead(core, Core::WReg::H));
+							this->addCycle(new MemoryRead(core, Core::WReg::H, false));
 
 							this->addCode(0xbe);
 						}
@@ -96,7 +96,7 @@ namespace altair {
 					case Mode::I:
 						{
 							this->addCycle(new MachineCycleFetch(core));
-							this->addCycle(new MemoryRead(core, Core::WReg::PC));
+							this->addCycle(new MemoryRead(core, Core::WReg::PC, true));
 
 							this->addCode(0xfe);
 						}

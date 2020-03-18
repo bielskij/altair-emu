@@ -37,6 +37,7 @@ CUNIT_TEST(core_instruction, jmpc_clk) {
 
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 5);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 3);
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 16);
 }

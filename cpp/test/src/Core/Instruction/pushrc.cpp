@@ -36,8 +36,13 @@ CUNIT_TEST(core_instruction, pushrc_clk) {
 	test::Core core(pio);
 
 	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 21);
+	{
+		uint16_t pc = core.wR(test::Core::WReg::PC);
+
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 21);
+		CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC) - pc, 1);
+	}
 }
 
 

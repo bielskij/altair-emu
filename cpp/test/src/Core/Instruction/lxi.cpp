@@ -38,6 +38,7 @@ CUNIT_TEST(core_instruction, lxi_clk) {
 
 	core.nextInstruction();
 	CUNIT_ASSERT_EQ(pio.clkCount, 10);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 3);
 }
 
 

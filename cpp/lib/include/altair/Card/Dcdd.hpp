@@ -21,47 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef COMMON_DEBUG_H_
-#define COMMON_DEBUG_H_
+#ifndef ALTAIR_CARD_88_DCDD_HPP_
+#define ALTAIR_CARD_88_DCDD_HPP_
 
-#include <stdio.h>
+#include <algorithm>
 
-#define DEBUG_LEVEL_ERR 0
-#define DEBUG_LEVEL_LOG 1
-#define DEBUG_LEVEL_DBG 2
-#define DEBUG_LEVEL_TRC 3
+#include "altair/MainBoard.hpp"
+#include "altair/Card/SimpleConnector.hpp"
+#include "altair/utils/ImageLoader.hpp"
 
-#if !defined(DEBUG_LEVEL)
-#define DEBUG_LEVEL DEBUG_LEVEL_ERR
-#endif
+namespace altair {
+	namespace card {
+		/*!
+		 * 88-DCDD 8" floppy disk drive
+		 */
+		class Dcdd : public Card, protected SimpleConnector {
+			private:
+				constexpr uint32_t TRACK_COUNT   = 77;
+				constexpr uint32_t TRACK_SECTORS = 32;
+				constexpr uint32_t SECTOR_SIZE   = 137;
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_TRC
-#define TRC(x) { printf("[TRC %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define TRC(x) do { } while (0);
-#endif
+			public:
+				Dcdd() {
+				}
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
-#define DBG(x) { printf("[DBG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define DBG(x) do { } while (0);
-#endif
+				card::Connector *getConnector() override {
+					return this;
+				}
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_LOG
-#define LOG(x) { printf("[LOG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define LOG(x) do { } while (0);
-#endif
+			protected:
+				// Connector methods
+				bool onMemoryRead(uint16_t address, uint8_t &val) {
+					return false;
+				}
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_ERR
-#define ERR(x) { printf("[ERR %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define ERR(x) do { } while (0);
-#endif
+				void onMemoryWrite(uint16_t address, uint8_t data) {
+				}
 
+				bool onIn(uint8_t number, uint8_t &val);
+				void onOut(uint8_t number, uint8_t data);
 
-namespace dbg {
-	void dump(void *mem, size_t memSize);
+			private:
+		};
+	}
 }
 
-#endif /* COMMON_DEBUG_H_ */
+#endif /* ALTAIR_CARD_88_DCDD_HPP_ */

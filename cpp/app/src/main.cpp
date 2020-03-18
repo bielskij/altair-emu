@@ -31,8 +31,10 @@
 #include "altair/Card/Mcs16.hpp"
 #include "altair/Card/Sio.hpp"
 #include "altair/Card/VI.hpp"
+#include "altair/Card/Pmc.hpp"
 
 #include "altair/Card/devel/Writer.hpp"
+#include "altair/Card/devel/Reader.hpp"
 
 #include "altair/utils/ImageLoaderFactory.hpp"
 
@@ -89,6 +91,17 @@ static altair::card::Sio::IntLevel stringToSioIntLevel(const std::string &str) {
 }
 
 
+static std::string getImageFilePath(const std::string &baseDir, const std::string &image) {
+	std::string ret = image;
+
+	if (ret[0] != '/') {
+		ret = baseDir + "/" + ret;
+	}
+
+	return ret;
+}
+
+
 int main(int argc, char *argv[]) {
 	altair::MainBoard board;
 
@@ -98,6 +111,8 @@ int main(int argc, char *argv[]) {
 
 	if (configuration.parse(argv[1])) {
 		common::Ini::Section *global = nullptr;
+
+		std::string configBaseDir = common::Utils::dirname(common::Utils::getRealPath(argv[1]));
 
 		for (auto &i : configuration.getSections()) {
 			if (i->getName() == "global") {
@@ -134,25 +149,37 @@ int main(int argc, char *argv[]) {
 
 				continue;
 			}
+
+			if (i->getName() == "88-pmc") {
+				altair::card::Pmc *pmc = new altair::card::Pmc(
+					common::Utils::toUint8(i->getValue("bank")),
+					common::Utils::toUint8(i->getValue("wait"))
+				);
+
+				if (i->contains("file")) {
+					auto loader = altair::utils::ImageLoaderFactory::getLoader(getImageFilePath(configBaseDir, i->getValue("file")));
+					if (loader) {
+						pmc->load(loader.get());
+					}
+				}
+
+				board.addCard(pmc);
+			}
 		}
 
 		// Load executables into memory
-		{
+		if (configuration.contains("load")) {
 			auto &loadables = configuration.get("load");
 
 			if (! loadables.empty()) {
 				std::string configBaseDir = common::Utils::dirname(common::Utils::getRealPath(argv[1]));
 
-				altair::card::DevelWriter *writer = new altair::card::DevelWriter();
+				std::unique_ptr<altair::card::DevelWriter> writer{new altair::card::DevelWriter()};
 
-				board.addCard(writer);
+				board.addCard(writer.get());
 
 				for (auto &l : loadables) {
-					std::string loadablePath = l->getValue("file");
-
-					if (loadablePath[0] != '/') {
-						loadablePath = configBaseDir + "/" + loadablePath;
-					}
+					std::string loadablePath = getImageFilePath(configBaseDir, l->getValue("file"));
 
 					DBG(("Loading: %s", loadablePath.c_str()));
 
@@ -161,20 +188,42 @@ int main(int argc, char *argv[]) {
 					writer->loadFrom(loader.get());
 				}
 
-				board.removeCard(writer);
+				board.removeCard(writer.get());
 			}
+		}
+
+		{
+			uint16_t startPc = 0;
+
+			if (global != nullptr) {
+				if (global->contains("pc")) {
+					startPc = common::Utils::toUint16(global->getValue("pc"));
+				}
+			}
+
+			altair::card::Cpu *cpuCard = new altair::card::Cpu(startPc);
+
+			clk = cpuCard->getClock();
+
+			board.addCard(cpuCard);
 		}
 	}
 
-	{
-		altair::card::Cpu *cpuCard = new altair::card::Cpu();
+	try {
+		clk->loop();
+	} catch(...) {
+		std::unique_ptr<altair::card::DevelReader> reader{new altair::card::DevelReader()};
 
-		clk = cpuCard->getClock();
+		board.addCard(reader.get());
+		{
+			uint8_t buffer[0xffff]{};
 
-		board.addCard(cpuCard);
+			reader->read(0, buffer, 0xffff);
+
+			dbg::dump(buffer, 0xffff);
+		}
+		board.removeCard(reader.get());
 	}
-
-	clk->loop();
 
 	return 0;
 }

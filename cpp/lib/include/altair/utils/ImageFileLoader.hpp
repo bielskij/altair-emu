@@ -51,12 +51,19 @@ namespace altair {
 				}
 
 			protected:
-				uint8_t nextByte() {
-					char ret;
+				bool nextByte(uint8_t &ret) {
+					char b = 0;
 
-					this->fileStream.read(&ret, 1);
+					this->fileStream.read(&b, 1);
+					if (! this->fileStream) {
+						if (this->fileStream.gcount() != 1) {
+							return false;
+						}
+					}
 
-					return ret;
+					ret = b;
+
+					return true;
 				}
 
 				bool isEof() {

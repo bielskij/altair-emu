@@ -35,7 +35,8 @@ namespace altair {
 			using Core::Pio;
 
 		public:
-			Cpu(Pio &pio) : Core(pio) {
+			Cpu(Pio &pio, uint16_t startPc) : Core(pio) {
+				this->wR(Core::WReg::PC, startPc);
 			}
 
 			using Core::tick;

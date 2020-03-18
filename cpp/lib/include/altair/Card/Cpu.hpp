@@ -91,9 +91,9 @@ namespace altair {
 				};
 
 			public:
-				Cpu() {
+				Cpu(uint16_t startPc) {
 					this->_pio = new PioImpl(&this->_connector);
-					this->_cpu = new altair::Cpu(*this->_pio);
+					this->_cpu = new altair::Cpu(*this->_pio, startPc);
 					this->_clk = new ClkSource(this->_cpu);
 				}
 

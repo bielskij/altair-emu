@@ -73,7 +73,7 @@ namespace common {
 				return ret;
 			}
 
-			static std::string trimRight(const std::string &text, const std::string &trim) {
+			static std::string trimRight(const std::string &text, char trim) {
 				std::string ret = text;
 
 				size_t found = ret.find_last_not_of(trim);
@@ -87,7 +87,7 @@ namespace common {
 				return ret;
 			}
 
-			static std::string trimLeft(const std::string &text, const std::string &trim) {
+			static std::string trimLeft(const std::string &text, char trim) {
 				size_t strBegin = text.find_first_not_of(trim);
 				if (strBegin == std::string::npos) {
 					return ""; // no content
@@ -98,7 +98,13 @@ namespace common {
 			}
 
 			static std::string trim(const std::string &text, const std::string &trim) {
-				return trimLeft(trimRight(text, trim), trim);
+				std::string ret = text;
+
+				for (auto c : trim) {
+					ret = trimLeft(trimRight(ret, c), c);
+				}
+
+				return ret;
 			}
 
 			static std::string getFileExtension(const std::string &path) {
@@ -122,8 +128,12 @@ namespace common {
 				return extension;
 			}
 
+			static uint16_t toUint16(const std::string &str) {
+				return strtoul(str.c_str(), nullptr, 0);
+			}
+
 			static uint8_t toUint8(const std::string &str) {
-				return atoi(str.c_str());
+				return toUint16(str);
 			}
 
 			static std::string getRealPath(const std::string &path) {

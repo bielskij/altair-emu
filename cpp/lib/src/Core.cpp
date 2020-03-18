@@ -131,7 +131,7 @@ void altair::Core::tick() {
 		if (decodeIr) {
 			this->_i = this->_decoder->decode(this->bR(BReg::IR));
 			if (this->_i == nullptr) {
-				ERR(("Not supported opcode: %02x", this->bR(BReg::IR)));
+				ERR(("Not supported opcode: %02x (PC: %04x)", this->bR(BReg::IR), this->wR(WReg::PC)));
 
 				throw std::runtime_error("Not supported opcode!");
 			}

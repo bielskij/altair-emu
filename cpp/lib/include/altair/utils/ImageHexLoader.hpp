@@ -42,19 +42,19 @@ namespace altair {
 					if (this->line.empty() || (this->lineOffset == this->line.size())) {
 						this->line.clear();
 
-						while (! this->isEof()) {
-							uint8_t nextByte = this->ImageFileLoader::nextByte();
+						do {
+							uint8_t nextByte;
 
-							if (nextByte == '\n') {
-								this->line = common::Utils::trim(this->line, " \t\r\n");
-
-								if (! this->line.empty()) {
+							while (this->ImageFileLoader::nextByte(nextByte)) {
+								if (nextByte == '\n') {
 									break;
 								}
+
+								this->line.push_back(nextByte);
 							}
 
-							this->line.push_back(nextByte);
-						}
+							this->line = common::Utils::trim(this->line, " \t\r\n");
+						} while (this->line.empty() && ! this->isEof());
 
 						this->lineOffset = 0;
 

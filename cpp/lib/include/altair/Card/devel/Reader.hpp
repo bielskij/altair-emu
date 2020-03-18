@@ -21,47 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef COMMON_DEBUG_H_
-#define COMMON_DEBUG_H_
+#ifndef ALTAIR_CARD_DEVEL_READER_CPP_
+#define ALTAIR_CARD_DEVEL_READER_CPP_
 
-#include <stdio.h>
+#include "altair/utils/ImageLoader.hpp"
 
-#define DEBUG_LEVEL_ERR 0
-#define DEBUG_LEVEL_LOG 1
-#define DEBUG_LEVEL_DBG 2
-#define DEBUG_LEVEL_TRC 3
+namespace altair {
+	namespace card {
+		class DevelReader : public Card, public Connector {
+			public:
+				DevelReader() {
+				}
 
-#if !defined(DEBUG_LEVEL)
-#define DEBUG_LEVEL DEBUG_LEVEL_ERR
-#endif
+				card::Connector *getConnector() override {
+					return this;
+				}
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_TRC
-#define TRC(x) { printf("[TRC %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define TRC(x) do { } while (0);
-#endif
+				void read(uint16_t address, uint8_t *buffer, uint16_t bufferSize) {
+					for (uint16_t addr = address; addr < address + bufferSize; addr++) {
+						{
+							this->psync(true);
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
-#define DBG(x) { printf("[DBG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define DBG(x) do { } while (0);
-#endif
+							this->sinta(false);
+							this->swo(false);
+							this->sstack(false);
+							this->shlta(false);
+							this->sout(false);
+							this->sm1(false);
+							this->sinp(false);
+							this->smemr(true);
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_LOG
-#define LOG(x) { printf("[LOG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define LOG(x) do { } while (0);
-#endif
+							this->a(addr);
+						}
+						this->clk();
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_ERR
-#define ERR(x) { printf("[ERR %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
-#else
-#define ERR(x) do { } while (0);
-#endif
+						{
+							this->psync(false);
+							this->pdbin(true);
+						}
+						this->clk();
 
+						{
+							buffer[addr] = this->din();
 
-namespace dbg {
-	void dump(void *mem, size_t memSize);
+							this->pdbin(false);
+						}
+						this->clk();
+					}
+				}
+		};
+	}
 }
 
-#endif /* COMMON_DEBUG_H_ */
+#endif /* ALTAIR_CARD_DEVEL_READER_CPP_ */

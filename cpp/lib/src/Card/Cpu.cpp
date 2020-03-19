@@ -125,6 +125,9 @@ void altair::card::Cpu::PioImpl::setAddress(uint16_t val) {
 }
 
 void altair::card::Cpu::PioImpl::clk() {
+	// equivalent to pull up
+	this->conn->pint(false);
+
 	// Decode control byte
 	if (this->conn->psync()) {
 		uint8_t val = conn->dout();

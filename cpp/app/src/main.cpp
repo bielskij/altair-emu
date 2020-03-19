@@ -31,6 +31,7 @@
 #include "altair/Card/Cpu.hpp"
 #include "altair/Card/Mcs16.hpp"
 #include "altair/Card/Sio.hpp"
+#include "altair/Card/Sio2.hpp"
 #include "altair/Card/VI.hpp"
 #include "altair/Card/Pmc.hpp"
 
@@ -62,31 +63,16 @@ static altair::card::Mcs16::Sw1 stringToSw1(const std::string &str) {
 }
 
 
-static altair::card::Sio::BaudRate stringToSioBaud(const std::string &str) {
-	if (str == "110")   return altair::card::Sio::B110;
-	if (str == "150")   return altair::card::Sio::B150;
-	if (str == "300")   return altair::card::Sio::B300;
-	if (str == "600")   return altair::card::Sio::B600;
-	if (str == "1200")  return altair::card::Sio::B1200;
-	if (str == "2400")  return altair::card::Sio::B2400;
-	if (str == "4800")  return altair::card::Sio::B4800;
-	if (str == "9600")  return altair::card::Sio::B9600;
-	if (str == "19200") return altair::card::Sio::B19200;
-
-	throw std::invalid_argument("Invalid baudrate value!");
-}
-
-
-static altair::card::Sio::IntLevel stringToSioIntLevel(const std::string &str) {
-	if (str == "sl")  return altair::card::Sio::IntLevel::SL;
-	if (str == "vi0") return altair::card::Sio::IntLevel::VI0;
-	if (str == "vi1") return altair::card::Sio::IntLevel::VI1;
-	if (str == "vi2") return altair::card::Sio::IntLevel::VI2;
-	if (str == "vi3") return altair::card::Sio::IntLevel::VI3;
-	if (str == "vi4") return altair::card::Sio::IntLevel::VI4;
-	if (str == "vi5") return altair::card::Sio::IntLevel::VI5;
-	if (str == "vi6") return altair::card::Sio::IntLevel::VI6;
-	if (str == "vi7") return altair::card::Sio::IntLevel::VI7;
+static altair::card::IntLevel stringToIntLevel(const std::string &str) {
+	if (str == "sl")  return altair::card::IntLevel::SL;
+	if (str == "vi0") return altair::card::IntLevel::VI0;
+	if (str == "vi1") return altair::card::IntLevel::VI1;
+	if (str == "vi2") return altair::card::IntLevel::VI2;
+	if (str == "vi3") return altair::card::IntLevel::VI3;
+	if (str == "vi4") return altair::card::IntLevel::VI4;
+	if (str == "vi5") return altair::card::IntLevel::VI5;
+	if (str == "vi6") return altair::card::IntLevel::VI6;
+	if (str == "vi7") return altair::card::IntLevel::VI7;
 
 	throw std::invalid_argument("Invalid interrupt level value!");
 }
@@ -142,28 +128,28 @@ int main(int argc, char *argv[]) {
 				board.addCard(
 					new altair::card::Sio(
 						common::Utils::toUint8(i->getValue("port")),
-						stringToSioBaud(i->getValue("baudrate")),
-						stringToSioIntLevel(i->getValue("int-lvl-in")),
-						stringToSioIntLevel(i->getValue("int-lvl-out"))
+						common::Utils::toUint32(i->getValue("baudrate")),
+						stringToIntLevel(i->getValue("int-lvl-in")),
+						stringToIntLevel(i->getValue("int-lvl-out"))
 					)
 				);
 
 				continue;
 			}
 
-//			if (i->getName() == "88-2sio") {
-//				board.addCard(
-//					new altair::card::Sio2(
-//						common::Utils::toUint8(i->getValue("port")),
-//						stringToSioBaud(i->getValue("baudrate-a")),
-//						stringToSioIntLevel(i->getValue("int-lvl-a")),
-//						stringToSioBaud(i->getValue("baudrate-b")),
-//						stringToSioIntLevel(i->getValue("int-lvl-b"))
-//					)
-//				);
-//
-//				continue;
-//			}
+			if (i->getName() == "88-2sio") {
+				board.addCard(
+					new altair::card::Sio2(
+						common::Utils::toUint8(i->getValue("port")),
+						common::Utils::toUint32(i->getValue("baudrate-a")),
+						common::Utils::toUint32(i->getValue("baudrate-b")),
+						stringToIntLevel(i->getValue("int-lvl-a")),
+						stringToIntLevel(i->getValue("int-lvl-b"))
+					)
+				);
+
+				continue;
+			}
 
 			if (i->getName() == "88-pmc") {
 				altair::card::Pmc *pmc = new altair::card::Pmc(

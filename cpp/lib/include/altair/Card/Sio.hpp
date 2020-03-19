@@ -26,6 +26,7 @@
 
 #include <cstdint>
 
+#include "altair/Card/common.hpp"
 #include "altair/utils/Terminal.hpp"
 
 namespace altair {
@@ -44,22 +45,10 @@ namespace altair {
 					B19200
 				};
 
-				enum IntLevel {
-					VI0, // Vectored interrupt (88-VI)
-					VI1,
-					VI2,
-					VI3,
-					VI4,
-					VI5,
-					VI6,
-					VI7,
-
-					SL, // Single level interrupt (PINT)
-				};
-
 			public:
-				// Only even value available
-				Sio(uint8_t address, BaudRate baudrate, IntLevel inLvl = SL, IntLevel outLvl = SL) {
+				// address: Only even value available
+				// baudrate: 110, 150, 300, 600, 1200, 2400, 4800, 9600, 19200
+				Sio(uint8_t address, uint32_t baudrate, IntLevel inLvl = IntLevel::SL, IntLevel outLvl = IntLevel::SL) {
 					if (address & 0x01) {
 						throw std::invalid_argument("Only even address is allowed!");
 					}
@@ -95,11 +84,11 @@ namespace altair {
 						this->_terminal.canReadWrite(canRead, canWrite);
 
 						if (canRead) {
-							val &= ~0x80;
+							val &= ~0x01;
 						}
 
 						if (canWrite) {
-							val &= ~0x01;
+							val &= ~0x80;
 						}
 
 						return true;
@@ -136,8 +125,8 @@ namespace altair {
 					this->_terminal.canReadWrite(canRead, canWrite);
 
 					if (this->_intIn) {
-						if (this->_intInLvl == SL) {
-							this->pint(canRead);
+						if (this->_intInLvl == IntLevel::SL) {
+							this->pint(this->pint() | canRead);
 
 						} else {
 							uint8_t ivVal = this->vi();
@@ -153,8 +142,8 @@ namespace altair {
 					}
 
 					if (this->_intOut) {
-						if (this->_intOutLvl == SL) {
-							this->pint(canWrite);
+						if (this->_intOutLvl == IntLevel::SL) {
+							this->pint(this->pint() | canWrite);
 
 						} else {
 							uint8_t ivVal = this->vi();
@@ -174,7 +163,7 @@ namespace altair {
 				altair::utils::Terminal _terminal;
 
 				uint8_t  _address;
-				BaudRate _baudrate;
+				uint32_t _baudrate;
 
 				bool     _intIn;
 				IntLevel _intInLvl;

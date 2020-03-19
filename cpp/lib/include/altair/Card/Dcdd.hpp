@@ -41,6 +41,22 @@ namespace altair {
 				constexpr uint32_t TRACK_SECTORS = 32;
 				constexpr uint32_t SECTOR_SIZE   = 137;
 
+				constexpr uint8_t STATUS_ENWD   = 0x01; // Enter new write data - indicates write circuit is ready for new data
+				constexpr uint8_t STATUS_MH     = 0x02; // Move Head - indicates head movement allowed when true (step in/out)
+				constexpr uint8_t STATUS_HS     = 0x04; // True 40ms after head loaded or step command
+				constexpr uint8_t STATUS_INTE   = 0x20; // Indicates interrupt enabled
+				constexpr uint8_t STATUS_TRACK0 = 0x40;
+				constexpr uint8_t STATUS_NRDA   = 0x80; // New read data available
+
+				constexpr uint8_t CTRL_STEP_IN  = 0x01;
+				constexpr uint8_t CTRL_STEP_OUT = 0x02;
+				constexpr uint8_t CTRL_HL       = 0x04; // loads head onto disk
+				constexpr uint8_t CTRL_HUL      = 0x08; // removes head from disk surface
+				constexpr uint8_t CTRL_IE       = 0x10; // Interrupt enable
+				constexpr uint8_t CTRL_ID       = 0x20; // Interrupt disable
+				constexpr uint8_t CTRL_HCS      = 0x40; // Head current switch
+				constexpr uint8_t CTRL_WE       = 0x80; // Write enable
+
 			public:
 				Dcdd() {
 				}

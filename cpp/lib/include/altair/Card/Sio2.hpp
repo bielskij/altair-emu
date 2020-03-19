@@ -26,40 +26,16 @@
 
 #include <cstdint>
 
+#include "altair/Card/common.hpp"
 #include "altair/utils/Terminal.hpp"
 
 namespace altair {
 	namespace card {
 		class Sio2 : public Card, protected SimpleConnector {
-			public:
-				enum BaudRate {
-					B110,
-					B150,
-					B300,
-					B1200,
-					B1800,
-					B2400,
-					B4800,
-					B9600,
-				};
-
-				enum IntLevel {
-					VI0, // Vectored interrupt (88-VI)
-					VI1,
-					VI2,
-					VI3,
-					VI4,
-					VI5,
-					VI6,
-					VI7,
-
-					SL, // Single level interrupt (PINT)
-				};
-
 			protected:
 				class SingleSio {
 					public:
-						SingleSio(BaudRate baud, IntLevel intLevel) {
+						SingleSio(uint32_t baud, IntLevel intLevel) {
 							this->_baudrate = baud;
 							this->_intLvl   = intLevel;
 							this->_intIn    = false;
@@ -128,19 +104,23 @@ namespace altair {
 						bool     _intIn;
 						bool     _intOut;
 						IntLevel _intLvl;
-						BaudRate _baudrate;
+						uint32_t _baudrate;
 
 						altair::utils::Terminal _terminal;
 				};
 
 			public:
-				// Only even value available
-				Sio2(uint8_t address, BaudRate baudrate0, BaudRate baudrate1, IntLevel lvl0 = SL, IntLevel lvl1 = SL) {
+				// address - has to be multiple of 4
+				// baudrate - 110, 150, 300, 1200, 1800, 2400, 4800, 9600
+				Sio2(uint8_t address, uint32_t baudrate0, uint32_t baudrate1, IntLevel lvl0 = IntLevel::SL, IntLevel lvl1 = IntLevel::SL) {
 					if (address & 0x03) {
 						throw std::invalid_argument("Only even address is allowed!");
 					}
 
 					this->_address = address;
+
+					this->_terms[0] = new SingleSio(baudrate0, lvl0);
+					this->_terms[1] = new SingleSio(baudrate1, lvl1);
 				}
 
 				card::Connector *getConnector() {
@@ -158,12 +138,12 @@ namespace altair {
 
 				bool onIn(uint8_t number, uint8_t &val) override {
 					if (this->_address <= number) {
-						SingleSio *term = &this->_terms[0];
+						SingleSio *term = this->_terms[0];
 
 						number -= this->_address;
 
 						if (number > 1) {
-							term = &(this->_terms[1]);
+							term = this->_terms[1];
 
 							number -= 2;
 						}
@@ -185,12 +165,12 @@ namespace altair {
 
 				void onOut(uint8_t number, uint8_t data) override {
 					if (this->_address <= number) {
-						SingleSio *term = &this->_terms[0];
+						SingleSio *term = this->_terms[0];
 
 						number -= this->_address;
 
 						if (number > 1) {
-							term = &(this->_terms[1]);
+							term = this->_terms[1];
 
 							number -= 2;
 						}
@@ -218,7 +198,7 @@ namespace altair {
 						IntLevel lvl;
 						bool     hi;
 
-						if (this->_terms[i].hasInt(lvl, hi)) {
+						if (this->_terms[i]->hasInt(lvl, hi)) {
 							if (lvl == IntLevel::SL) {
 								pint |= hi;
 
@@ -237,8 +217,8 @@ namespace altair {
 				}
 
 			private:
-				uint16_t  _address;
-				SingleSio _terms[2];
+				uint16_t   _address;
+				SingleSio *_terms[2];
 		};
 	}
 }

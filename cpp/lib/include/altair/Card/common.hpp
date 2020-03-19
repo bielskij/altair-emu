@@ -21,59 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef CORE_MACHINECYCLE_INTERRUPT_HPP_
-#define CORE_MACHINECYCLE_INTERRUPT_HPP_
-
-#include "altair/Core.hpp"
+#ifndef ALTAIR_CARD_COMMON_HPP_
+#define ALTAIR_CARD_COMMON_HPP_
 
 namespace altair {
-	class MachineCycleInterrupt : public Core::MachineCycle {
-		public:
-			MachineCycleInterrupt(Core *core) : Core::MachineCycle(core, true, false, false, false, false, true, false, false) {
-			}
+	namespace card {
+		enum IntLevel {
+			VI0, // Vectored interrupt (88-VI)
+			VI1,
+			VI2,
+			VI3,
+			VI4,
+			VI5,
+			VI6,
+			VI7,
 
-			bool t1() override {
-				Core::Pio &pio = this->core()->pio();
-
-				pio.setAddress(this->core()->wR(Core::WReg::PC));
-				pio.setData(this->getStatus());
-				pio.setSync(true);
-
-				// Disable interrupts
-				pio.setInte(false);
-
-				return true;
-			}
-
-			bool t2() override {
-				Core::Pio &pio = this->core()->pio();
-
-				pio.setSync(false);
-				pio.setDbin(true);
-
-				// Clear internal interrupt flag
-				core()->intFF(false);
-
-				return true;
-			}
-
-			bool t3() override {
-				Core::Pio &pio = this->core()->pio();
-
-				this->core()->bR(Core::BReg::IR, pio.getData());
-				pio.setDbin(false);
-
-				return true;
-			}
-
-			bool t4() override {
-				return true;
-			}
-
-			bool t5() override {
-				return false;
-			}
-	};
+			SL, // Single level interrupt (PINT)
+		};
+	}
 }
 
-#endif /* CORE_MACHINECYCLE_INTERRUPT_HPP_ */
+#endif /* ALTAIR_CARD_COMMON_HPP_ */

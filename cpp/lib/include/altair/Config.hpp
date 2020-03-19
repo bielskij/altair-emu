@@ -21,31 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef ALTAIR_UTILS_TERMINAL_HPP_
-#define ALTAIR_UTILS_TERMINAL_HPP_
+#ifndef ALTAIR_CONFIG_HPP_
+#define ALTAIR_CONFIG_HPP_
+
+#include <cstdint>
 
 namespace altair {
-	namespace utils {
-		class Terminal {
-			public:
-				Terminal();
-				virtual ~Terminal();
+	class Config {
+		public:
+			static uint32_t getClkFrequency() {
+				return _clkFrequency;
+			}
 
-				void canReadWrite(bool &read, bool &write);
+			static void setClkFrequency(uint32_t freq) {
+				_clkFrequency = freq;
+			}
 
-				uint8_t readByte();
-				void    writeByte(uint8_t val);
+		private:
+			Config() = delete;
+			Config(const Config &) = delete;
 
-			private:
-				static void select(int fd, bool &canRead, bool &canWrite);
-
-			private:
-				int         ptyMasterFd;
-				std::string ptyPath;
-
-				pid_t xtermPid;
-		};
-	}
+		private:
+			static uint32_t _clkFrequency;
+	};
 }
 
-#endif /* ALTAIR_UTILS_TERMINAL_HPP_ */
+#endif /* ALTAIR_CONFIG_HPP_ */

@@ -207,27 +207,13 @@ altair::utils::Terminal::~Terminal() {
 }
 
 
-bool altair::utils::Terminal::canRead() {
-	bool canRead  = false;
-	bool canWrite = false;
+void altair::utils::Terminal::canReadWrite(bool &read, bool &write) {
+	read  = false;
+	write = false;
 
 	if (this->ptyMasterFd >= 0) {
-		Terminal::select(this->ptyMasterFd, canRead, canWrite);
+		Terminal::select(this->ptyMasterFd, read, write);
 	}
-
-	return canRead;
-}
-
-
-bool altair::utils::Terminal::canWrite() {
-	bool canRead  = false;
-	bool canWrite = false;
-
-	if (this->ptyMasterFd >= 0) {
-		Terminal::select(this->ptyMasterFd, canRead, canWrite);
-	}
-
-	return canWrite;
 }
 
 

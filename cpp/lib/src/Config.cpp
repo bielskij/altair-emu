@@ -21,31 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef ALTAIR_UTILS_TERMINAL_HPP_
-#define ALTAIR_UTILS_TERMINAL_HPP_
 
-namespace altair {
-	namespace utils {
-		class Terminal {
-			public:
-				Terminal();
-				virtual ~Terminal();
+#include "altair/Config.hpp"
 
-				void canReadWrite(bool &read, bool &write);
 
-				uint8_t readByte();
-				void    writeByte(uint8_t val);
-
-			private:
-				static void select(int fd, bool &canRead, bool &canWrite);
-
-			private:
-				int         ptyMasterFd;
-				std::string ptyPath;
-
-				pid_t xtermPid;
-		};
-	}
-}
-
-#endif /* ALTAIR_UTILS_TERMINAL_HPP_ */
+uint32_t altair::Config::_clkFrequency = 2000000;

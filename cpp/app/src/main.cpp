@@ -26,6 +26,7 @@
 
 #include "common/Ini.hpp"
 
+#include "altair/Config.hpp"
 #include "altair/MainBoard.hpp"
 #include "altair/Card/Cpu.hpp"
 #include "altair/Card/Mcs16.hpp"
@@ -150,6 +151,20 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
+//			if (i->getName() == "88-2sio") {
+//				board.addCard(
+//					new altair::card::Sio2(
+//						common::Utils::toUint8(i->getValue("port")),
+//						stringToSioBaud(i->getValue("baudrate-a")),
+//						stringToSioIntLevel(i->getValue("int-lvl-a")),
+//						stringToSioBaud(i->getValue("baudrate-b")),
+//						stringToSioIntLevel(i->getValue("int-lvl-b"))
+//					)
+//				);
+//
+//				continue;
+//			}
+
 			if (i->getName() == "88-pmc") {
 				altair::card::Pmc *pmc = new altair::card::Pmc(
 					common::Utils::toUint8(i->getValue("bank")),
@@ -198,6 +213,12 @@ int main(int argc, char *argv[]) {
 			if (global != nullptr) {
 				if (global->contains("pc")) {
 					startPc = common::Utils::toUint16(global->getValue("pc"));
+				}
+
+				if (global->contains("clk")) {
+					altair::Config::setClkFrequency(
+						common::Utils::toUint32(global->getValue("clk"))
+					);
 				}
 			}
 

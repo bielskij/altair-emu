@@ -24,8 +24,9 @@
 #ifndef ALTAIR_CARD_CPU_HPP_
 #define ALTAIR_CARD_CPU_HPP_
 
-#include "altair/MainBoard.hpp"
 #include "altair/Cpu.hpp"
+#include "altair/Config.hpp"
+#include "altair/MainBoard.hpp"
 
 namespace altair {
 	namespace card {
@@ -36,7 +37,7 @@ namespace altair {
 						ClkSource(altair::Cpu *cpu) {
 							this->_cpu             = cpu;
 							this->_stop            = false;
-							this->_frequency       = 2000000; // 1MHz
+							this->_frequency       = Config::getClkFrequency();
 							this->_tickNanoseconds = 1000000000 / this->_frequency;
 						}
 

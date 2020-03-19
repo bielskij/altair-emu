@@ -88,13 +88,17 @@ namespace altair {
 
 				bool onIn(uint8_t number, uint8_t &val) override {
 					if (this->_address == number) {
+						bool canRead, canWrite;
+
 						val = 0x81;
 
-						if (this->_terminal.canWrite()) {
+						this->_terminal.canReadWrite(canRead, canWrite);
+
+						if (canRead) {
 							val &= ~0x80;
 						}
 
-						if (this->_terminal.canRead()) {
+						if (canWrite) {
 							val &= ~0x01;
 						}
 
@@ -127,9 +131,11 @@ namespace altair {
 				void onClk() override {
 					SimpleConnector::onClk();
 
-					if (this->_intIn) {
-						bool canRead = this->_terminal.canRead();
+					bool canRead, canWrite;
 
+					this->_terminal.canReadWrite(canRead, canWrite);
+
+					if (this->_intIn) {
 						if (this->_intInLvl == SL) {
 							this->pint(canRead);
 
@@ -147,8 +153,6 @@ namespace altair {
 					}
 
 					if (this->_intOut) {
-						bool canWrite = this->_terminal.canWrite();
-
 						if (this->_intOutLvl == SL) {
 							this->pint(canWrite);
 

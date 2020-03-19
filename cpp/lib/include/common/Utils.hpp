@@ -128,12 +128,16 @@ namespace common {
 				return extension;
 			}
 
-			static uint16_t toUint16(const std::string &str) {
+			static uint16_t toUint32(const std::string &str) {
 				return strtoul(str.c_str(), nullptr, 0);
 			}
 
+			static uint16_t toUint16(const std::string &str) {
+				return toUint32(str);
+			}
+
 			static uint8_t toUint8(const std::string &str) {
-				return toUint16(str);
+				return toUint32(str);
 			}
 
 			static std::string getRealPath(const std::string &path) {

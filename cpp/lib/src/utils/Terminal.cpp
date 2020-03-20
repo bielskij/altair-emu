@@ -171,7 +171,7 @@ altair::utils::Terminal::Terminal() {
 					}
 				}
 
-				execlp("xterm", "xterm", "-bc", "-ti", "vt100", argLine, (char *) 0);
+				execlp("xterm", "xterm", "-bc", "-ti", "vt100", "-fa", "Monospace", "-fs", "14", argLine, (char *) 0);
 
 				exit(1);
 			}

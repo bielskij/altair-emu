@@ -35,6 +35,13 @@ namespace altair {
 			InstructionLdax(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
 				this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::RP, Core::BReg::A, false));
+
+				this->addCodeRP(0x0a, Core::WReg::B);
+				this->addCodeRP(0x0a, Core::WReg::D);
+			}
+
+			std::string toAsm() const override {
+				return "ldax " + Utils::rpToString(rp(core()));
 			}
 	};
 }

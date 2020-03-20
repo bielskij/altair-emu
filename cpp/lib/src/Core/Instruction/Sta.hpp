@@ -37,6 +37,12 @@ namespace altair {
 				this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::Z, true));
 				this->addCycle(new MachineCycleMemoryRead (core, Core::WReg::PC, Core::BReg::W, true));
 				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::H,  Core::BReg::A, false));
+
+				this->addCode(0x32);
+			}
+
+			std::string toAsm() const override {
+				return "sta " + common::Utils::uint16ToString(core()->bR(Core::BReg::Z));
 			}
 	};
 }

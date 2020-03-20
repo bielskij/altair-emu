@@ -35,6 +35,10 @@ namespace altair {
 
 				this->addCode(0x00);
 			}
+
+			std::string toAsm() const override {
+				return "nop";
+			}
 	};
 }
 

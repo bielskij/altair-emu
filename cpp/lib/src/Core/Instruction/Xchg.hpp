@@ -48,6 +48,12 @@ namespace altair {
 		public:
 			InstructionXchg(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
+
+				this->addCode(0xeb);
+			}
+
+			std::string toAsm() const override {
+				return "xchg";
 			}
 	};
 }

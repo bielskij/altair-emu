@@ -61,6 +61,9 @@ namespace altair {
 
 		public:
 			InstructionRot(Core *core, Mode mode, bool withCarry) : Instruction(core) {
+				this->_mode  = mode;
+				this->_carry = withCarry;
+
 				switch (mode) {
 					case Mode::RIGHT:
 						{
@@ -81,6 +84,26 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret;
+
+				switch (this->_mode) {
+					case Mode::RIGHT:
+						ret = this->_carry ? "rrc" : "rar";
+						break;
+
+					case Mode::LEFT:
+						ret = this->_carry ? "rlc" : "ral";
+						break;
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
+			bool _carry;
 	};
 }
 

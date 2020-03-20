@@ -83,6 +83,9 @@ namespace altair {
 
 		public:
 			InstructionAdd(Core *core, Mode mode, bool withCarry) : Instruction(core) {
+				this->_mode      = mode;
+				this->_withCarry = withCarry;
+
 				switch (mode) {
 					case Mode::R:
 						{
@@ -111,6 +114,38 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = this->_withCarry ? "adc " : "add ";
+
+				{
+					uint8_t ir = core()->bR(Core::BReg::IR);
+
+					switch (this->_mode) {
+						case Mode::R:
+							ret += altair::Utils::bregToString(sss(core()));
+							break;
+
+						case Mode::M:
+							ret += "M";
+							break;
+
+						case Mode::I:
+							ret = this->_withCarry ? "aci " : "adi ";
+							ret += common::Utils::uint8ToString(core()->bR(Core::BReg::TMP));
+							break;
+
+						default:
+							throw std::invalid_argument("Not supported ADD opcode!");
+					}
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
+			bool _withCarry;
 	};
 }
 

@@ -90,6 +90,8 @@ namespace altair {
 
 		public:
 			InstructionCall(Core *core, Mode mode) : Instruction(core) {
+				this->_mode = mode;
+
 				switch (mode) {
 					case Mode::UNCONDITIONED:
 						{
@@ -116,6 +118,28 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret;
+
+				switch (this->_mode) {
+					case Mode::CONDITIONED:
+						ret = "j" + Utils::condToString(ccc(core())) + " " + common::Utils::uint16ToString(core()->wR(Core::WReg::W), true);
+						break;
+
+					case Mode::UNCONDITIONED:
+						ret = "call " + common::Utils::uint16ToString(core()->wR(Core::WReg::W), true);
+						break;
+
+					default:
+						throw std::invalid_argument("Not supported CALL opcode!");
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
 	};
 }
 

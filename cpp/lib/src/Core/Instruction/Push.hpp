@@ -51,6 +51,8 @@ namespace altair {
 
 		public:
 			InstructionPush(Core *core, bool pushRp) : Instruction(core) {
+				this->_pushRp = pushRp;
+
 				this->addCycle(new Fetch(core));
 
 				if (pushRp) {
@@ -69,6 +71,17 @@ namespace altair {
 					this->addCode(0xf5);
 				}
 			}
+
+			std::string toAsm() const override {
+				if (this->_pushRp) {
+					return "push " + Utils::wregToString(rp(core()));
+				} else {
+					return "push psw";
+				}
+			}
+
+		private:
+			bool _pushRp;
 	};
 }
 

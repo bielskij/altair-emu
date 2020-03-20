@@ -52,6 +52,10 @@ namespace altair {
 			InstructionSphl(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
 			}
+
+			std::string toAsm() const override {
+				return "sphl";
+			}
 	};
 }
 

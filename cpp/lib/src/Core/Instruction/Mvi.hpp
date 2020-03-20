@@ -39,6 +39,8 @@ namespace altair {
 
 		public:
 			InstructionMvi(Core *core, Mode mode) : Instruction(core) {
+				this->_mode = mode;
+
 				if (mode == Mode::R) {
 					this->addCycle(new MachineCycleFetch(core));
 					this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::DDD, true));
@@ -53,6 +55,31 @@ namespace altair {
 					this->addCode(0x36);
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = "mvi ";
+
+				switch (this->_mode) {
+					case Mode::R:
+						ret += (
+							altair::Utils::bregToString(ddd(core())) +
+							"," + common::Utils::uint8ToString((core()->bR(ddd(core()))))
+						);
+						break;
+
+					case Mode::M:
+						ret += ("M," + common::Utils::uint8ToString(core()->bR(Core::BReg::TMP)));
+						break;
+
+					default:
+						throw std::invalid_argument("Not supported MOV opcode!");
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
 	};
 }
 

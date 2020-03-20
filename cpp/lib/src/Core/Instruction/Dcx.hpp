@@ -52,6 +52,12 @@ namespace altair {
 		public:
 			InstructionDcx(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
+
+				this->addCodeRP(0x0b, Core::WReg::COUNT);
+			}
+
+			std::string toAsm() const override {
+				return "dcx " + Utils::rpToString(rp(core()));
 			}
 	};
 }

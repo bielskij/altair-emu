@@ -26,7 +26,9 @@
 
 #include "common/Utils.hpp"
 
+#include "altair/Utils.hpp"
 #include "altair/Core.hpp"
+
 #include "Core/MachineCycle/Fetch.hpp"
 #include "Core/MachineCycle/MemoryRead.hpp"
 #include "Core/MachineCycle/MemoryWrite.hpp"
@@ -76,6 +78,8 @@ namespace altair {
 
 		public:
 			InstructionMov(Core *core, Mode mode) : Instruction(core) {
+				this->_mode = mode;
+
 				switch (mode) {
 					case Mode::RR:
 						{
@@ -104,6 +108,40 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = "mov ";
+
+				{
+					uint8_t ir = core()->bR(Core::BReg::IR);
+
+					switch (this->_mode) {
+						case Mode::RR:
+							ret += (
+								altair::Utils::bregToString(Instruction::ddd(core())) +
+								"," +
+								altair::Utils::bregToString(Instruction::sss(core()))
+							);
+							break;
+
+						case Mode::RM:
+							ret += (altair::Utils::bregToString(Instruction::ddd(core())) + ",M");
+							break;
+
+						case Mode::MR:
+							ret += ("M," + altair::Utils::bregToString(Instruction::sss(core())));
+							break;
+
+						default:
+							throw std::invalid_argument("Not supported MOV opcode!");
+					}
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
 	};
 }
 

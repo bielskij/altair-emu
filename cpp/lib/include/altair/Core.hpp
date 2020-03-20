@@ -256,19 +256,19 @@ namespace altair {
 
 				protected:
 					inline Core::BReg sss() const {
-						return InstructionDecoder::binToBreg(this->_core->bR(Core::BReg::IR) & 0x07);
+						return Instruction::sss(this->_core);
 					}
 
 					inline Core::BReg ddd() const {
-						return InstructionDecoder::binToBreg((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+						return Instruction::ddd(this->_core);
 					}
 
 					inline Core::WReg rp() const {
-						return InstructionDecoder::binToWreg((this->_core->bR(Core::BReg::IR) & 0x30) >> 4);
+						return Instruction::rp(this->_core);
 					}
 
 					inline Core::Cond ccc() const {
-						return InstructionDecoder::binToCond((this->_core->bR(Core::BReg::IR) & 0x38) >> 3);
+						return Instruction::ccc(this->_core);
 					}
 
 				private:
@@ -301,6 +301,28 @@ namespace altair {
 
 					const std::set<uint8_t> &getOpcodes() const {
 						return this->_opcodes;
+					}
+
+					virtual std::string toAsm() const = 0;
+
+					static inline Core::BReg sss(Core *core) {
+						return InstructionDecoder::binToBreg(core->bR(Core::BReg::IR) & 0x07);
+					}
+
+					static inline Core::BReg ddd(Core *core) {
+						return InstructionDecoder::binToBreg((core->bR(Core::BReg::IR) & 0x38) >> 3);
+					}
+
+					static inline Core::WReg rp(Core *core) {
+						return InstructionDecoder::binToWreg((core->bR(Core::BReg::IR) & 0x30) >> 4);
+					}
+
+					static inline Core::Cond ccc(Core *core) {
+						return InstructionDecoder::binToCond((core->bR(Core::BReg::IR) & 0x38) >> 3);
+					}
+
+					static inline Core::Cond nnn(Core *core) {
+						return InstructionDecoder::binToCond((core->bR(Core::BReg::IR) & 0x38) >> 3);
 					}
 
 				protected:
@@ -519,6 +541,7 @@ namespace altair {
 			uint8_t _bregs[static_cast<uint8_t>(BReg::COUNT)];
 
 			Instruction  *_i;
+			uint16_t      _iPC;
 			MachineCycle *_cycle;
 
 			Alu               *_alu;

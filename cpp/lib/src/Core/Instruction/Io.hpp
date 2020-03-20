@@ -49,6 +49,8 @@ namespace altair {
 
 		public:
 			InstructionIo(Core *core, bool inOperation) : Instruction(core) {
+				this->_inOperation = inOperation;
+
 				this->addCycle(new MachineCycleFetch(core));
 				this->addCycle(new MemoryRead(core));
 
@@ -63,6 +65,13 @@ namespace altair {
 					this->addCode(0xd3);
 				}
 			}
+
+			std::string toAsm() const override {
+				return (this->_inOperation ? "in " : "out ") + common::Utils::uint8ToString(core()->bR(Core::BReg::Z));
+			}
+
+		private:
+			bool _inOperation;
 	};
 }
 

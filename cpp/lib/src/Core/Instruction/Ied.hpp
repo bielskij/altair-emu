@@ -48,10 +48,19 @@ namespace altair {
 
 		public:
 			InstructionIed(Core *core, bool enable) : Instruction(core) {
+				this->_iee = enable;
+
 				this->addCycle(new Fetch(core, enable));
 
 				this->addCode(enable ? 0xfb : 0xf3);
 			}
+
+			std::string toAsm() const override {
+				return this->_iee ? "ei" : "di";
+			}
+
+		private:
+			bool _iee;
 	};
 }
 

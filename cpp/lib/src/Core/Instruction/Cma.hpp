@@ -48,6 +48,10 @@ namespace altair {
 
 				this->addCode(0x2f);
 			}
+
+			std::string toAsm() const override {
+				return "cma";
+			}
 	};
 }
 

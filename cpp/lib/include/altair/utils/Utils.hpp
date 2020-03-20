@@ -28,7 +28,6 @@
 #include <stdlib.h>
 
 #include <cstring>
-#include <cstdarg>
 #include <algorithm>
 
 #include "altair/Core.hpp"
@@ -175,57 +174,6 @@ namespace common {
 
 				return std::string(path.begin(), path.begin() + found);
 			}
-
-			static std::string sprintf(const char *format, va_list &va) {
-				const uint32_t bufferSize = 1024;
-				char           buffer[bufferSize];
-
-				vsnprintf(buffer, bufferSize, format, va);
-
-				return std::string(buffer);
-			}
-
-			static std::string sprintf(const char *format, ...) {
-				va_list ap;
-
-				va_start(ap, format);
-				std::string ret = sprintf(format, ap);
-				va_end(ap);
-
-				return ret;
-			}
-
-			static std::string uint8ToString(uint8_t val, bool hex = false) {
-				std::string ret;
-
-				if (hex) {
-					ret.push_back(_hexCharsSmall[val >> 4]);
-					ret.push_back(_hexCharsSmall[val & 0x0f]);
-
-				} else {
-					ret = Utils::sprintf("%hhu", val);
-				}
-
-				return ret;
-			}
-
-			static std::string uint16ToString(uint8_t val, bool hex = false) {
-				std::string ret;
-
-				if (hex) {
-					ret += uint8ToString(val >> 8, true);
-					ret += uint8ToString(val, true);
-
-				} else {
-					ret = Utils::sprintf("%hu", val);
-				}
-
-				return ret;
-			}
-
-		private:
-			static constexpr char *_hexCharsBig   = "0123456789ABCDEF";
-			static constexpr char *_hexCharsSmall = "0123456789abcdef";
 	};
 }
 

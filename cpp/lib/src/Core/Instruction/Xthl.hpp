@@ -66,6 +66,10 @@ namespace altair {
 
 				this->addCode(0xe3);
 			}
+
+			std::string toAsm() const override {
+				return "xthl";
+			}
 	};
 }
 

@@ -48,6 +48,12 @@ namespace altair {
 		public:
 			InstructionDaa(Core *core) : Instruction(core) {
 				this->addCycle(new Fetch(core));
+
+				this->addCode(0x27);
+			}
+
+			std::string toAsm() const override {
+				return "daa";
 			}
 	};
 }

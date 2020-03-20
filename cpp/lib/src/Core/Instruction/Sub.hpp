@@ -81,6 +81,9 @@ namespace altair {
 
 		public:
 			InstructionSub(Core *core, Mode mode, bool withCarry) : Instruction(core) {
+				this->_mode  = mode;
+				this->_carry = withCarry;
+
 				switch (mode) {
 					case Mode::R:
 						{
@@ -122,6 +125,38 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = this->_carry ? "sbb " : "sub ";
+
+				{
+					uint8_t ir = core()->bR(Core::BReg::IR);
+
+					switch (this->_mode) {
+						case Mode::R:
+							ret += altair::Utils::bregToString(sss(core()));
+							break;
+
+						case Mode::M:
+							ret += "M";
+							break;
+
+						case Mode::I:
+							ret = this->_carry ? "sbi " : "sui ";
+							ret += common::Utils::uint8ToString(core()->bR(Core::BReg::TMP));
+							break;
+
+						default:
+							throw std::invalid_argument("Not supported SUB opcode!");
+					}
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
+			bool _carry;
 	};
 }
 

@@ -77,6 +77,8 @@ namespace altair {
 
 		public:
 			InstructionDcr(Core *core, Mode mode) : Instruction(core) {
+				this->_mode = mode;
+
 				switch (mode) {
 					case Mode::R:
 						{
@@ -97,6 +99,28 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = "dcr ";
+
+				switch (this->_mode) {
+					case Mode::R:
+						ret += Utils::bregToString(ddd(core()));
+						break;
+
+					case Mode::M:
+						ret += "M";
+						break;
+
+					default:
+						throw std::invalid_argument("Not supported DCR opcode!");
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
 	};
 }
 

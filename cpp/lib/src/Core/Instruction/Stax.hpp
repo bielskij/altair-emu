@@ -35,6 +35,13 @@ namespace altair {
 			InstructionStax(Core *core) : Instruction(core) {
 				this->addCycle(new MachineCycleFetch(core));
 				this->addCycle(new MachineCycleMemoryWrite(core, Core::WReg::RP, Core::BReg::A, false));
+
+				this->addCodeRP(0x02, Core::WReg::B);
+				this->addCodeRP(0x02, Core::WReg::D);
+			}
+
+			std::string toAsm() const override {
+				return "stax " + Utils::rpToString(rp(core()));
 			}
 	};
 }

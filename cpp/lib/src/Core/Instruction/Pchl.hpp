@@ -54,6 +54,10 @@ namespace altair {
 
 				this->addCode(0xe9);
 			}
+
+			std::string toAsm() const override {
+				return "pchl";
+			}
 	};
 }
 

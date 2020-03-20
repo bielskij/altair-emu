@@ -78,6 +78,10 @@ namespace altair {
 
 				this->addCodeNNN(0xc7);
 			}
+
+			std::string toAsm() const override {
+				return "rst " + common::Utils::uint8ToString(nnn(core()));
+			}
 	};
 }
 

@@ -32,6 +32,8 @@ namespace altair {
 	class InstructionPop : public Core::Instruction {
 		public:
 			InstructionPop(Core *core, bool popRp) : Instruction(core) {
+				this->_popRp = popRp;
+
 				this->addCycle(new MachineCycleFetch(core));
 
 				if (popRp) {
@@ -50,6 +52,17 @@ namespace altair {
 					this->addCode(0xf1);
 				}
 			}
+
+			std::string toAsm() const override {
+				if (this->_popRp) {
+					return "pop " + Utils::wregToString(rp(core()));
+				} else {
+					return "pop psw";
+				}
+			}
+
+		private:
+			bool _popRp;
 	};
 }
 

@@ -37,6 +37,7 @@ altair::Core::Core(Pio &pio) : _pio(pio) {
 	this->_decoder        = new InstructionDecoder(this);
 	this->_alu            = new Alu(this);
 
+	this->_iPC    = 0;
 	this->_i      = nullptr;
 	this->_cycle  = nullptr;
 	this->_state  = 0;
@@ -91,6 +92,8 @@ void altair::Core::tick() {
 	// No instruction there. Do fetch
 	if (this->_cycle == nullptr){
 		this->_cycle = this->intFF() ? this->_interruptCycle : this->_fetchCycle;
+
+		this->_iPC = this->wR(Core::WReg::PC);
 	}
 
 	{
@@ -151,6 +154,10 @@ void altair::Core::tick() {
 
 			this->_cycle = this->_i->nextCycle();
 			if (this->_cycle == nullptr) {
+#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
+			DBG(("[%04x] %s", this->_iPC, this->_i->toAsm().c_str()));
+#endif
+
 				this->_i     = nullptr;
 
 				this->intFF(this->pio().getInt() && this->pio().getInte());

@@ -68,6 +68,12 @@ namespace altair {
 				this->addCycle(new MachineCycleFetch(core));
 				this->addCycle(new InternalCycle(core, true));
 				this->addCycle(new InternalCycle(core, false));
+
+				this->addCodeRP(0x09, Core::WReg::COUNT);
+			}
+
+			std::string toAsm() const override {
+				return "daa " + Utils::rpToString(rp(core()));
 			}
 	};
 }

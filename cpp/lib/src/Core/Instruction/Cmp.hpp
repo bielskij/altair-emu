@@ -75,6 +75,8 @@ namespace altair {
 
 		public:
 			InstructionCmp(Core *core, Mode mode) : Instruction(core) {
+				this->_mode = mode;
+
 				switch (mode) {
 					case Mode::R:
 						{
@@ -103,6 +105,32 @@ namespace altair {
 						break;
 				}
 			}
+
+			std::string toAsm() const override {
+				std::string ret = (this->_mode == Mode::I) ? "cpi " : "cmp ";
+
+				switch (this->_mode) {
+					case Mode::R:
+						ret += Utils::bregToString(sss(core()));
+						break;
+
+					case Mode::M:
+						ret += "M";
+						break;
+
+					case Mode::I:
+						ret += common::Utils::uint8ToString(core()->bR(Core::BReg::TMP));
+						break;
+
+					default:
+						throw std::invalid_argument("Not supported CMP opcode!");
+				}
+
+				return ret;
+			}
+
+		private:
+			Mode _mode;
 	};
 }
 

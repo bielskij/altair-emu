@@ -63,6 +63,8 @@ namespace altair {
 				this->core()->bR(Core::BReg::IR, pio.getData());
 				pio.setDbin(false);
 
+				core()->bR(Core::BReg::W, 0);
+
 				return true;
 			}
 
@@ -71,6 +73,8 @@ namespace altair {
 			}
 
 			bool t5() override {
+				core()->wR(Core::WReg::SP, core()->wR(Core::WReg::SP) - 1);
+
 				return false;
 			}
 	};

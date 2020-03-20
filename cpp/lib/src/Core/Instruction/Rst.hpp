@@ -25,36 +25,12 @@
 #define CORE_INSTRUCTION_RST_H_
 
 #include "altair/Core.hpp"
-#include "Core/MachineCycle/Fetch.hpp"
+#include "Core/MachineCycle/Interrupt.hpp"
 #include "Core/MachineCycle/StackWrite.hpp"
 
 namespace altair {
 	class InstructionRst : public Core::Instruction {
 		private:
-			class Fetch : public altair::MachineCycleFetch {
-				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
-					}
-
-					bool t3() override {
-						core()->bR(Core::BReg::W, 0);
-
-						return this->MachineCycleFetch::t3();
-					}
-
-					bool t4() override {
-						this->MachineCycleFetch::t4();
-
-						return true;
-					}
-
-					bool t5() override {
-						core()->wR(Core::WReg::SP, core()->wR(Core::WReg::SP) - 1);
-
-						return false;
-					}
-			};
-
 			class StackWrite : public altair::MachineCycleStackWrite {
 				public:
 					StackWrite(Core *core) : MachineCycleStackWrite(core, Core::BReg::PCL, false) {
@@ -72,7 +48,7 @@ namespace altair {
 
 		public:
 			InstructionRst(Core *core) : Instruction(core) {
-				this->addCycle(new Fetch(core));
+				this->addCycle(new MachineCycleInterrupt(core));
 				this->addCycle(new MachineCycleStackWrite(core, Core::BReg::PCH, true));
 				this->addCycle(new StackWrite(core));
 

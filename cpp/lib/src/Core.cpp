@@ -125,7 +125,7 @@ void altair::Core::tick() {
 				decodeIr = (this->_cycle == this->_interruptCycle);
 #if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
 				if (decodeIr) {
-					DBG(("Interrupt! %02x", this->bR(BReg::IR)));
+					DBG(("Interrupt! [last pc: %04x]: %02x", this->_iPC, this->bR(BReg::IR)));
 				}
 #endif
 				break;
@@ -141,7 +141,7 @@ void altair::Core::tick() {
 
 			this->_i->reset();
 
-			this->_cycle = this->_i->nextCycle();
+				this->_cycle = this->_i->nextCycle();
 		}
 
 		this->_pio.clk();

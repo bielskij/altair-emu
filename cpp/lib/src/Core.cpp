@@ -154,9 +154,9 @@ void altair::Core::tick() {
 
 			this->_cycle = this->_i->nextCycle();
 			if (this->_cycle == nullptr) {
-#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
-			DBG(("[%04x] %s", this->_iPC, this->_i->toAsm().c_str()));
-#endif
+//#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
+//			DBG(("[%04x] %s", this->_iPC, this->_i->toAsm().c_str()));
+//#endif
 
 				this->_i     = nullptr;
 

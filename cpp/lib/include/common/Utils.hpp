@@ -129,7 +129,7 @@ namespace common {
 				return extension;
 			}
 
-			static uint16_t toUint32(const std::string &str) {
+			static uint32_t toUint32(const std::string &str) {
 				return strtoul(str.c_str(), nullptr, 0);
 			}
 

@@ -42,7 +42,7 @@ namespace altair {
 			}
 
 			std::string toAsm() const override {
-				return "lda " + common::Utils::uint16ToString(core()->bR(Core::BReg::Z));
+				return "lda " + common::Utils::uint16ToString(core()->wR(Core::WReg::W));
 			}
 	};
 }

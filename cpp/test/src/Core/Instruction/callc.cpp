@@ -29,16 +29,18 @@
 
 
 CUNIT_TEST(core_instruction, callc_clk) {
+	// cc 7
+	// cnc 7
 	test::Pio  pio({
-		0xda, 0x07, 0x00, 0xd2, 0x07, 0x00, 0x00, 0x00
+		0xdc, 0x07, 0x00, 0xd4, 0x07, 0x00, 0x00, 0x00
 	});
 
 	test::Core core(pio);
 
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 5);
+	CUNIT_ASSERT_EQ(pio.clkCount, 11);
 	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 16);
+	CUNIT_ASSERT_EQ(pio.clkCount, 28);
 }
 
 

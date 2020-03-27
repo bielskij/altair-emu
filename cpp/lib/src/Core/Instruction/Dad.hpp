@@ -73,7 +73,7 @@ namespace altair {
 			}
 
 			std::string toAsm() const override {
-				return "daa " + Utils::rpToString(rp(core()));
+				return "dad " + Utils::rpToString(rp(core()));
 			}
 	};
 }

@@ -105,7 +105,7 @@ namespace altair {
 			}
 
 			std::string toAsm() const override {
-				std::string ret = (this->_mode == Mode::I) ? "xra " : "xri ";
+				std::string ret = (this->_mode == Mode::I) ? "xri " : "xra ";
 
 				switch (this->_mode) {
 					case Mode::R:

@@ -36,41 +36,42 @@ namespace altair {
 			};
 
 		private:
-			class Fetch : public altair::MachineCycleFetch {
-				public:
-					Fetch(Core *core) : MachineCycleFetch(core) {
-					}
-
-					bool t4() override {
-						this->MachineCycleFetch::t4();
-
-						return true;
-					}
-
-					bool t5() override {
-						if (! core()->alu()->checkCondition(ccc())) {
-							// Skip address reading
-							core()->wR(Core::WReg::PC, core()->wR(Core::WReg::PC) + 2);
-
-							parent()->finish();
-						}
-
-						return false;
-					}
-			};
-
 			class Read : public altair::MachineCycleMemoryRead {
 				public:
 					Read(Core *core) : MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true) {
+						this->conditionTrue = true;
 					}
 
 					bool t3() override {
 						bool ret = MachineCycleMemoryRead::t3();
 
-						core()->wR(Core::WReg::PC, core()->wR(Core::WReg::W));
+						if (this->conditionTrue) {
+							core()->wR(Core::WReg::PC, core()->wR(Core::WReg::W));
+						}
 
 						return ret;
 					}
+
+				public:
+					bool conditionTrue;
+			};
+
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(Core *core, Read *readCycle) : MachineCycleFetch(core) {
+						this->_readCycle = readCycle;
+					}
+
+					bool t4() override {
+						this->MachineCycleFetch::t4();
+
+						this->_readCycle->conditionTrue = core()->alu()->checkCondition(ccc());
+
+						return false;
+					}
+
+				private:
+					Read *_readCycle;
 			};
 
 		public:
@@ -90,9 +91,11 @@ namespace altair {
 
 					case Mode::CONDITIONED:
 						{
-							this->addCycle(new Fetch(core));
+							Read *readCycle = new Read(core);
+
+							this->addCycle(new Fetch(core, readCycle));
 							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true));
-							this->addCycle(new Read(core));
+							this->addCycle(readCycle);
 
 							this->addCodeCCC(0xc2, Core::Cond::COUNT);
 						}

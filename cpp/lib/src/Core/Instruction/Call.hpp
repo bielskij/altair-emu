@@ -37,10 +37,31 @@ namespace altair {
 			};
 
 		private:
+			class Read : public altair::MachineCycleMemoryRead {
+				public:
+					Read(Core *core) : MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true) {
+						this->conditionTrue = true;
+					}
+
+					bool t3() override {
+						bool ret = MachineCycleMemoryRead::t3();
+
+						if (! this->conditionTrue) {
+							parent()->finish();
+						}
+
+						return ret;
+					}
+
+				public:
+					bool conditionTrue;
+			};
+
 			class Fetch : public altair::MachineCycleFetch {
 				public:
-					Fetch(Core *core, Mode mode) : MachineCycleFetch(core) {
-						this->mode = mode;
+					Fetch(Core *core, Read *readCycle, Mode mode) : MachineCycleFetch(core) {
+						this->_readCycle = readCycle;
+						this->_mode      = mode;
 					}
 
 					bool t4() override {
@@ -52,13 +73,9 @@ namespace altair {
 					bool t5() override {
 						bool decreaseStack = true;
 
-						if (this->mode == Mode::CONDITIONED) {
-							if (! core()->alu()->checkCondition(ccc())) {
-								// Skip address reading
-								core()->wR(Core::WReg::PC, core()->wR(Core::WReg::PC) + 2);
-
-								parent()->finish();
-
+						if (this->_mode == Mode::CONDITIONED) {
+							this->_readCycle->conditionTrue = core()->alu()->checkCondition(ccc());
+							if (! this->_readCycle->conditionTrue) {
 								decreaseStack = false;
 							}
 						}
@@ -71,7 +88,8 @@ namespace altair {
 					}
 
 				private:
-					Mode mode;
+					Read *_readCycle;
+					Mode  _mode;
 			};
 
 			class StackWrite : public altair::MachineCycleStackWrite {
@@ -95,7 +113,7 @@ namespace altair {
 				switch (mode) {
 					case Mode::UNCONDITIONED:
 						{
-							this->addCycle(new Fetch(core, mode));
+							this->addCycle(new Fetch(core, nullptr, mode));
 							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true));
 							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true));
 							this->addCycle(new MachineCycleStackWrite(core, Core::BReg::PCH, true));
@@ -107,9 +125,11 @@ namespace altair {
 
 					case Mode::CONDITIONED:
 						{
-							this->addCycle(new Fetch(core, mode));
+							Read *readCycle = new Read(core);
+
+							this->addCycle(new Fetch(core, readCycle, mode));
 							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::Z, true));
-							this->addCycle(new MachineCycleMemoryRead(core, Core::WReg::PC, Core::BReg::W, true));
+							this->addCycle(readCycle);
 							this->addCycle(new MachineCycleStackWrite(core, Core::BReg::PCH, true));
 							this->addCycle(new StackWrite(core));
 

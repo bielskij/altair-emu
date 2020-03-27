@@ -34,6 +34,7 @@
 #include "altair/Card/Sio2.hpp"
 #include "altair/Card/VI.hpp"
 #include "altair/Card/Pmc.hpp"
+#include "altair/Card/Dcdd.hpp"
 
 #include "altair/Card/devel/Writer.hpp"
 #include "altair/Card/devel/Reader.hpp"
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
 
 	if (configuration.parse(argv[1])) {
 		common::Ini::Section *global = nullptr;
+		altair::card::Dcdd   *dcdd   = nullptr;
 
 		std::string configBaseDir = common::Utils::dirname(common::Utils::getRealPath(argv[1]));
 
@@ -165,6 +167,33 @@ int main(int argc, char *argv[]) {
 				}
 
 				board.addCard(pmc);
+
+				continue;
+			}
+
+			if (i->getName() == "88-dcdd") {
+				dcdd = new altair::card::Dcdd();
+
+				board.addCard(dcdd);
+
+				continue;
+			}
+
+			if (i->getName() == "fd400") {
+				altair::card::Dcdd::Fd400 *drive = new altair::card::Dcdd::Fd400(
+					getImageFilePath(configBaseDir, i->getValue("file")),
+					common::Utils::toUint8(i->getValue("addr"))
+				);
+
+				if (dcdd == nullptr) {
+					ERR(("DCDD card is not attached to the main board!"));
+
+					abort();
+				}
+
+				dcdd->addDrive(drive);
+
+				continue;
 			}
 		}
 

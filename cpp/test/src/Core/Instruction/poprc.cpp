@@ -87,3 +87,25 @@ CUNIT_TEST(core_instruction, pop_h) {
 	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0008);
 	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::H), 0x1234);
 }
+
+
+CUNIT_TEST(core_instruction, push_pop) {
+	// lxi sp,0x000f
+	// lxi h, 0x1234
+	// push h
+	// pop d
+	test::Pio  pio({
+		0x31, 0x0f, 0x00, 0x21, 0x34, 0x12, 0xE5, 0xD1,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+	});
+
+	test::Core core(pio);
+
+	core.nextInstruction();
+	core.nextInstruction();
+	core.nextInstruction();
+	core.nextInstruction();
+
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::D), 0x1234);
+}

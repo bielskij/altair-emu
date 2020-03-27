@@ -49,9 +49,9 @@ namespace altair {
 				Mcs16(Sw1 switchMode) {
 					switch (switchMode) {
 						case Sw1::COOO: this->bankAddr = 0x0000; break;
-						case Sw1::OCOO: this->bankAddr = 0x0100; break;
-						case Sw1::OOCO: this->bankAddr = 0x1000; break;
-						case Sw1::OOOC: this->bankAddr = 0x1100; break;
+						case Sw1::OCOO: this->bankAddr = 0x4000; break;
+						case Sw1::OOCO: this->bankAddr = 0x8000; break;
+						case Sw1::OOOC: this->bankAddr = 0xc000; break;
 						default:
 							throw std::invalid_argument("Invalid switch mode");
 					}

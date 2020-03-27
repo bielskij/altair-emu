@@ -209,7 +209,7 @@ namespace common {
 				return ret;
 			}
 
-			static std::string uint16ToString(uint8_t val, bool hex = false) {
+			static std::string uint16ToString(uint16_t val, bool hex = false) {
 				std::string ret;
 
 				if (hex) {

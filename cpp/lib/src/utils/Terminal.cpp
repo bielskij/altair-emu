@@ -43,8 +43,9 @@
 altair::utils::Terminal::Terminal() {
 	bool fail = true;
 
-	this->ptyMasterFd = -1;
-	this->xtermPid    = 0;
+	this->ptyMasterFd       = -1;
+	this->xtermPid          = 0;
+	this->fifoThreadRunning = false;
 
 	do {
 		this->ptyMasterFd = posix_openpt(O_RDWR | O_NOCTTY);
@@ -94,6 +95,9 @@ altair::utils::Terminal::Terminal() {
 			// you'll need to deal with. It appears as a line of input on
 			// the tty before the actual user input begins.
 			while (::read(this->ptyMasterFd, &c, 1) == 1 && c != '\n');
+
+			this->fifoThreadRunning = true;
+			this->fifoThread        = std::thread(threadRoutine, this);
 
 		// child process
 		} else {
@@ -199,6 +203,12 @@ altair::utils::Terminal::~Terminal() {
 		this->xtermPid = 0;
 	}
 
+	if (this->fifoThread.joinable()) {
+		this->fifoThreadRunning = false;
+
+		this->fifoThread.join();
+	}
+
 	if (this->ptyMasterFd >= 0) {
 		close(this->ptyMasterFd);
 
@@ -208,20 +218,17 @@ altair::utils::Terminal::~Terminal() {
 
 
 void altair::utils::Terminal::canReadWrite(bool &read, bool &write) {
-	read  = false;
-	write = false;
-
-	if (this->ptyMasterFd >= 0) {
-		Terminal::select(this->ptyMasterFd, read, write);
-	}
+	read  = ! this->fifo.empty();
+	write = true;
 }
 
 
 uint8_t altair::utils::Terminal::readByte() {
-	uint8_t ret;
+	uint8_t ret = 0;
 
-	if (::read(this->ptyMasterFd, &ret, 1) != 1) {
-		throw std::runtime_error("read() cannot read!");
+	if (this->fifo.size() > 0) {
+		ret = this->fifo.front();
+		this->fifo.pop_front();
 	}
 
 	return ret;
@@ -235,31 +242,31 @@ void altair::utils::Terminal::writeByte(uint8_t val) {
 }
 
 
-void altair::utils::Terminal::select(int fd, bool &canRead, bool &canWrite) {
-	canRead  = false;
-	canWrite = false;
+void altair::utils::Terminal::threadRoutine(Terminal *term) {
+	DBG(("START"));
 
-	fd_set readSet;
-	fd_set writeSet;
+	while (term->fifoThreadRunning) {
+		fd_set readSet;
 
-	struct timeval timeout;
+		struct timeval timeout;
 
-	FD_ZERO(&readSet);
-	FD_ZERO(&writeSet);
+		FD_ZERO(&readSet);
 
-	FD_SET(fd, &readSet);
-	FD_SET(fd, &writeSet);
+		FD_SET(term->ptyMasterFd, &readSet);
 
-	timeout.tv_sec  = 0;
-	timeout.tv_usec = 0;
+		timeout.tv_sec  = 0;
+		timeout.tv_usec = 200 * 1000;
 
-	if (::select(fd + 1, &readSet, &writeSet, NULL, &timeout)) {
-		if (FD_ISSET(fd, &readSet)) {
-			canRead = true;
-		}
+		if (::select(term->ptyMasterFd + 1, &readSet, NULL, NULL, &timeout)) {
+			if (FD_ISSET(term->ptyMasterFd, &readSet)) {
+				uint8_t byte;
 
-		if (FD_ISSET(fd, &writeSet)) {
-			canWrite = true;
+				if (::read(term->ptyMasterFd, &byte, 1) == 1) {
+					term->fifo.push_back(byte);
+				}
+			}
 		}
 	}
+
+	DBG(("END"));
 }

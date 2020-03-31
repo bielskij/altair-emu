@@ -91,6 +91,7 @@ namespace altair {
 						static uint32_t getTicksFromMs(uint32_t ms);
 						static uint32_t getTicksFromUs(uint32_t us);
 						void reset();
+						void bufferTrack(uint8_t trackNo);
 
 					private:
 						uint8_t      _address;
@@ -117,6 +118,8 @@ namespace altair {
 						uint32_t _sectorByteTrueTicks;
 						uint32_t _sectorByteTotalTicks;
 						bool     _sectorByteRead;
+
+						uint8_t _trackBuffer[TRACK_SECTORS * SECTOR_SIZE];
 				};
 
 			public:

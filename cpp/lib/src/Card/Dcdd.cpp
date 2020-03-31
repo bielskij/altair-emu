@@ -69,6 +69,15 @@ void altair::card::Dcdd::Fd400::reset() {
 }
 
 
+void altair::card::Dcdd::Fd400::bufferTrack(uint8_t trackNo) {
+	if (this->_file.is_open()) {
+		this->_file.seekp(this->_track * TRACK_SECTORS * SECTOR_SIZE, std::ios_base::beg);
+
+		this->_file.read(reinterpret_cast<char *>(this->_trackBuffer), TRACK_SECTORS * SECTOR_SIZE);
+	}
+}
+
+
 uint32_t altair::card::Dcdd::Fd400::getTicksFromMs(uint32_t ms) {
 	uint32_t nsPerTick = 1000000000ULL / altair::Config::getClkFrequency();
 
@@ -84,81 +93,11 @@ uint32_t altair::card::Dcdd::Fd400::getTicksFromUs(uint32_t us) {
 
 
 void altair::card::Dcdd::Fd400::tick() {
-	if (this->_transitionTicks > 0) {
-		this->_transitionTicks--;
-
-		if (this->_transitionTicks == 0) {
-			switch (this->_state) {
-				case State::LOADING:
-					{
-						DBG(("LOADING -> LOADED"));
-
-						this->_state = State::LOADED;
-
-						this->_track         = 0;
-						this->_sector        = 0;
-
-						this->_moveHeadTicks = 0;
-						this->_sectorTicks   = 0;
-					}
-					break;
-
-				case State::UNLOADING:
-					{
-						DBG(("UNLOADING -> UNLOADED"));
-
-						this->_state = State::UNLOADED;
-					}
-					break;
-
-				case State::STEP_IN:
-					{
-						this->_track++;
-						this->_state = State::LOADED;
-
-						this->_moveHeadTicks = 0;
-
-						this->_sectorTicks          = 0;
-						this->_sectorByte           = 0;
-						this->_sectorByteTotalTicks = 0;
-						this->_sectorByteTrueTicks  = 0;
-						this->_sectorByteRead       = false;
-
-						DBG(("STEP_IN(%u) -> LOADED", this->_track));
-					}
-					break;
-
-				case State::STEP_OUT:
-					{
-						this->_track--;
-						this->_state = State::LOADED;
-
-						this->_moveHeadTicks = 0;
-						this->_sectorTicks   = 0;
-
-						this->_sectorByte           = 0;
-						this->_sectorByteTotalTicks = 0;
-						this->_sectorByteTrueTicks  = 0;
-						this->_sectorByteRead       = false;
-
-						DBG(("STEP_OUT(%u) -> LOADED", this->_track));
-					}
-					break;
-
-				default:
-					break;
-			}
-		}
-	}
-
 	if (this->_state == State::LOADED) {
-		this->_moveHeadTicks++;
 		if (this->_moveHeadTicks == this->_moveHeadTotalTicks) {
 			this->_moveHeadTicks = 0;
 		}
-
-		// Sector clk
-		this->_sectorTicks++;
+		this->_moveHeadTicks++;
 
 		// Whole sector read
 		if (this->_sectorTicks == this->_sectorTotalTicks) {
@@ -188,6 +127,80 @@ void altair::card::Dcdd::Fd400::tick() {
 					this->_sectorByte++;
 					this->_sectorByteRead = false;
 				}
+			}
+		}
+		this->_sectorTicks++;
+	}
+
+	if (this->_transitionTicks > 0) {
+		this->_transitionTicks--;
+
+		if (this->_transitionTicks == 0) {
+			switch (this->_state) {
+				case State::LOADING:
+					{
+						DBG(("LOADING -> LOADED"));
+
+						this->_state = State::LOADED;
+
+						this->_track         = 0;
+						this->_sector        = 0;
+
+						this->_moveHeadTicks = 0;
+						this->_sectorTicks   = 0;
+
+						this->bufferTrack(this->_track);
+					}
+					break;
+
+				case State::UNLOADING:
+					{
+						DBG(("UNLOADING -> UNLOADED"));
+
+						this->_state = State::UNLOADED;
+					}
+					break;
+
+				case State::STEP_IN:
+					{
+						this->_track++;
+						this->_state = State::LOADED;
+
+						this->_moveHeadTicks = 0;
+
+						this->_sectorTicks          = 0;
+						this->_sectorByte           = 0;
+						this->_sectorByteTotalTicks = 0;
+						this->_sectorByteTrueTicks  = 0;
+						this->_sectorByteRead       = false;
+
+						this->bufferTrack(this->_track);
+
+						DBG(("STEP_IN(%u) -> LOADED", this->_track));
+					}
+					break;
+
+				case State::STEP_OUT:
+					{
+						this->_track--;
+						this->_state = State::LOADED;
+
+						this->_moveHeadTicks = 0;
+						this->_sectorTicks   = 0;
+
+						this->_sectorByte           = 0;
+						this->_sectorByteTotalTicks = 0;
+						this->_sectorByteTrueTicks  = 0;
+						this->_sectorByteRead       = false;
+
+						this->bufferTrack(this->_track);
+
+						DBG(("STEP_OUT(%u) -> LOADED", this->_track));
+					}
+					break;
+
+				default:
+					break;
 			}
 		}
 	}
@@ -221,7 +234,6 @@ uint8_t altair::card::Dcdd::Fd400::getStatus() {
 		}
 
 		return ret;
-
 	}
 
 	return 0xff;
@@ -238,7 +250,7 @@ uint8_t altair::card::Dcdd::Fd400::getSectorPosition() {
 			ret |= 0x01;
 		}
 
-//		DBG(("Sector pos: %u (true: %u)", ret >> 1, ret & 1));
+//		DBG(("[%u] Sector pos: %u (true: %u)", this->_address, ret >> 1, ret & 1));
 
 		return ret;
 	}
@@ -249,20 +261,9 @@ uint8_t altair::card::Dcdd::Fd400::getSectorPosition() {
 
 uint8_t altair::card::Dcdd::Fd400::getByte() {
 	if (this->_file.good() && this->_enabled) {
-		char ret;
-
-		this->_file.seekp(
-			this->_track * TRACK_SECTORS * SECTOR_SIZE +
-			this->_sector * SECTOR_SIZE +
-			this->_sectorByte,
-			std::ios_base::beg
-		);
-
-		this->_file.read(&ret, 1);
-
 		this->_sectorByteRead = true;
 
-		return ret;
+		return this->_trackBuffer[this->_sector * SECTOR_SIZE + this->_sectorByte];
 	}
 
 	return 0;
@@ -337,7 +338,7 @@ void altair::card::Dcdd::Fd400::enable(bool enable) {
 
 	if (this->_enabled) {
 		this->_moveHeadFalseTicks = getTicksFromMs(1);
-		this->_moveHeadTotalTicks = getTicksFromMs(1 + 10);
+		this->_moveHeadTotalTicks = getTicksFromMs(10);
 
 		this->_sectorDelayTicks = getTicksFromUs(280);
 		this->_sectorTrueTicks  = getTicksFromUs(30);
@@ -364,7 +365,6 @@ bool altair::card::Dcdd::onIn(uint8_t number, uint8_t &val) {
 		case 0x08:
 			{
 				Fd400 *drive = this->_drives[this->_addr];
-
 				if (drive == nullptr) {
 					val = 0xff;
 
@@ -379,7 +379,6 @@ bool altair::card::Dcdd::onIn(uint8_t number, uint8_t &val) {
 		case 0x09:
 			{
 				Fd400 *drive = this->_drives[this->_addr];
-
 				if (drive == nullptr) {
 					val = 0x01;
 
@@ -387,15 +386,13 @@ bool altair::card::Dcdd::onIn(uint8_t number, uint8_t &val) {
 					val = drive->getSectorPosition();
 				}
 
-//				DBG(("SECTOR: %02x", val));
+//				DBG(("[%u] SECTOR: %02x", this->_addr, val));
 			}
 			break;
 
 		case 0x0a:
 			{
-
 				Fd400 *drive = this->_drives[this->_addr];
-
 				if (drive == nullptr) {
 					val = 0x00;
 

@@ -24,6 +24,10 @@
 #ifndef ALTAIR_UTILS_TERMINAL_HPP_
 #define ALTAIR_UTILS_TERMINAL_HPP_
 
+#include <thread>
+#include <deque>
+#include <cstdint>
+
 namespace altair {
 	namespace utils {
 		class Terminal {
@@ -37,13 +41,16 @@ namespace altair {
 				void    writeByte(uint8_t val);
 
 			private:
-				static void select(int fd, bool &canRead, bool &canWrite);
+				static void threadRoutine(Terminal *term);
 
 			private:
 				int         ptyMasterFd;
 				std::string ptyPath;
+				pid_t       xtermPid;
 
-				pid_t xtermPid;
+				std::deque<uint8_t> fifo;
+				std::thread         fifoThread;
+				bool                fifoThreadRunning;
 		};
 	}
 }

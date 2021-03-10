@@ -39,6 +39,7 @@ namespace altair {
 							this->_stop            = false;
 							this->_frequency       = Config::getClkFrequency();
 							this->_tickNanoseconds = 1000000000 / this->_frequency;
+							this->_ticksTurn       = 0;
 						}
 
 						virtual ~ClkSource() {
@@ -50,19 +51,23 @@ namespace altair {
 							this->_stop = true;
 						}
 
+						void tick();
+
 					private:
 						altair::Core *_cpu;
 
 						bool _stop;
 						int  _frequency;
 						int  _tickNanoseconds;
+						int  _ticksTurn;
 				};
 
 			protected:
 				class PioImpl : public altair::InterpretedCore::Pio {
 					public:
 						PioImpl(Connector *conn) {
-							this->conn = conn;
+							this->_conn      = conn;
+							this->_clkSource = nullptr;
 						}
 
 					public:
@@ -87,8 +92,14 @@ namespace altair {
 
 						void clk() override;
 
+					public:
+						void setClkSource(ClkSource *clk) {
+							this->_clkSource = clk;
+						}
+
 					private:
-						Connector *conn;
+						Connector *_conn;
+						ClkSource *_clkSource;
 				};
 
 			public:
@@ -96,6 +107,8 @@ namespace altair {
 					this->_pio = new PioImpl(&this->_connector);
 					this->_cpu = new altair::InterpretedCore(*this->_pio, startPc);
 					this->_clk = new ClkSource(this->_cpu);
+
+					this->_pio->setClkSource(this->_clk);
 				}
 
 				inline card::Connector *getConnector() override {

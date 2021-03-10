@@ -30,15 +30,14 @@
 void altair::card::Cpu::ClkSource::loop() {
 	auto lastCheckClk = std::chrono::steady_clock::now();
 	int  ticksNumber  = 0;
-	int  ticksTurn    = 0;
 
 	while (! this->_stop) {
-		while (! this->_stop && (ticksTurn < 1000)) {
-			ticksTurn += this->_cpu->turn();
+		while (! this->_stop && (this->_ticksTurn < 1000)) {
+			this->_cpu->turn();
 		}
 
-		ticksNumber += ticksTurn;
-		ticksTurn    = 0;
+		ticksNumber += this->_ticksTurn;
+		this->_ticksTurn = 0;
 
 		if (! this->_stop) {
 			auto ticksTime   = ticksNumber * this->_tickNanoseconds;
@@ -59,6 +58,11 @@ void altair::card::Cpu::ClkSource::loop() {
 }
 
 
+void altair::card::Cpu::ClkSource::tick() {
+	this->_ticksTurn++;
+}
+
+
 bool altair::card::Cpu::PioImpl::getReset() {
 #warning "TODO implement"
 	return false;
@@ -70,11 +74,11 @@ bool altair::card::Cpu::PioImpl::getHold() {
 }
 
 bool altair::card::Cpu::PioImpl::getInt() {
-	return this->conn->pint();
+	return this->_conn->pint();
 }
 
 bool altair::card::Cpu::PioImpl::getInte() {
-	return this->conn->pinte();
+	return this->_conn->pinte();
 }
 
 bool altair::card::Cpu::PioImpl::getReady() {
@@ -83,23 +87,23 @@ bool altair::card::Cpu::PioImpl::getReady() {
 }
 
 void altair::card::Cpu::PioImpl::setInte(bool active) {
-	this->conn->pinte(active);
+	this->_conn->pinte(active);
 }
 
 void altair::card::Cpu::PioImpl::setInt(bool active) {
-	this->conn->pint(active);
+	this->_conn->pint(active);
 }
 
 void altair::card::Cpu::PioImpl::setDbin(bool active) {
-	this->conn->pdbin(active);
+	this->_conn->pdbin(active);
 }
 
 void altair::card::Cpu::PioImpl::setWr(bool active) {
-	this->conn->pwr(active);
+	this->_conn->pwr(active);
 }
 
 void altair::card::Cpu::PioImpl::setSync(bool active) {
-	this->conn->psync(active);
+	this->_conn->psync(active);
 }
 
 void altair::card::Cpu::PioImpl::setHoldAck(bool active) {
@@ -111,34 +115,36 @@ void altair::card::Cpu::PioImpl::setWait(bool active) {
 }
 
 uint8_t altair::card::Cpu::PioImpl::getData() {
-	return this->conn->din();
+	return this->_conn->din();
 }
 
 void altair::card::Cpu::PioImpl::setData(uint8_t val) {
-	this->conn->dout(val);
+	this->_conn->dout(val);
 }
 
 void altair::card::Cpu::PioImpl::setAddress(uint16_t val) {
-	this->conn->a(val);
+	this->_conn->a(val);
 }
 
 void altair::card::Cpu::PioImpl::clk() {
 	// equivalent to pull up
-	this->conn->pint(false);
+	this->_conn->pint(false);
 
 	// Decode control byte
-	if (this->conn->psync()) {
-		uint8_t val = conn->dout();
+	if (this->_conn->psync()) {
+		uint8_t val = _conn->dout();
 
-		conn->sinta ((val & 0x01) != 0);
-		conn->swo   ((val & 0x02) != 0);
-		conn->sstack((val & 0x04) != 0);
-		conn->shlta ((val & 0x08) != 0);
-		conn->sout  ((val & 0x10) != 0);
-		conn->sm1   ((val & 0x20) != 0);
-		conn->sinp  ((val & 0x40) != 0);
-		conn->smemr ((val & 0x80) != 0);
+		_conn->sinta ((val & 0x01) != 0);
+		_conn->swo   ((val & 0x02) != 0);
+		_conn->sstack((val & 0x04) != 0);
+		_conn->shlta ((val & 0x08) != 0);
+		_conn->sout  ((val & 0x10) != 0);
+		_conn->sm1   ((val & 0x20) != 0);
+		_conn->sinp  ((val & 0x40) != 0);
+		_conn->smemr ((val & 0x80) != 0);
 	}
 
-	conn->clk();
+	_conn->clk();
+
+	this->_clkSource->tick();
 }

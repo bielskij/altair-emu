@@ -27,6 +27,7 @@
 #include "altair/Config.hpp"
 #include "altair/MainBoard.hpp"
 #include "altair/Core/InterpretedCore.hpp"
+#include "altair/Core/JitCore.hpp"
 
 namespace altair {
 	namespace card {
@@ -103,9 +104,13 @@ namespace altair {
 				};
 
 			public:
-				Cpu(uint16_t startPc) {
+				Cpu(uint16_t startPc, bool useJitCore) {
 					this->_pio = new PioImpl(&this->_connector);
-					this->_cpu = new altair::InterpretedCore(*this->_pio, startPc);
+					if (useJitCore) {
+						this->_cpu = new altair::JitCore(*this->_pio, startPc);
+					} else {
+						this->_cpu = new altair::InterpretedCore(*this->_pio, startPc);
+					}
 					this->_clk = new ClkSource(this->_cpu);
 
 					this->_pio->setClkSource(this->_clk);

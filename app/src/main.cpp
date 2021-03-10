@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			altair::card::Cpu *cpuCard = new altair::card::Cpu(startPc);
+			altair::card::Cpu *cpuCard = new altair::card::Cpu(startPc, true);
 
 			clk = cpuCard->getClock();
 

@@ -21,18 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_DAA_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_DAA_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionDaa : public InterpretedCore::Instruction {
+		private:
+			class Fetch : public MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						core()->alu()->op(InterpretedCore::BReg::A, InterpretedCore::BReg::A, InterpretedCore::Alu::Op::AD, false,
+							InterpretedCore::Alu::Z | InterpretedCore::Alu::S | InterpretedCore::Alu::P | InterpretedCore::Alu::CY | InterpretedCore::Alu::AC,
+							0
+						);
+
+						return MachineCycleFetch::t4();
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionDaa(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
 
+				this->addCode(0x27);
+			}
+
+			std::string toAsm() const override {
+				return "daa";
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_DAA_H_ */

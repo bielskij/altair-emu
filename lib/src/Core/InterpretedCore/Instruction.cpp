@@ -21,18 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
-
 #include "altair/Core/InterpretedCore.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
-		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
 
-			}
-	};
+const std::set<altair::InterpretedCore::BReg> altair::InterpretedCore::Instruction::_allBregs = {
+	InterpretedCore::BReg::B, InterpretedCore::BReg::C, InterpretedCore::BReg::D, InterpretedCore::BReg::E,
+	InterpretedCore::BReg::H, InterpretedCore::BReg::L, InterpretedCore::BReg::A
+};
+
+const std::set<altair::InterpretedCore::Cond> altair::InterpretedCore::Instruction::_allConds = {
+	InterpretedCore::Cond::NOT_ZERO, InterpretedCore::Cond::ZERO, InterpretedCore::Cond::NO_CARRY,
+	InterpretedCore::Cond::CARRY, InterpretedCore::Cond::PARITY_ODD, InterpretedCore::Cond::PARITY_EVEN,
+	InterpretedCore::Cond::PLUS, InterpretedCore::Cond::MINUS,
+};
+
+
+altair::InterpretedCore::Instruction::Instruction(InterpretedCore *core) {
+	this->_core        = core;
+	this->_cycleIdx    = 0;
+	this->_cyclesCount = 0;
 }
 
-#endif /* TESTCORE_HPP_ */
+
+altair::InterpretedCore::Instruction::~Instruction() {
+
+}
+
+
+void altair::InterpretedCore::Instruction::addCycle(MachineCycle *cycle) {
+	this->_cycles[this->_cyclesCount++] = cycle;
+
+	cycle->setParent(this);
+}

@@ -21,18 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_LDA_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_LDA_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryWrite.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionLda : public InterpretedCore::Instruction {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionLda(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::PC, InterpretedCore::BReg::Z, true));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::PC, InterpretedCore::BReg::W, true));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::W,  InterpretedCore::BReg::A, false));
 
+				this->addCode(0x3a);
+			}
+
+			std::string toAsm() const override {
+				return "lda " + common::Utils::uint16ToString(core()->wR(InterpretedCore::WReg::W));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_LDA_H_ */

@@ -24,9 +24,9 @@
 #ifndef ALTAIR_CARD_CPU_HPP_
 #define ALTAIR_CARD_CPU_HPP_
 
-#include "altair/Cpu.hpp"
 #include "altair/Config.hpp"
 #include "altair/MainBoard.hpp"
+#include "altair/Core/InterpretedCore.hpp"
 
 namespace altair {
 	namespace card {
@@ -34,7 +34,7 @@ namespace altair {
 			public:
 				class ClkSource {
 					public:
-						ClkSource(altair::Cpu *cpu) {
+						ClkSource(altair::Core *cpu) {
 							this->_cpu             = cpu;
 							this->_stop            = false;
 							this->_frequency       = Config::getClkFrequency();
@@ -51,7 +51,7 @@ namespace altair {
 						}
 
 					private:
-						altair::Cpu *_cpu;
+						altair::Core *_cpu;
 
 						bool _stop;
 						int  _frequency;
@@ -59,7 +59,7 @@ namespace altair {
 				};
 
 			protected:
-				class PioImpl : public altair::Cpu::Pio {
+				class PioImpl : public altair::InterpretedCore::Pio {
 					public:
 						PioImpl(Connector *conn) {
 							this->conn = conn;
@@ -94,7 +94,7 @@ namespace altair {
 			public:
 				Cpu(uint16_t startPc) {
 					this->_pio = new PioImpl(&this->_connector);
-					this->_cpu = new altair::Cpu(*this->_pio, startPc);
+					this->_cpu = new altair::InterpretedCore(*this->_pio, startPc);
 					this->_clk = new ClkSource(this->_cpu);
 				}
 
@@ -107,10 +107,10 @@ namespace altair {
 				}
 
 			private:
-				PioImpl     *_pio;
-				altair::Cpu *_cpu;
-				ClkSource   *_clk;
-				Connector    _connector;
+				PioImpl      *_pio;
+				altair::Core *_cpu;
+				ClkSource    *_clk;
+				Connector     _connector;
 		};
 	}
 }

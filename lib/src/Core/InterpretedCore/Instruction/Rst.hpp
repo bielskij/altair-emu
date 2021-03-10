@@ -21,18 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_RST_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_RST_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Interrupt.hpp"
+#include "Core/InterpretedCore/MachineCycle/StackWrite.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionRst : public InterpretedCore::Instruction {
+		private:
+			class StackWrite : public altair::MachineCycleStackWrite {
+				public:
+					StackWrite(InterpretedCore *core) : MachineCycleStackWrite(core, InterpretedCore::BReg::PCL, false) {
+					}
+
+					bool t3() override {
+						bool ret = MachineCycleStackWrite::t3();
+
+						core()->bR(InterpretedCore::BReg::Z, core()->bR(InterpretedCore::BReg::IR) & 0x38);
+						core()->wR(InterpretedCore::WReg::PC, core()->wR(InterpretedCore::WReg::W));
+
+						return ret;
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionRst(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleInterrupt(core));
+				this->addCycle(new MachineCycleStackWrite(core, InterpretedCore::BReg::PCH, true));
+				this->addCycle(new StackWrite(core));
 
+				this->addCodeNNN(0xc7);
+			}
+
+			std::string toAsm() const override {
+				return "rst " + common::Utils::uint8ToString(nnn(core()));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_RST_H_ */

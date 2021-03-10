@@ -21,18 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_MACHINECYCLE_INPUTREAD_HPP_
+#define CORE_INTERPRETEDCORE_MACHINECYCLE_INPUTREAD_HPP_
 
-#include "altair/Core/InterpretedCore.hpp"
+#include "altair/Core.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class MachineCycleInputRead : public InterpretedCore::MachineCycle {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			MachineCycleInputRead(InterpretedCore *core) : InterpretedCore::MachineCycle(core, false, false, false, false, false, false, true, false) {
+			}
 
+			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
+
+				pio.setAddress(core()->wR(InterpretedCore::WReg::W));
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
+			}
+
+			bool t2() override {
+				Core::Pio &pio = core()->pio();
+
+				pio.setSync(false);
+				pio.setDbin(true);
+
+				return true;
+			}
+
+			bool t3() override {
+				Core::Pio &pio = this->core()->pio();
+
+				core()->bR(InterpretedCore::BReg::A, pio.getData());
+
+				pio.setDbin(false);
+
+				return false;
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_MACHINECYCLE_INPUTREAD_HPP_ */

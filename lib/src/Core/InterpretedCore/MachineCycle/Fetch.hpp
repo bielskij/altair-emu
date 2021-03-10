@@ -21,18 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_
+#define CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_
 
-#include "altair/Core/InterpretedCore.hpp"
+#include "altair/Core.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class MachineCycleFetch : public InterpretedCore::MachineCycle {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			MachineCycleFetch(InterpretedCore *core) : InterpretedCore::MachineCycle(core, false, false, false, false, false, true, false, true) {
+			}
 
+			bool t1() override {
+				Core::Pio &pio = this->core()->pio();
+
+				pio.setAddress(this->core()->wR(InterpretedCore::WReg::PC));
+				pio.setData(this->getStatus());
+				pio.setSync(true);
+
+				return true;
+			}
+
+			bool t2() override {
+				InterpretedCore::Pio &pio = this->core()->pio();
+
+				pio.setSync(false);
+				pio.setDbin(true);
+
+				this->core()->wR(InterpretedCore::WReg::PC, this->core()->wR(InterpretedCore::WReg::PC) + 1);
+
+				return true;
+			}
+
+			bool t3() override {
+				InterpretedCore::Pio &pio = this->core()->pio();
+
+				this->core()->bR(InterpretedCore::BReg::IR, pio.getData());
+				pio.setDbin(false);
+
+				return true;
+			}
+
+			bool t4() override {
+				return false;
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_ */

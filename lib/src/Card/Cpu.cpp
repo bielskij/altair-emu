@@ -34,9 +34,7 @@ void altair::card::Cpu::ClkSource::loop() {
 
 	while (! this->_stop) {
 		while (! this->_stop && (ticksTurn < 1000)) {
-			this->_cpu->tick();
-
-			ticksTurn++;
+			ticksTurn += this->_cpu->turn();
 		}
 
 		ticksNumber += ticksTurn;

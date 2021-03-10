@@ -21,18 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
-
 #include "altair/Core/InterpretedCore.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
-		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
 
-			}
-	};
+altair::InterpretedCore::MachineCycle::MachineCycle(InterpretedCore *core, bool inta, bool wo, bool stack, bool hlta, bool out, bool m1, bool inp, bool memr) {
+	this->_core   = core;
+	this->_status = 0;
+	this->_parent = nullptr;
+
+	if (inta)  this->_status |= (1 << 0);
+	if (wo)    this->_status |= (1 << 1);
+	if (stack) this->_status |= (1 << 2);
+	if (hlta)  this->_status |= (1 << 3);
+	if (out)   this->_status |= (1 << 4);
+	if (m1)    this->_status |= (1 << 5);
+	if (inp)   this->_status |= (1 << 6);
+	if (memr)  this->_status |= (1 << 7);
 }
 
-#endif /* TESTCORE_HPP_ */
+
+altair::InterpretedCore::MachineCycle::~MachineCycle() {
+
+};
+
+bool altair::InterpretedCore::MachineCycle::t1() {
+	return false;
+}
+
+bool altair::InterpretedCore::MachineCycle::t2() {
+	return false;
+}
+
+bool altair::InterpretedCore::MachineCycle::t3() {
+	return false;
+}
+
+bool altair::InterpretedCore::MachineCycle::t4() {
+	return false;
+}
+
+bool altair::InterpretedCore::MachineCycle::t5() {
+	return false;
+}
+
+uint8_t altair::InterpretedCore::MachineCycle::getStatus() const {
+	return this->_status;
+}

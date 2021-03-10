@@ -21,18 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_SHLD_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_SHLD_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionShld : public InterpretedCore::Instruction {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionShld(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MachineCycleMemoryRead (core, InterpretedCore::WReg::PC, InterpretedCore::BReg::Z, true));
+				this->addCycle(new MachineCycleMemoryRead (core, InterpretedCore::WReg::PC, InterpretedCore::BReg::W, true));
+				this->addCycle(new MachineCycleMemoryWrite(core, InterpretedCore::WReg::W,  InterpretedCore::BReg::L, true));
+				this->addCycle(new MachineCycleMemoryWrite(core, InterpretedCore::WReg::W,  InterpretedCore::BReg::H, false));
 
+				this->addCode(0x22);
+			}
+
+			std::string toAsm() const override {
+				return "shld " + common::Utils::uint16ToString(core()->wR(InterpretedCore::WReg::W));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_SHLD_H_ */

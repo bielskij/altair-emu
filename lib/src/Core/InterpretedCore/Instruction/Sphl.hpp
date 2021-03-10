@@ -21,18 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_SPHL_HPP_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_SPHL_HPP_
 
+#include "common/Utils.hpp"
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionSphl : public InterpretedCore::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						return true;
+					}
+
+					bool t5() override {
+						// HL -> SP
+						core()->wR(InterpretedCore::WReg::SP, core()->wR(InterpretedCore::WReg::H));
+
+						return false;
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionSphl(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
+			}
 
+			std::string toAsm() const override {
+				return "sphl";
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_SPHL_HPP_ */

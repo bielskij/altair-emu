@@ -21,18 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_
+#define CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_
 
-#include "altair/Core/InterpretedCore.hpp"
+#include "altair/Core.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class MachineCycleHaltInterrupt : public InterpretedCore::MachineCycle {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			MachineCycleHaltInterrupt(InterpretedCore *core) : InterpretedCore::MachineCycle(core, true, false, false, true, false, true, false, false) {
+			}
 
+			bool t1() override {
+
+			}
+
+			bool t2() override {
+
+			}
+
+			bool t3() override {
+			}
+
+			bool t4() override {
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_MACHINECYCLE_FETCH_HPP_ */

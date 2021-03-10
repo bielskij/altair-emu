@@ -21,18 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_LXI_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_LXI_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryWrite.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionLxi : public InterpretedCore::Instruction {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionLxi(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::PC, InterpretedCore::BReg::RP_L, true));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::PC, InterpretedCore::BReg::RP_H, true));
 
+				this->addCodeRP(0x01, InterpretedCore::WReg::COUNT);
+			}
+
+			std::string toAsm() const override {
+				return "lxi " + Utils::wregToString(rp(core())) + "," + common::Utils::uint16ToString(core()->wR(rp(core())));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_LXI_H_ */

@@ -21,18 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_IED_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_IED_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionIed: public InterpretedCore::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core, bool enable) : MachineCycleFetch(core) {
+						this->enable = enable;
+					}
+
+					bool t4() override {
+						core()->pio().setInte(this->enable);
+
+						return false;
+					}
+
+				private:
+					bool enable;
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionIed(InterpretedCore *core, bool enable) : Instruction(core) {
+				this->_iee = enable;
 
+				this->addCycle(new Fetch(core, enable));
+
+				this->addCode(enable ? 0xfb : 0xf3);
 			}
+
+			std::string toAsm() const override {
+				return this->_iee ? "ei" : "di";
+			}
+
+		private:
+			bool _iee;
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_IED_H_ */

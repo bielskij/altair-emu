@@ -21,18 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_PCHL_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_PCHL_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionPchl : public InterpretedCore::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						MachineCycleFetch::t4();
+
+						return true;
+					}
+
+					bool t5() override {
+						core()->wR(InterpretedCore::WReg::PC, core()->wR(InterpretedCore::WReg::H));
+
+						return this->MachineCycleFetch::t5();
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionPchl(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
 
+				this->addCode(0xe9);
+			}
+
+			std::string toAsm() const override {
+				return "pchl";
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_PCHL_H_ */

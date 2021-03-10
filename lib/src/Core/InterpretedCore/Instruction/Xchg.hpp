@@ -21,18 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_XCHG_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_XCHG_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionXchg : public InterpretedCore::Instruction {
+		private:
+			class Fetch : public MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						uint16_t tmp = core()->wR(InterpretedCore::WReg::H);
+
+						core()->wR(InterpretedCore::WReg::H, core()->wR(InterpretedCore::WReg::D));
+						core()->wR(InterpretedCore::WReg::D, tmp);
+
+						return false;
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionXchg(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
 
+				this->addCode(0xeb);
+			}
+
+			std::string toAsm() const override {
+				return "xchg";
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_XCHG_H_ */

@@ -21,18 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_STAX_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_STAX_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryWrite.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionStax : public InterpretedCore::Instruction {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionStax(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MachineCycleMemoryWrite(core, InterpretedCore::WReg::RP, InterpretedCore::BReg::A, false));
 
+				this->addCodeRP(0x02, InterpretedCore::WReg::B);
+				this->addCodeRP(0x02, InterpretedCore::WReg::D);
+			}
+
+			std::string toAsm() const override {
+				return "stax " + Utils::rpToString(rp(core()));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_STAX_H_ */

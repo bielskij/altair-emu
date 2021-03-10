@@ -21,18 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_INX_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_INX_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionInx : public InterpretedCore::Instruction {
+		private:
+			class Fetch : public MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						MachineCycleFetch::t4();
+
+						return true;
+					}
+
+					bool t5() override {
+						core()->wR(rp(), core()->wR(rp()) + 1);
+
+						return false;
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionInx(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
 
+				this->addCodeRP(0x03, InterpretedCore::WReg::COUNT);
+			}
+
+			std::string toAsm() const override {
+				return "inx " + Utils::rpToString(rp(core()));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_INX_H_ */

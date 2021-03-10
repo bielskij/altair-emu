@@ -21,18 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_CMC_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_CMC_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionCmc: public InterpretedCore::Instruction {
+		private:
+			class Fetch : public altair::MachineCycleFetch {
+				public:
+					Fetch(InterpretedCore *core) : MachineCycleFetch(core) {
+					}
+
+					bool t4() override {
+						if (core()->alu()->fCY()) {
+							core()->alu()->clear(InterpretedCore::Alu::CY);
+
+						} else {
+							core()->alu()->set(InterpretedCore::Alu::CY);
+						}
+
+						return false;
+					}
+			};
+
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionCmc(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new Fetch(core));
 
+				this->addCode(0x3f);
+			}
+
+			std::string toAsm() const override {
+				return "cmc";
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_CMC_H_ */

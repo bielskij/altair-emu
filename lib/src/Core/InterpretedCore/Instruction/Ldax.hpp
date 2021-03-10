@@ -21,18 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef TESTCORE_HPP_
-#define TESTCORE_HPP_
+#ifndef CORE_INTERPRETEDCORE_INSTRUCTION_LDAX_H_
+#define CORE_INTERPRETEDCORE_INSTRUCTION_LDAX_H_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "Core/InterpretedCore/MachineCycle/Fetch.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryRead.hpp"
+#include "Core/InterpretedCore/MachineCycle/MemoryWrite.hpp"
 
-namespace test {
-	class Core : public altair::InterpretedCore {
+namespace altair {
+	class InstructionLdax : public InterpretedCore::Instruction {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			InstructionLdax(InterpretedCore *core) : Instruction(core) {
+				this->addCycle(new MachineCycleFetch(core));
+				this->addCycle(new MachineCycleMemoryRead(core, InterpretedCore::WReg::RP, InterpretedCore::BReg::A, false));
 
+				this->addCodeRP(0x0a, InterpretedCore::WReg::B);
+				this->addCodeRP(0x0a, InterpretedCore::WReg::D);
+			}
+
+			std::string toAsm() const override {
+				return "ldax " + Utils::rpToString(rp(core()));
 			}
 	};
 }
 
-#endif /* TESTCORE_HPP_ */
+#endif /* CORE_INTERPRETEDCORE_INSTRUCTION_LDAX_H_ */

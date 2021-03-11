@@ -21,43 +21,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <stddef.h>
+#include "altair/Core/JitCore.hpp"
 
-#ifndef ALTAIR_CORE_JITCORE_HPP_
-#define ALTAIR_CORE_JITCORE_HPP_
+#define DEBUG_LEVEL 5
+#include "common/debug.h"
 
-#include "altair/Core.hpp"
+/*
+ * Reg mapping:
+ * [P][A] -> [VT][AL]
+ * [B][C] -> [BH][BL]
+ * [D][E] -> [CH][CL]
+ * [H][L] -> [DH][DL]
+ * [ SP ] -> [ESI]
+ */
 
-namespace altair {
-	class JitCore : public altair::Core {
-		private:
-			struct Regs {
-				uint8_t A, B, C, D, E, H, L;
-				uint16_t PC, SP;
 
-				Regs() {
-					this->A = 0;
-					this->B = 0;
-					this->C = 0;
-					this->D = 0;
-					this->E = 0;
-					this->H = 0;
-					this->L = 0;
-
-					this->PC = 0;
-					this->SP = 0;
-				}
-			};
-
-		public:
-			JitCore(Pio &pio, uint16_t pc);
-
-			int turn() override;
-			void shutdown() override;
-
-		private:
-			Regs _regs;
-			Pio &_pio;
-	};
+altair::JitCore::JitCore(Pio &pio, uint16_t pc) : _pio(pio) {
+	this->_regs.PC = pc;
 }
 
-#endif /* ALTAIR_CORE_JITCORE_HPP_ */
+
+int altair::JitCore::turn() {
+	Regs *regs = &this->_regs;
+
+	this->_regs.A = 1;
+
+//	this->_pio.clk();
+#if 0
+	r	any GPR
+	a	eax, ax, al
+	b	ebx, bx, bl
+	c	ecx, cx, cl
+	d	edx, dx, dl
+	S	esi, si
+	D	edi, di
+#endif
+	__asm (
+		"push r8                 \n\t"
+		"mov r8, rax             \n\t"
+
+		"mov al, [r8 + %[off_a]] \n\t"
+
+		"inc al                  \n\t"
+		"inc al                  \n\t"
+
+		"mov [r8 + %[off_a]], al \n\t"
+
+		"pop r8                  \n\t"
+		:
+		:
+			"a"(regs),
+			[off_a] "i" (offsetof (struct altair::JitCore::Regs, A))
+		:
+	);
+
+	ERR(("VAL: %u", this->_regs.A));
+}
+
+
+void altair::JitCore::shutdown() {
+
+}

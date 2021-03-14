@@ -21,11 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include <cstdlib>
 #include <stddef.h>
 #include "altair/Core/JitCore.hpp"
 
 #define DEBUG_LEVEL 5
 #include "common/debug.h"
+
 
 /*
  * Reg mapping:
@@ -36,18 +38,121 @@
  * [ SP ] -> [ESI]
  */
 
+void _onTick(void *ctx, uint8_t ticks) {
+	altair::JitCore::Regs *core = reinterpret_cast<altair::JitCore::Regs *>(ctx);
 
-altair::JitCore::JitCore(Pio &pio, uint16_t pc) : _pio(pio) {
-	this->_regs.PC = pc;
+	DBG(("%s(): CALL, regs: %p, ticks: %u, regs: %p", __func__, ctx, ticks, core));
+
+	core->self->onTick(ticks);
+}
+//
+//static void _onTick(void *ctx, uint8_t ticks) {
+//
+//}
+
+
+void altair::JitCore::onTick(uint8_t ticks) {
+	if (ticks == 128) {
+		std::abort();
+	}
+	DBG(("%s(): CALL for ticks: %u, regs: %p", __func__, ticks, &this->_regs));
 }
 
 
-int altair::JitCore::turn() {
+altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
+	this->_regs.PC = pc;
+
+	this->_regs.self = this;
+}
+
+
+void altair::JitCore::turn() {
+	ERR(("TURN-START"));
+
+	ExecutionByteBuffer *codeSegment = this->_compiledBlocks[this->_regs.PC];
+	if (codeSegment == nullptr) {
+		this->_compiledBlocks[this->_regs.PC] = this->compile(this->_regs.PC, false);
+
+		codeSegment = this->_compiledBlocks[this->_regs.PC];
+	}
+
+#if 0
+	"push r8                 \n\t"
+	"mov r8, rax             \n\t"
+
+	"mov al, [r8 + %[off_a]] \n\t"
+
+
+	"push rax      \n\t"
+	"push rbx      \n\t"
+	"push rcx      \n\t"
+	"push rdx      \n\t"
+	"push rbp      \n\t"
+	"push rsi      \n\t"
+	"push r8       \n\t"
+
+	"callq %[code] \n\t"
+
+	"pop r8  \n\t"
+	"pop rsi \n\t"
+	"pop rbp \n\t"
+	"pop rdx \n\t"
+	"pop rcx \n\t"
+	"pop rbx \n\t"
+	"pop rax \n\t"
+
+	"inc al                  \n\t"
+	"inc al                  \n\t"
+
+	"mov [r8 + %[off_a]], al \n\t"
+
+	"pop r8                  \n\t"
+
+#endif
+
+	{
+		Regs *regs = &this->_regs;
+
+		regs->codeSegment = codeSegment->getPtr();
+ERR(("ADDR: %p", regs->codeSegment));
+		__asm (
+			"push r8                 \n\t"
+			"push r9                 \n\t"
+			"push rax                \n\t"
+
+			"mov r8, rax             \n\t"
+
+			// Load 8080 regs
+			"mov al, [r8 + %[off_a]]  \n\t"
+
+			"callq [r8 + %[off_cs]]  \n\t"
+
+			// Store 8080 regs
+			"mov [r8 + %[off_a]], al \n\t"
+
+			"pop rax                 \n\t"
+			"pop r9                  \n\t"
+			"pop r8                  \n\t"
+			:
+			:
+				"a" (regs),
+				[off_a]  "i" (offsetof (struct altair::JitCore::Regs, A)),
+				[off_cs] "i" (offsetof (struct altair::JitCore::Regs, codeSegment))
+			:
+		);
+	}
+
+#if 0
+
 	Regs *regs = &this->_regs;
+
+	this->_pio.setWr(false);
+
+	this->compile(regs->PC, false);
 
 	this->_regs.A = 1;
 
-//	this->_pio.clk();
+	this->_pio.clk();
 #if 0
 	r	any GPR
 	a	eax, ax, al
@@ -57,29 +162,28 @@ int altair::JitCore::turn() {
 	S	esi, si
 	D	edi, di
 #endif
-	__asm (
-		"push r8                 \n\t"
-		"mov r8, rax             \n\t"
 
-		"mov al, [r8 + %[off_a]] \n\t"
+	/*
+	 * R8 = ctx
+	 */
+#if 1
 
-		"inc al                  \n\t"
-		"inc al                  \n\t"
-
-		"mov [r8 + %[off_a]], al \n\t"
-
-		"pop r8                  \n\t"
-		:
-		:
-			"a"(regs),
-			[off_a] "i" (offsetof (struct altair::JitCore::Regs, A))
-		:
-	);
-
+#endif
+#endif
 	ERR(("VAL: %u", this->_regs.A));
 }
 
 
 void altair::JitCore::shutdown() {
 
+}
+
+
+altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool singleInstruction) {
+	ExecutionByteBuffer *ret = new ExecutionByteBuffer();
+
+	ret->appendByte(0xc3); // retq
+	ret->end();
+
+	return ret;
 }

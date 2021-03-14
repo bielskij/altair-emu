@@ -27,6 +27,10 @@
 
 #include "altair/Card/Cpu.hpp"
 
+#define DEBUG_LEVEL 2
+#include "common/debug.h"
+
+
 void altair::card::Cpu::ClkSource::loop() {
 	auto lastCheckClk = std::chrono::steady_clock::now();
 	int  ticksNumber  = 0;

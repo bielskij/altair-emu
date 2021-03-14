@@ -31,29 +31,31 @@
 #define DEBUG_LEVEL_DBG 2
 #define DEBUG_LEVEL_TRC 3
 
+#define ENABLE_DEBUG
+
 #if !defined(DEBUG_LEVEL)
 #define DEBUG_LEVEL DEBUG_LEVEL_ERR
 #endif
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_TRC
+#if DEBUG_LEVEL >= DEBUG_LEVEL_TRC && defined(ENABLE_DEBUG)
 #define TRC(x) { printf("[TRC %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
 #else
 #define TRC(x) do { } while (0);
 #endif
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG
+#if DEBUG_LEVEL >= DEBUG_LEVEL_DBG && defined(ENABLE_DEBUG)
 #define DBG(x) { printf("[DBG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
 #else
 #define DBG(x) do { } while (0);
 #endif
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_LOG
+#if DEBUG_LEVEL >= DEBUG_LEVEL_LOG && defined(ENABLE_DEBUG)
 #define LOG(x) { printf("[LOG %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
 #else
 #define LOG(x) do { } while (0);
 #endif
 
-#if DEBUG_LEVEL >= DEBUG_LEVEL_ERR
+#if DEBUG_LEVEL >= DEBUG_LEVEL_ERR && defined(ENABLE_DEBUG)
 #define ERR(x) { printf("[ERR %s:%d]: ", __FUNCTION__, __LINE__); printf x; printf("\n"); }
 #else
 #define ERR(x) do { } while (0);

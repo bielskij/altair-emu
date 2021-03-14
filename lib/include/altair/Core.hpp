@@ -61,11 +61,9 @@ namespace altair {
 			virtual ~Core() {}
 
 			/*!
-			 * Executes 'some' instructions. There is no limitation of running instruction number
-			 *
-			 * @return number of clock cycles.
+			 * Executes 'some' instructions. There is no limitation of running instruction number.
 			 */
-			virtual int turn() = 0;
+			virtual void turn() = 0;
 
 			/*!
 			 * Terminates CPU execution. This method forces turn() execution to interrupt.

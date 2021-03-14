@@ -46,8 +46,14 @@
 #include "common/debug.h"
 
 
-static altair::card::Cpu::ClkSource *clk = nullptr;
+enum CoreMode {
+	INTERPRETED,
+	JIT
+};
 
+
+static altair::card::Cpu::ClkSource *clk = nullptr;
+static CoreMode coreMode = CoreMode::INTERPRETED;
 
 static void _signalHandler(int signo) {
 	clk->stop();
@@ -225,6 +231,7 @@ int main(int argc, char *argv[]) {
 		{
 			uint16_t startPc = 0;
 
+
 			if (global != nullptr) {
 				if (global->contains("pc")) {
 					startPc = common::Utils::toUint16(global->getValue("pc"));
@@ -235,9 +242,20 @@ int main(int argc, char *argv[]) {
 						common::Utils::toUint32(global->getValue("clk"))
 					);
 				}
+
+				if (global->contains("mode")) {
+					const std::string &mode = global->getValue("mode");
+
+					if (mode == "jit") {
+						coreMode = CoreMode::JIT;
+
+					} else if (mode == "interpreted") {
+						coreMode = CoreMode::INTERPRETED;
+					}
+				}
 			}
 
-			altair::card::Cpu *cpuCard = new altair::card::Cpu(startPc, true);
+			altair::card::Cpu *cpuCard = new altair::card::Cpu(startPc, coreMode == CoreMode::JIT);
 
 			clk = cpuCard->getClock();
 

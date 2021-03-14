@@ -25,7 +25,11 @@
 #ifndef ALTAIR_CORE_JITCORE_HPP_
 #define ALTAIR_CORE_JITCORE_HPP_
 
+#include <map>
+
 #include "altair/Core.hpp"
+
+extern void _onTick(void *ctx, uint8_t ticks);
 
 namespace altair {
 	class JitCore : public altair::Core {
@@ -33,6 +37,10 @@ namespace altair {
 			struct Regs {
 				uint8_t A, B, C, D, E, H, L;
 				uint16_t PC, SP;
+
+				JitCore *self;
+
+				void *codeSegment;
 
 				Regs() {
 					this->A = 0;
@@ -45,18 +53,57 @@ namespace altair {
 
 					this->PC = 0;
 					this->SP = 0;
+
+					this->self        = nullptr;
+					this->codeSegment = nullptr;
 				}
+			};
+
+			class ExecutionByteBuffer {
+				public:
+					typedef void (*FunctionPtr)();
+
+				public:
+					ExecutionByteBuffer();
+					ExecutionByteBuffer(size_t initialSize);
+					~ExecutionByteBuffer();
+
+					ExecutionByteBuffer &begin();
+					ExecutionByteBuffer &appendByte(uint8_t byte);
+					ExecutionByteBuffer &end();
+
+					FunctionPtr getFunction();
+					void       *getPtr();
+
+				private:
+					uint8_t *_buffer;
+					size_t   _bufferSize;
+					size_t   _bufferWritten;
+
+					size_t _pageSize;
 			};
 
 		public:
 			JitCore(Pio &pio, uint16_t pc);
 
-			int turn() override;
+			void turn() override;
 			void shutdown() override;
+
+		private:
+			void onTick(uint8_t ticks);
+
+			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
+
+			friend void ::_onTick(void *ctx, uint8_t ticks);
+
+		private:
+			JitCore();
 
 		private:
 			Regs _regs;
 			Pio &_pio;
+
+			std::map<uint16_t, ExecutionByteBuffer *> _compiledBlocks;
 	};
 }
 

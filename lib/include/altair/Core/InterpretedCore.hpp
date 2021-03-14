@@ -699,13 +699,11 @@ namespace altair {
 				this->_intFF = enable;
 			}
 
-			virtual int turn() {
+			virtual void turn() override {
 				this->tick();
-
-				return 1;
 			}
 
-			virtual void shutdown() {
+			virtual void shutdown() override {
 				// Empty
 			}
 

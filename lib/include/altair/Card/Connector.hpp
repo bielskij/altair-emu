@@ -163,14 +163,15 @@ namespace altair {
 				 * Simplified API - designated for state/cycle-less Core implementations
 				 */
 				virtual bool memoryRead(uint16_t address, uint8_t &value)   { return other->memoryRead(address, value); }
+				virtual void memoryWrite(uint16_t address, uint8_t value)   { other->memoryWrite(address, value); }
+				virtual bool ioIn(uint8_t number, uint8_t &value)           { return other->ioIn(number, value); }
+				virtual void ioOut(uint8_t number, uint8_t data)            { other->ioOut(number, data); }
+				virtual void clk(uint8_t ticks)                             { other->clk(ticks); }
+
 				virtual bool onMemoryRead(uint16_t address, uint8_t &value) { return false; }
-				virtual void memoryWrite(uint16_t address, uint8_t value)   { other->onMemoryWrite(address, value); }
 				virtual void onMemoryWrite(uint16_t address, uint8_t value) {}
-				virtual bool ioIn(uint8_t number, uint8_t &value)           { return other->onIn(number, value); }
 				virtual bool onIn(uint8_t number, uint8_t &value)           { return false; }
-				virtual void ioOut(uint8_t number, uint8_t data)            { other->onOut(number, data); }
 				virtual void onOut(uint8_t number, uint8_t data)            {}
-				virtual void clk(uint8_t ticks)                             { other->onClk(ticks); }
 				virtual void onClk(uint8_t ticks)                           {}
 
 			private:

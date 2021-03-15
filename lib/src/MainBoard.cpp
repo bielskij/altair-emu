@@ -205,3 +205,46 @@ bool altair::MainBoard::pinte() const {
 void altair::MainBoard::pinte(bool val) {
 	this->_pinte = val;
 }
+
+
+bool altair::MainBoard::memoryRead(uint16_t address, uint8_t &value) {
+	for (auto c : _connectors) {
+		if (c->onMemoryRead(address, value)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+void altair::MainBoard::memoryWrite(uint16_t address, uint8_t value) {
+	for (auto c : _connectors) {
+		c->onMemoryWrite(address, value);
+	}
+}
+
+
+bool altair::MainBoard::ioIn(uint8_t number, uint8_t &value) {
+	for (auto c : _connectors) {
+		if (c->onIn(number, value)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+void altair::MainBoard::ioOut(uint8_t number, uint8_t data) {
+	for (auto c : _connectors) {
+		c->onOut(number, data);
+	}
+}
+
+
+void altair::MainBoard::clk(uint8_t ticks) {
+	for (auto c : _connectors) {
+		c->onClk(ticks);
+	}
+}

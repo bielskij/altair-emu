@@ -105,6 +105,12 @@ namespace altair {
 			bool pinte() const override;
 			void pinte(bool val) override;
 
+			bool memoryRead(uint16_t address, uint8_t &value) override;
+			void memoryWrite(uint16_t address, uint8_t value) override;
+			bool ioIn(uint8_t number, uint8_t &value) override;
+			void ioOut(uint8_t number, uint8_t data) override;
+			void clk(uint8_t ticks) override;
+
 		private:
 			std::vector<Card *>            _cards;
 			std::vector<card::Connector *> _connectors;

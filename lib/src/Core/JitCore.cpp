@@ -67,8 +67,6 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 
 void altair::JitCore::turn() {
-	ERR(("TURN-START"));
-
 	ExecutionByteBuffer *codeSegment = this->_compiledBlocks[this->_regs.PC];
 	if (codeSegment == nullptr) {
 		this->_compiledBlocks[this->_regs.PC] = this->compile(this->_regs.PC, false);
@@ -170,7 +168,6 @@ void altair::JitCore::turn() {
 
 #endif
 #endif
-	ERR(("VAL: %u", this->_regs.A));
 }
 
 
@@ -181,6 +178,10 @@ void altair::JitCore::shutdown() {
 
 altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool singleInstruction) {
 	ExecutionByteBuffer *ret = new ExecutionByteBuffer();
+
+	uint8_t opcode = this->_pio.memoryRead(pc);
+
+	ERR(("%02x %08x", opcode, pc));
 
 	ret->begin();
 	{

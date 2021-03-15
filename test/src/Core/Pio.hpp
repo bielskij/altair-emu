@@ -75,6 +75,12 @@ namespace test {
 			void setAddress(uint16_t val) override;
 			void clk() override;
 
+			uint8_t memoryRead(uint16_t address) override;
+			void memoryWrite(uint16_t address, uint8_t value) override;
+			uint8_t ioRead(uint8_t number) override;
+			void ioWrite(uint8_t number, uint8_t data) override;
+			void clk(uint8_t ticks) override;
+
 		public:
 			uint8_t mem(uint16_t addr) {
 				if (addr >= this->program.size()) {

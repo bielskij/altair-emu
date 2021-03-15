@@ -30,7 +30,7 @@
 
 namespace altair {
 	namespace card {
-		class VI : public Card, protected SimpleConnector {
+		class VI : public Card, protected Connector {
 			public:
 
 			public:

@@ -31,7 +31,7 @@
 
 namespace altair {
 	namespace card {
-		class Sio2 : public Card, protected SimpleConnector {
+		class Sio2 : public Card, protected Connector {
 			protected:
 				class SingleSio {
 					public:
@@ -189,7 +189,7 @@ namespace altair {
 					bool    pint;
 					uint8_t vi;
 
-					SimpleConnector::onClk();
+					Connector::onClk();
 
 					pint = this->pint();
 					vi   = this->vi();

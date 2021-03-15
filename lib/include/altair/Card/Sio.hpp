@@ -31,7 +31,7 @@
 
 namespace altair {
 	namespace card {
-		class Sio : public Card, protected SimpleConnector {
+		class Sio : public Card, protected Connector {
 			public:
 				enum BaudRate {
 					B110,
@@ -118,7 +118,7 @@ namespace altair {
 				}
 
 				void onClk() override {
-					SimpleConnector::onClk();
+					Connector::onClk();
 
 					bool canRead, canWrite;
 

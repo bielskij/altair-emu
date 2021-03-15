@@ -147,3 +147,33 @@ void test::Pio::clk() {
 	this->clkCount++;
 }
 
+
+uint8_t test::Pio::memoryRead(uint16_t address) {
+	if (address >= this->program.size()) {
+		return 0;
+	}
+
+	return this->program[address];
+}
+
+
+void test::Pio::memoryWrite(uint16_t address, uint8_t value) {
+	if (address < this->program.size()) {
+		this->program[address] = value;
+	}
+}
+
+
+uint8_t test::Pio::ioRead(uint8_t number) {
+	return 0;
+}
+
+
+void test::Pio::ioWrite(uint8_t number, uint8_t data) {
+
+}
+
+
+void test::Pio::clk(uint8_t ticks) {
+
+}

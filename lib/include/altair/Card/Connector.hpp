@@ -49,6 +49,28 @@ namespace altair {
 
 				// clk from bus
 				virtual void onClk() {
+					if (this->pdbin()) {
+						uint8_t val;
+
+						if (this->smemr()) {
+							if (this->onMemoryRead(this->a(), val)) {
+								this->din(val);
+							}
+
+						} else if (this->sinp()) {
+							if (this->onIn(this->a(), val)) {
+								this->din(val);
+							}
+						}
+
+					} else if (this->pwr()) {
+						if (this->sout()) {
+							this->onOut(this->a(), this->dout());
+
+						} else {
+							this->onMemoryWrite(this->a(), this->dout());
+						}
+					}
 				}
 
 				virtual uint8_t vi() const      { return other->vi(); }
@@ -136,6 +158,20 @@ namespace altair {
 				// if it is reset
 				virtual bool pinte() const   { return other->pinte(); }
 				virtual void pinte(bool val) { other->pinte(val); }
+
+				/**!
+				 * Simplified API - designated for state/cycle-less Core implementations
+				 */
+				virtual bool memoryRead(uint16_t address, uint8_t &value)   { return other->memoryRead(address, value); }
+				virtual bool onMemoryRead(uint16_t address, uint8_t &value) {}
+				virtual void memoryWrite(uint16_t address, uint8_t value)   { other->onMemoryWrite(address, value); }
+				virtual void onMemoryWrite(uint16_t address, uint8_t value) {}
+				virtual bool ioIn(uint8_t number, uint8_t &value)           { return other->onIn(number, value); }
+				virtual bool onIn(uint8_t number, uint8_t &value)           {}
+				virtual void ioOut(uint8_t number, uint8_t data)            { other->onOut(number, data); }
+				virtual void onOut(uint8_t number, uint8_t data)            {}
+				virtual void clk(uint8_t ticks)                             { other->onClk(ticks); }
+				virtual void onClk(uint8_t ticks)                           {}
 
 			private:
 				Connector *other;

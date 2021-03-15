@@ -29,7 +29,6 @@
 #include <fstream>
 
 #include "altair/MainBoard.hpp"
-#include "altair/Card/SimpleConnector.hpp"
 #include "altair/utils/ImageLoader.hpp"
 
 namespace altair {
@@ -37,7 +36,7 @@ namespace altair {
 		/*!
 		 * 88-DCDD 8" floppy disk drive
 		 */
-		class Dcdd : public Card, protected SimpleConnector {
+		class Dcdd : public Card, protected Connector {
 			private:
 				static constexpr uint32_t TRACK_COUNT   = 77;
 				static constexpr uint32_t TRACK_SECTORS = 32;

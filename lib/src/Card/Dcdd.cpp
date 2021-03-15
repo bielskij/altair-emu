@@ -354,7 +354,7 @@ void altair::card::Dcdd::onClk() {
 		}
 	}
 
-	this->SimpleConnector::onClk();
+	this->Connector::onClk();
 }
 
 

@@ -152,3 +152,36 @@ void altair::card::Cpu::PioImpl::clk() {
 
 	this->_clkSource->tick();
 }
+
+
+uint8_t altair::card::Cpu::PioImpl::memoryRead(uint16_t address) {
+	uint8_t value = 0;
+
+	this->_conn->onMemoryRead(address, value);
+
+	return value;
+}
+
+
+void altair::card::Cpu::PioImpl::memoryWrite(uint16_t address, uint8_t value) {
+	this->_conn->onMemoryWrite(address, value);
+}
+
+
+uint8_t altair::card::Cpu::PioImpl::ioRead(uint8_t number) {
+	uint8_t value = 0;
+
+	this->_conn->onIn(number, value);
+
+	return value;
+}
+
+
+void altair::card::Cpu::PioImpl::ioWrite(uint8_t number, uint8_t data) {
+	this->_conn->onOut(number, data);
+}
+
+
+void altair::card::Cpu::PioImpl::clk(uint8_t ticks) {
+	this->_conn->onClk(ticks);
+}

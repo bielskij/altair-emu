@@ -27,11 +27,10 @@
 #include <algorithm>
 
 #include "altair/MainBoard.hpp"
-#include "altair/Card/SimpleConnector.hpp"
 
 namespace altair {
 	namespace card {
-		class Mcs16 : public Card, protected SimpleConnector {
+		class Mcs16 : public Card, protected Connector {
 			public:
 				// Equivalent of original switch on the module board, defines address offset of the card memory.
 				// a:     0 - 16383

@@ -27,7 +27,6 @@
 #include <algorithm>
 
 #include "altair/MainBoard.hpp"
-#include "altair/Card/SimpleConnector.hpp"
 #include "altair/utils/ImageLoader.hpp"
 
 namespace altair {
@@ -35,7 +34,7 @@ namespace altair {
 		/*!
 		 * 88-PMC 2KB PROM card
 		 */
-		class Pmc : public Card, protected SimpleConnector {
+		class Pmc : public Card, protected Connector {
 			public:
 				/*
 				 * bank - 0 - 31

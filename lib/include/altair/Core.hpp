@@ -93,6 +93,15 @@ namespace altair {
 
 					// It is clock output from CPU - pin available in 8085
 					virtual void clk() = 0;
+
+					/**!
+					 * Simplified API - designated for state/cycle-less Core implementations
+					 */
+					virtual uint8_t memoryRead(uint16_t address) = 0;
+					virtual void    memoryWrite(uint16_t address, uint8_t value) = 0;
+					virtual uint8_t ioRead(uint8_t number) = 0;
+					virtual void    ioWrite(uint8_t number, uint8_t data) = 0;
+					virtual void    clk(uint8_t ticks) = 0;
 			};
 
 		public:

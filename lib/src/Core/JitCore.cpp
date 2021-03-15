@@ -114,7 +114,7 @@ void altair::JitCore::turn() {
 		Regs *regs = &this->_regs;
 
 		regs->codeSegment = codeSegment->getPtr();
-ERR(("ADDR: %p", regs->codeSegment));
+
 		__asm (
 			"push r8                 \n\t"
 			"push r9                 \n\t"
@@ -182,7 +182,10 @@ void altair::JitCore::shutdown() {
 altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool singleInstruction) {
 	ExecutionByteBuffer *ret = new ExecutionByteBuffer();
 
-	ret->appendByte(0xc3); // retq
+	ret->begin();
+	{
+		ret->appendByte(0xc3); // retq
+	}
 	ret->end();
 
 	return ret;
@@ -195,7 +198,17 @@ void altair::JitCore::nexti() {
 
 
 uint8_t  altair::JitCore::bR(BReg reg) const {
+	switch (reg) {
+		case BReg::A: return this->_regs.A;
+		case BReg::B: return this->_regs.B;
+		case BReg::C: return this->_regs.C;
+		case BReg::D: return this->_regs.D;
+		case BReg::E: return this->_regs.E;
+		case BReg::H: return this->_regs.H;
+		case BReg::L: return this->_regs.L;
+	}
 
+	throw std::runtime_error("Not supported BReg value!");
 }
 
 

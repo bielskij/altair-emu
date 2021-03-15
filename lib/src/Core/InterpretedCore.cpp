@@ -35,7 +35,7 @@ altair::InterpretedCore::InterpretedCore(Pio &pio, uint16_t pc) : _pio(pio) {
 	this->_fetchCycle     = new MachineCycleFetch(this);
 	this->_interruptCycle = new MachineCycleInterrupt(this);
 	this->_decoder        = new InstructionDecoder(this);
-	this->_alu            = new Alu(this);
+	this->_alu            = new AluImpl(this);
 
 	this->_iPC    = 0;
 	this->_i      = nullptr;
@@ -61,7 +61,7 @@ altair::InterpretedCore::~InterpretedCore() {
 }
 
 
-void altair::InterpretedCore::nextInstruction() {
+void altair::InterpretedCore::nexti() {
 	if (this->_i == nullptr) {
 		this->nextCycle();
 	}
@@ -89,7 +89,7 @@ void altair::InterpretedCore::tick() {
 	// WR is set in the last state of write cycle - require to be cleared on the next cycle/state.
 	this->_pio.setWr(false);
 
-	this->_alu->clk();
+	reinterpret_cast<AluImpl *>(this->_alu)->clk();
 
 	// No instruction there. Do fetch
 	if (this->_cycle == nullptr){

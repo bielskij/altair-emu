@@ -65,7 +65,7 @@ namespace altair {
 					bool t4() override {
 						this->MachineCycleFetch::t4();
 
-						this->_readCycle->conditionTrue = core()->alu()->checkCondition(ccc());
+						this->_readCycle->conditionTrue = alu()->checkCondition(ccc());
 
 						return false;
 					}

@@ -24,7 +24,7 @@
 #include "altair/Core/InterpretedCore.hpp"
 
 
-void altair::InterpretedCore::Alu::reset() {
+void altair::InterpretedCore::AluImpl::reset() {
 	this->operation     = Op::IDLE;
 	this->clkCount      = 0;
 	this->clkDelay      = 0;
@@ -40,7 +40,7 @@ void altair::InterpretedCore::Alu::reset() {
 }
 
 
-void altair::InterpretedCore::Alu::clk() {
+void altair::InterpretedCore::AluImpl::clk() {
 	if (this->operation != Op::IDLE) {
 		this->clkCount++;
 
@@ -169,12 +169,12 @@ void altair::InterpretedCore::Alu::clk() {
 }
 
 
-void altair::InterpretedCore::Alu::op(InterpretedCore::BReg actSrc, InterpretedCore::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
+void altair::InterpretedCore::AluImpl::op(InterpretedCore::BReg actSrc, InterpretedCore::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
 	this->op(core->bR(actSrc), dstReg, operation, includeCarry, updateFlags, clkDelay);
 }
 
 
-void altair::InterpretedCore::Alu::op(uint8_t actVal, InterpretedCore::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
+void altair::InterpretedCore::AluImpl::op(uint8_t actVal, InterpretedCore::BReg dstReg, Op operation, bool includeCarry, uint8_t updateFlags, uint8_t clkDelay) {
 	core->bR(InterpretedCore::BReg::ACT, actVal);
 
 	this->operation     = operation;
@@ -190,7 +190,7 @@ void altair::InterpretedCore::Alu::op(uint8_t actVal, InterpretedCore::BReg dstR
 }
 
 
-bool altair::InterpretedCore::Alu::checkCondition(InterpretedCore::Cond condition) {
+bool altair::InterpretedCore::AluImpl::checkCondition(InterpretedCore::Cond condition) {
 	switch (condition) {
 		case Cond::CARRY:       return fCY();
 		case Cond::NO_CARRY:    return ! fCY();

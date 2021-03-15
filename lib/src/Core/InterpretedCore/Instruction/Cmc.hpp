@@ -36,11 +36,11 @@ namespace altair {
 					}
 
 					bool t4() override {
-						if (core()->alu()->fCY()) {
-							core()->alu()->clear(InterpretedCore::Alu::CY);
+						if (alu()->fCY()) {
+							alu()->clear(InterpretedCore::AluImpl::CY);
 
 						} else {
-							core()->alu()->set(InterpretedCore::Alu::CY);
+							alu()->set(InterpretedCore::AluImpl::CY);
 						}
 
 						return false;

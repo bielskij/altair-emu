@@ -40,12 +40,12 @@ namespace altair {
 						if (this->lowByte) {
 							core()->bR(InterpretedCore::BReg::TMP, core()->bR(InterpretedCore::BReg::L));
 
-							core()->alu()->op(InterpretedCore::wRegL(rp()), InterpretedCore::BReg::L, InterpretedCore::Alu::Op::ADD, false, InterpretedCore::Alu::CY, 2);
+							alu()->op(InterpretedCore::wRegL(rp()), InterpretedCore::BReg::L, InterpretedCore::AluImpl::Op::ADD, false, InterpretedCore::AluImpl::CY, 2);
 
 						} else {
 							core()->bR(InterpretedCore::BReg::TMP, core()->bR(InterpretedCore::BReg::H));
 
-							core()->alu()->op(InterpretedCore::wRegH(rp()), InterpretedCore::BReg::H, InterpretedCore::Alu::Op::ADD, true, InterpretedCore::Alu::CY, 2);
+							alu()->op(InterpretedCore::wRegH(rp()), InterpretedCore::BReg::H, InterpretedCore::AluImpl::Op::ADD, true, InterpretedCore::AluImpl::CY, 2);
 						}
 
 						return true;

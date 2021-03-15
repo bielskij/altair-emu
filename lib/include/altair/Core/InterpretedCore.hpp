@@ -35,31 +35,6 @@
 namespace altair {
 	class InterpretedCore : public altair::Core {
 		public:
-			// IR  - instruction register
-			// A   - accumulator (ALU)
-			// ACT - temporary accumulator (ALU)
-			// TMP - temporary (ALU)
-			enum class BReg : uint8_t {
-				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, SPL, SPH, PCL, PCH, COUNT,
-
-				// Special register declaration - used in MachineCycle to
-				// determine dynamic register
-				DDD, SSS, RP_H, RP_L
-			};
-
-			// IMPORTANT: !! Do not change reg order !!
-			// PC - Program counter
-			// SP - Stack pointer
-			// W  - temporary
-			enum class WReg : uint8_t {
-				PC, SP, B, D, H, W, // Virtual registers, wrappers on byte reg pairs
-				COUNT,
-
-				// Special register declaration - used in MachineCycle to
-				// determine dynamic register
-				RP
-			};
-
 			// IMPORTANT: !! Do not change reg order !!
 			enum Cond {
 				NOT_ZERO,
@@ -74,7 +49,7 @@ namespace altair {
 				COUNT
 			};
 
-			class Alu {
+			class AluImpl : public Alu {
 				public:
 					static constexpr uint8_t Z  = 1 << 6;
 					static constexpr uint8_t CY = 1 << 0;
@@ -99,13 +74,13 @@ namespace altair {
 					};
 
 				public:
-					Alu(InterpretedCore *core) {
+					AluImpl(InterpretedCore *core) {
 						this->core = core;
 
 						this->reset();
 					}
 
-					virtual ~Alu() {
+					virtual ~AluImpl() {
 					}
 
 					inline void set(uint8_t flag) {
@@ -218,6 +193,10 @@ namespace altair {
 
 					inline InterpretedCore *core() const {
 						return this->_core;
+					}
+
+					inline AluImpl *alu() const {
+						return reinterpret_cast<AluImpl *>(this->_core->alu());
 					}
 
 					inline void setParent(Instruction *i) {
@@ -518,7 +497,7 @@ namespace altair {
 			uint16_t      _iPC;
 			MachineCycle *_cycle;
 
-			Alu               *_alu;
+			AluImpl           *_alu;
 			InstructionDecoder*_decoder;
 			Pio               &_pio;
 			MachineCycle      *_fetchCycle;
@@ -533,17 +512,18 @@ namespace altair {
 
 			void tick();
 			void nextCycle();
-			void nextInstruction();
 
-			inline uint8_t bR(BReg reg) const {
+			void nexti() override;
+
+			inline uint8_t bR(BReg reg) const override {
 				return this->_bregs[static_cast<uint8_t>(reg)];
 			}
 
-			inline void bR(BReg r, uint8_t val) {
+			inline void bR(BReg r, uint8_t val) override {
 				this->_bregs[static_cast<uint8_t>(r)] = val;
 			}
 
-			inline uint16_t wR(WReg reg) const {
+			inline uint16_t wR(WReg reg) const override {
 				switch (reg) {
 					case WReg::B:
 						return ((uint16_t) this->bR(BReg::B) << 8) | this->bR(BReg::C);
@@ -568,7 +548,7 @@ namespace altair {
 				}
 			}
 
-			inline void wR(WReg reg, uint16_t val) {
+			inline void wR(WReg reg, uint16_t val) override {
 				switch (reg) {
 					case WReg::B:
 						this->bR(BReg::B, val >> 8);

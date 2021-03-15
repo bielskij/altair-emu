@@ -74,7 +74,7 @@ namespace altair {
 						bool decreaseStack = true;
 
 						if (this->_mode == Mode::CONDITIONED) {
-							this->_readCycle->conditionTrue = core()->alu()->checkCondition(ccc());
+							this->_readCycle->conditionTrue = alu()->checkCondition(ccc());
 							if (! this->_readCycle->conditionTrue) {
 								decreaseStack = false;
 							}

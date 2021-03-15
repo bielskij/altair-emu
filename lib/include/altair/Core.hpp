@@ -29,6 +29,44 @@
 namespace altair {
 	class Core {
 		public:
+			// IR  - instruction register
+			// A   - accumulator (ALU)
+			// ACT - temporary accumulator (ALU)
+			// TMP - temporary (ALU)
+			enum class BReg : uint8_t {
+				A, F, B, C, D, E, H, L, W, Z, IR, TMP, ACT, SPL, SPH, PCL, PCH, COUNT,
+
+				// Special register declaration - used in MachineCycle to
+				// determine dynamic register
+				DDD, SSS, RP_H, RP_L
+			};
+
+			// IMPORTANT: !! Do not change reg order !!
+			// PC - Program counter
+			// SP - Stack pointer
+			// W  - temporary
+			enum class WReg : uint8_t {
+				PC, SP, B, D, H, W, // Virtual registers, wrappers on byte reg pairs
+				COUNT,
+
+				// Special register declaration - used in MachineCycle to
+				// determine dynamic register
+				RP
+			};
+
+		public:
+			class Alu {
+				public:
+					Alu() {}
+					virtual ~Alu() {}
+
+					virtual bool fZ()  const = 0;
+					virtual bool fCY() const = 0;
+					virtual bool fS()  const = 0;
+					virtual bool fP()  const = 0;
+					virtual bool fAC() const = 0;
+			};
+
 			class Pio {
 				// true - active, false - not
 				public:
@@ -65,10 +103,22 @@ namespace altair {
 			 */
 			virtual void turn() = 0;
 
+			virtual void nexti() = 0;
+
 			/*!
 			 * Terminates CPU execution. This method forces turn() execution to interrupt.
 			 */
 			virtual void shutdown() = 0;
+
+			virtual uint8_t  bR(BReg reg) const         = 0;
+			virtual void     bR(BReg r, uint8_t val)    = 0;
+			virtual uint16_t wR(WReg reg) const         = 0;
+			virtual void     wR(WReg reg, uint16_t val) = 0;
+
+			virtual uint8_t wRL(WReg reg) = 0;
+			virtual uint8_t wRH(WReg reg) = 0;
+
+			virtual altair::Core::Alu *alu() const = 0;
 
 		protected:
 			Core() {}

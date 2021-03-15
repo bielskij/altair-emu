@@ -187,3 +187,43 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 
 	return ret;
 }
+
+
+void altair::JitCore::nexti() {
+
+}
+
+
+uint8_t  altair::JitCore::bR(BReg reg) const {
+
+}
+
+
+void altair::JitCore::bR(BReg r, uint8_t val) {
+
+}
+
+
+uint16_t altair::JitCore::wR(WReg reg) const {
+
+}
+
+
+void altair::JitCore::wR(WReg reg, uint16_t val) {
+
+}
+
+
+uint8_t altair::JitCore::wRL(WReg reg) {
+
+}
+
+
+uint8_t altair::JitCore::wRH(WReg reg) {
+
+}
+
+
+altair::Core::Alu *altair::JitCore::alu() const {
+	return NULL;
+}

@@ -39,7 +39,7 @@ namespace altair {
 			// ----------- R
 			class Fetch : public altair::MachineCycleFetch {
 				public:
-					Fetch(InterpretedCore *core, InterpretedCore::Alu::Op op, bool withCarry) : MachineCycleFetch(core) {
+					Fetch(InterpretedCore *core, InterpretedCore::AluImpl::Op op, bool withCarry) : MachineCycleFetch(core) {
 						this->withCarry = withCarry;
 						this->operation = op;
 					}
@@ -47,15 +47,15 @@ namespace altair {
 					bool t4() override {
 						core()->bR(InterpretedCore::BReg::TMP, core()->bR(sss()));
 
-						core()->alu()->op(InterpretedCore::BReg::A, InterpretedCore::BReg::A, this->operation, this->withCarry,
-							InterpretedCore::Alu::CY, 2
+						alu()->op(InterpretedCore::BReg::A, InterpretedCore::BReg::A, this->operation, this->withCarry,
+							InterpretedCore::AluImpl::CY, 2
 						);
 
 						return false;
 					}
 
 				private:
-					InterpretedCore::Alu::Op operation;
+					InterpretedCore::AluImpl::Op operation;
 					bool          withCarry;
 			};
 
@@ -68,7 +68,7 @@ namespace altair {
 					case Mode::RIGHT:
 						{
 							// RRC, RAR (carry)
-							this->addCycle(new Fetch(core, InterpretedCore::Alu::Op::ROT_R, withCarry));
+							this->addCycle(new Fetch(core, InterpretedCore::AluImpl::Op::ROT_R, withCarry));
 
 							this->addCode(withCarry ? 0x1f : 0x0f);
 						}
@@ -77,7 +77,7 @@ namespace altair {
 					case Mode::LEFT:
 						{
 							// RLC, RAL (carry)
-							this->addCycle(new Fetch(core, InterpretedCore::Alu::Op::ROT_L, withCarry));
+							this->addCycle(new Fetch(core, InterpretedCore::AluImpl::Op::ROT_L, withCarry));
 
 							this->addCode(withCarry ? 0x17 : 0x07);
 						}

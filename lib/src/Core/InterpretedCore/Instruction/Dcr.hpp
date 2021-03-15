@@ -45,8 +45,8 @@ namespace altair {
 					bool t4() override {
 						core()->bR(InterpretedCore::BReg::TMP, core()->bR(ddd()));
 
-						core()->alu()->op(0xff, ddd(), InterpretedCore::Alu::Op::ADD, false,
-							InterpretedCore::Alu::Z | InterpretedCore::Alu::S | InterpretedCore::Alu::P | InterpretedCore::Alu::AC,
+						alu()->op(0xff, ddd(), InterpretedCore::AluImpl::Op::ADD, false,
+							InterpretedCore::AluImpl::Z | InterpretedCore::AluImpl::S | InterpretedCore::AluImpl::P | InterpretedCore::AluImpl::AC,
 							1
 						);
 
@@ -66,8 +66,8 @@ namespace altair {
 					bool t3() override {
 						bool ret = this->MachineCycleMemoryRead::t3();
 
-						core()->alu()->op(0xff, InterpretedCore::BReg::ACT, InterpretedCore::Alu::Op::ADD, false,
-							InterpretedCore::Alu::Z | InterpretedCore::Alu::S | InterpretedCore::Alu::P | InterpretedCore::Alu::AC,
+						alu()->op(0xff, InterpretedCore::BReg::ACT, InterpretedCore::AluImpl::Op::ADD, false,
+							InterpretedCore::AluImpl::Z | InterpretedCore::AluImpl::S | InterpretedCore::AluImpl::P | InterpretedCore::AluImpl::AC,
 							1
 						);
 

@@ -25,13 +25,84 @@
 #define TESTCORE_HPP_
 
 #include "altair/Core/InterpretedCore.hpp"
+#include "altair/Core/JitCore.hpp"
 
 namespace test {
-	class Core : public altair::InterpretedCore {
+	class Core : public altair::Core {
 		public:
-			Core(altair::InterpretedCore::Pio &pio) : altair::InterpretedCore(pio, 0) {
+			Core(altair::InterpretedCore::Pio &pio, bool jit = false) {
+				if (jit) {
+					this->_core = new altair::JitCore(pio, 0);
 
+				} else {
+					this->_core = new altair::InterpretedCore(pio, 0);
+				}
 			}
+
+			void turn() {
+				this->_core->turn();
+			}
+
+			void nexti() {
+				this->_core->nexti();
+			}
+
+			void shutdown() {
+				this->_core->shutdown();
+			}
+
+			uint8_t bR(BReg reg) const {
+				return this->_core->bR(reg);
+			}
+
+			void bR(BReg r, uint8_t val) {
+				this->_core->bR(r, val);
+			}
+
+			uint16_t wR(WReg reg) const {
+				return this->_core->wR(reg);
+			}
+
+			void wR(WReg reg, uint16_t val) {
+				this->_core->wR(reg, val);
+			}
+
+			uint8_t wRL(WReg reg) {
+				return this->_core->wRL(reg);
+			}
+
+			uint8_t wRH(WReg reg) {
+				return this->_core->wRH(reg);
+			}
+
+			void nextInstruction() {
+				this->_core->nexti();
+			}
+
+			void nextCycle() {
+				altair::InterpretedCore *c = dynamic_cast<altair::InterpretedCore *>(this->_core);
+				if (c == nullptr) {
+					throw std::runtime_error("JIT core does not support tick method!");
+				}
+
+				c->nextCycle();
+			}
+
+			void tick() {
+				altair::InterpretedCore *c = dynamic_cast<altair::InterpretedCore *>(this->_core);
+				if (c == nullptr) {
+					throw std::runtime_error("JIT core does not support tick method!");
+				}
+
+				c->tick();
+			}
+
+			altair::InterpretedCore::Alu *alu() const {
+				return this->_core->alu();
+			}
+
+		private:
+			altair::Core *_core;
 	};
 }
 

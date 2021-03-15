@@ -88,6 +88,16 @@ namespace altair {
 
 			void turn() override;
 			void shutdown() override;
+			void nexti() override;
+
+			uint8_t  bR(BReg reg) const         override;
+			void     bR(BReg r, uint8_t val)    override;
+			uint16_t wR(WReg reg) const         override;
+			void     wR(WReg reg, uint16_t val) override;
+			uint8_t  wRL(WReg reg)              override;
+			uint8_t  wRH(WReg reg)              override;
+
+			Alu *alu() const override;
 
 		private:
 			void onTick(uint8_t ticks);

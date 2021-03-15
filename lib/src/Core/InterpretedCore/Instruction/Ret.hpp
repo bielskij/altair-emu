@@ -47,7 +47,7 @@ namespace altair {
 						bool ret = this->MachineCycleFetch::t4();
 
 						if (this->mode == Mode::CONDITIONED) {
-							if (! core()->alu()->checkCondition(ccc())) {
+							if (! alu()->checkCondition(ccc())) {
 								parent()->finish();
 							}
 						}

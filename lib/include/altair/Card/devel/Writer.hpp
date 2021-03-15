@@ -44,35 +44,7 @@ namespace altair {
 					loader->rewind();
 
 					while (loader->nextByte(address, data)) {
-						{
-							this->psync(true);
-
-							this->sinta(false);
-							this->swo(true);
-							this->sstack(false);
-							this->shlta(false);
-							this->sout(false);
-							this->sm1(false);
-							this->sinp(false);
-							this->smemr(false);
-
-							this->a(address);
-						}
-						this->clk();
-
-						{
-							this->psync(false);
-						}
-						this->clk();
-
-						{
-							this->dout(data);
-
-							this->pwr(true);
-						}
-						this->clk();
-
-						this->pwr(false);
+						this->memoryWrite(address, data);
 					}
 				}
 		};

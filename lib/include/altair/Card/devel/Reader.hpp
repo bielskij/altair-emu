@@ -39,34 +39,7 @@ namespace altair {
 
 				void read(uint16_t address, uint8_t *buffer, uint16_t bufferSize) {
 					for (uint16_t addr = address; addr < address + bufferSize; addr++) {
-						{
-							this->psync(true);
-
-							this->sinta(false);
-							this->swo(false);
-							this->sstack(false);
-							this->shlta(false);
-							this->sout(false);
-							this->sm1(false);
-							this->sinp(false);
-							this->smemr(true);
-
-							this->a(addr);
-						}
-						this->clk();
-
-						{
-							this->psync(false);
-							this->pdbin(true);
-						}
-						this->clk();
-
-						{
-							buffer[addr] = this->din();
-
-							this->pdbin(false);
-						}
-						this->clk();
+						this->memoryRead(addr, buffer[addr]);
 					}
 				}
 		};

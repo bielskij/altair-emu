@@ -23,6 +23,7 @@
  */
 #include <cstdlib>
 #include <stddef.h>
+#include <string>
 #include "altair/Core/JitCore.hpp"
 
 #define DEBUG_LEVEL 5
@@ -63,6 +64,10 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_regs.PC = pc;
 
 	this->_regs.self = this;
+
+	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
+
+	this->_opAddDDD(0, 0, BReg::COUNT, 1, 1, 0, _opMvi);
 }
 
 
@@ -179,12 +184,22 @@ void altair::JitCore::shutdown() {
 altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool singleInstruction) {
 	ExecutionByteBuffer *ret = new ExecutionByteBuffer();
 
-	uint8_t opcode = this->_pio.memoryRead(pc);
-
-	ERR(("%02x %08x", opcode, pc));
-
 	ret->begin();
 	{
+		uint8_t opcode;
+		bool    stop;
+
+		do {
+			opcode = this->_pio.memoryRead(pc);
+
+			OpHandler handler = this->_opHandlers[opcode];
+			if (handler == nullptr) {
+				throw std::runtime_error("Opcode " + std::to_string(opcode) +  " is not supported!");
+			}
+
+			pc += handler(ret, opcode, pc, stop);
+		} while (! singleInstruction && ! stop);
+
 		ret->appendByte(0xc3); // retq
 	}
 	ret->end();
@@ -240,4 +255,14 @@ uint8_t altair::JitCore::wRH(WReg reg) {
 
 altair::Core::Alu *altair::JitCore::alu() const {
 	return NULL;
+}
+
+
+void altair::JitCore::_opAddDDD(uint8_t bit7, uint8_t bit6, Core::BReg registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+}
+
+
+int altair::JitCore::_opMvi(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+
+	return 2;
 }

@@ -83,6 +83,9 @@ namespace altair {
 					size_t _pageSize;
 			};
 
+			// returns instruction size in bytes
+			typedef int (*OpHandler)(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+
 		public:
 			JitCore(Pio &pio, uint16_t pc);
 
@@ -107,6 +110,12 @@ namespace altair {
 			friend void ::_onTick(void *ctx, uint8_t ticks);
 
 		private:
+			// Operands implementation
+			void _opAddDDD(uint8_t bit7, uint8_t bit6, Core::BReg registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
+
+			static int _opMvi(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+
+		private:
 			JitCore();
 
 		private:
@@ -114,6 +123,8 @@ namespace altair {
 			Pio &_pio;
 
 			std::map<uint16_t, ExecutionByteBuffer *> _compiledBlocks;
+
+			OpHandler _opHandlers[0xff];
 	};
 }
 

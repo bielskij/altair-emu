@@ -30,14 +30,15 @@
 #include "common/debug.h"
 
 
-/*
- * Reg mapping:
- * [P][A] -> [VT][AL]
- * [B][C] -> [BH][BL]
- * [D][E] -> [CH][CL]
- * [H][L] -> [DH][DL]
- * [ SP ] -> [ESI]
- */
+enum Reg {
+	B = 0,
+	C = 1,
+	D = 2,
+	E = 3,
+	H = 4,
+	L = 5,
+	A = 7
+};
 
 void _onTick(void *ctx, uint8_t ticks) {
 	altair::JitCore::Regs *core = reinterpret_cast<altair::JitCore::Regs *>(ctx);
@@ -67,112 +68,103 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
 
-	this->_opAddDDD(0, 0, BReg::COUNT, 1, 1, 0, _opMvi);
+	// MVI R, I
+	// MVI M, I
+	{
+		this->_opAddDDD(0, 0, B, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, C, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, D, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, E, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
+		this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
+#if 0
+		this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
+#endif
+	}
+#if 0
+	// MOV R, R
+	// MOV R, M
+	// MOV M, R
+	{
+		this->_opAddDDDSSS(0, 1, A, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, A, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, B, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, B, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, C, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, C, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, D, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, D, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, E, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, E, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, H, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, H, A, _opMovRR);
+
+		this->_opAddDDDSSS(0, 1, L, B, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, C, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, D, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, E, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
+		this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
+
+		this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, D, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, E, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
+		this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
+
+		this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, D, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, E, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
+		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
+	}
+#endif
 }
 
 
 void altair::JitCore::turn() {
-	ExecutionByteBuffer *codeSegment = this->_compiledBlocks[this->_regs.PC];
-	if (codeSegment == nullptr) {
-		this->_compiledBlocks[this->_regs.PC] = this->compile(this->_regs.PC, false);
-
-		codeSegment = this->_compiledBlocks[this->_regs.PC];
-	}
-
-#if 0
-	"push r8                 \n\t"
-	"mov r8, rax             \n\t"
-
-	"mov al, [r8 + %[off_a]] \n\t"
-
-
-	"push rax      \n\t"
-	"push rbx      \n\t"
-	"push rcx      \n\t"
-	"push rdx      \n\t"
-	"push rbp      \n\t"
-	"push rsi      \n\t"
-	"push r8       \n\t"
-
-	"callq %[code] \n\t"
-
-	"pop r8  \n\t"
-	"pop rsi \n\t"
-	"pop rbp \n\t"
-	"pop rdx \n\t"
-	"pop rcx \n\t"
-	"pop rbx \n\t"
-	"pop rax \n\t"
-
-	"inc al                  \n\t"
-	"inc al                  \n\t"
-
-	"mov [r8 + %[off_a]], al \n\t"
-
-	"pop r8                  \n\t"
-
-#endif
-
-	{
-		Regs *regs = &this->_regs;
-
-		regs->codeSegment = codeSegment->getPtr();
-
-		__asm (
-			"push r8                 \n\t"
-			"push r9                 \n\t"
-			"push rax                \n\t"
-
-			"mov r8, rax             \n\t"
-
-			// Load 8080 regs
-			"mov al, [r8 + %[off_a]]  \n\t"
-
-			"callq [r8 + %[off_cs]]  \n\t"
-
-			// Store 8080 regs
-			"mov [r8 + %[off_a]], al \n\t"
-
-			"pop rax                 \n\t"
-			"pop r9                  \n\t"
-			"pop r8                  \n\t"
-			:
-			:
-				"a" (regs),
-				[off_a]  "i" (offsetof (struct altair::JitCore::Regs, A)),
-				[off_cs] "i" (offsetof (struct altair::JitCore::Regs, codeSegment))
-			:
-		);
-	}
-
-#if 0
-
-	Regs *regs = &this->_regs;
-
-	this->_pio.setWr(false);
-
-	this->compile(regs->PC, false);
-
-	this->_regs.A = 1;
-
-	this->_pio.clk();
-#if 0
-	r	any GPR
-	a	eax, ax, al
-	b	ebx, bx, bl
-	c	ecx, cx, cl
-	d	edx, dx, dl
-	S	esi, si
-	D	edi, di
-#endif
-
-	/*
-	 * R8 = ctx
-	 */
-#if 1
-
-#endif
-#endif
+	this->execute(false);
 }
 
 
@@ -188,6 +180,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 	{
 		uint8_t opcode;
 		bool    stop;
+		uint8_t instructionSize;
 
 		do {
 			opcode = this->_pio.memoryRead(pc);
@@ -197,10 +190,42 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				throw std::runtime_error("Opcode " + std::to_string(opcode) +  " is not supported!");
 			}
 
-			pc += handler(ret, opcode, pc, stop);
+			instructionSize = handler(this, ret, opcode, pc, stop);
+
+			// Increase PC
+			if (! stop) {
+				ret->
+					// push rax
+					append(0x50).
+
+					// mov  ax,WORD PTR [rbp+offsetof(PC)]
+					append(0x66).
+					append(0x8b).
+					append(0x45).
+					append(offsetof(struct altair::JitCore::Regs, PC)).
+
+					// add ax, isize
+					append(0x66).
+					append(0x83).
+					append(0xc0).
+					append(instructionSize).
+
+					// mov  WORD PTR [rbp+offsetof(PC)],ax
+					append(0x66).
+					append(0x89).
+					append(0x45).
+					append(offsetof(struct altair::JitCore::Regs, PC)).
+
+					// pop rax
+					append(0x58);
+
+				pc += instructionSize;
+			}
+
+			// Call ticks callback!
 		} while (! singleInstruction && ! stop);
 
-		ret->appendByte(0xc3); // retq
+		ret->append(0xc3); // retq
 	}
 	ret->end();
 
@@ -209,7 +234,83 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 
 
 void altair::JitCore::nexti() {
+	this->execute(true);
+}
 
+
+void altair::JitCore::execute(bool singleInstruction) {
+	ExecutionByteBuffer *codeSegment = this->_compiledBlocks[this->_regs.PC];
+	if (codeSegment == nullptr) {
+		this->_compiledBlocks[this->_regs.PC] = this->compile(this->_regs.PC, singleInstruction);
+
+		codeSegment = this->_compiledBlocks[this->_regs.PC];
+	}
+
+	/*
+	 * Reg mapping:
+	 * [P][A] -> [VT][AL] rax
+	 * [B][C] -> [BH][BL] rbx
+	 * [D][E] -> [CH][CL] rcx
+	 * [H][L] -> [DH][DL] rdx
+	 */
+
+	{
+		Regs *regs = &this->_regs;
+
+		regs->codeSegment = codeSegment->getPtr();
+
+		__asm (
+			"push r8                 \n\t"
+			"push r9                 \n\t"
+			"push rax                \n\t"
+			"push rbx                \n\t"
+			"push rcx                \n\t"
+			"push rdx                \n\t"
+			"push rbp                \n\t"
+
+			"mov rbp, rax            \n\t"
+
+			// Load 8080 regs
+			"mov bh, [rbp + %[off_b]]  \n\t"
+			"mov bl, [rbp + %[off_c]]  \n\t"
+			"mov ch, [rbp + %[off_d]]  \n\t"
+			"mov cl, [rbp + %[off_e]]  \n\t"
+			"mov dh, [rbp + %[off_h]]  \n\t"
+			"mov dl, [rbp + %[off_l]]  \n\t"
+			"mov al, [rbp + %[off_a]]  \n\t"
+
+			"callq [rbp + %[off_cs]]  \n\t"
+
+			// Store 8080 regs
+			"mov [rbp + %[off_b]], bh \n\t"
+			"mov [rbp + %[off_c]], bl \n\t"
+			"mov [rbp + %[off_d]], ch \n\t"
+			"mov [rbp + %[off_e]], cl \n\t"
+			"mov [rbp + %[off_h]], dh \n\t"
+			"mov [rbp + %[off_l]], dl \n\t"
+			"mov [rbp + %[off_a]], al \n\t"
+
+			"pop rbp                 \n\t"
+			"pop rdx                 \n\t"
+			"pop rcx                 \n\t"
+			"pop rbx                 \n\t"
+			"pop rax                 \n\t"
+			"pop r9                  \n\t"
+			"pop r8                  \n\t"
+			:
+			:
+				"a" (regs),
+				[off_b]  "i" (offsetof (struct altair::JitCore::Regs, B)),
+				[off_c]  "i" (offsetof (struct altair::JitCore::Regs, C)),
+				[off_d]  "i" (offsetof (struct altair::JitCore::Regs, D)),
+				[off_e]  "i" (offsetof (struct altair::JitCore::Regs, E)),
+				[off_h]  "i" (offsetof (struct altair::JitCore::Regs, H)),
+				[off_l]  "i" (offsetof (struct altair::JitCore::Regs, L)),
+				[off_a]  "i" (offsetof (struct altair::JitCore::Regs, A)),
+				[off_cs] "i" (offsetof (struct altair::JitCore::Regs, codeSegment))
+			:
+		);
+	}
 }
 
 
@@ -258,11 +359,74 @@ altair::Core::Alu *altair::JitCore::alu() const {
 }
 
 
-void altair::JitCore::_opAddDDD(uint8_t bit7, uint8_t bit6, Core::BReg registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+void altair::JitCore::_opAdd(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+	this->_opHandlers[
+		(bit7 << 7) | (bit6 << 6) | (bit5 << 5) | (bit4 << 4) |
+		(bit3 << 3) | (bit2 << 2) | (bit1 << 1) | (bit0 << 0)
+	] = handler;
 }
 
 
-int altair::JitCore::_opMvi(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+void altair::JitCore::_opAddSSS(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t src, OpHandler handler) {
+	this->_opAdd(bit7, bit6, bit5, bit4, bit3, (src & 4) >> 2, (src & 2) >> 1, src & 1, handler);
+}
 
-	return 2;
+
+void altair::JitCore::_opAddDDD(uint8_t bit7, uint8_t bit6, uint8_t registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+	this->_opAdd(bit7, bit6, (registers & 4) >> 2, (registers & 2) >> 1, registers & 1, bit2, bit1, bit0, handler);
+}
+
+
+void altair::JitCore::_opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint8_t src, OpHandler handler) {
+	this->_opAddDDD(bit7, bit6, dst, (src & 4) >> 2, (src & 2) >> 1, src & 1, handler);
+}
+
+
+static Reg _srcR(uint8_t reg) {
+	return (Reg)(reg & 0x07);
+}
+
+
+static Reg _dstR(uint8_t reg) {
+	return (Reg)((reg >> 3) & 0x07);
+}
+
+
+int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+	switch(_dstR(opcode)) {
+		case Reg::B: buffer->append(0xb7); break; // mov bh, i
+		case Reg::C: buffer->append(0xb3); break; // mov bl, i
+		case Reg::D: buffer->append(0xb5); break; // mov ch, i
+		case Reg::E: buffer->append(0xb1); break; // mov cl, i
+		case Reg::H: buffer->append(0xb6); break; // mov dh, i
+		case Reg::L: buffer->append(0xb2); break; // mov dl, i
+		case Reg::A: buffer->append(0xb0); break; // mov al, i
+
+		default:
+			throw std::runtime_error("Not supported src reg! " + std::to_string(_dstR(opcode)));
+	}
+
+	buffer->append(core->_pio.memoryRead(pc + 1));
+
+	return 2; //7; // TODO: instruction bytes!
+}
+
+
+int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+	return 10;
+}
+
+
+int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+	return 5;
+}
+
+
+int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+	return 7;
+}
+
+
+int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+	return 7;
 }

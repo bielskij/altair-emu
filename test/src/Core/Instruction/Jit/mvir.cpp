@@ -29,7 +29,7 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction_jit, movir_clk) {
+CUNIT_TEST(core_instruction_jit, mvir_clk) {
 	test::Pio  pio({
 		0x3E, 0x01
 	});
@@ -64,8 +64,15 @@ CUNIT_TEST(core_instruction_jit, mvir) {
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0x00);
 
 	core.nextInstruction();
+	CUNIT_MSG("B: %02x, C: %02x, D: %02x, E: %02x, H: %02x, L: %02x, A: %02x,",
+		core.bR(altair::Core::BReg::B), core.bR(altair::Core::BReg::C), core.bR(altair::Core::BReg::D),
+		core.bR(altair::Core::BReg::E), core.bR(altair::Core::BReg::H), core.bR(altair::Core::BReg::L),
+		core.bR(altair::Core::BReg::A)
+	);
+
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x02);
+
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x00);

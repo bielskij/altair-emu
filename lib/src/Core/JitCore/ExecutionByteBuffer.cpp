@@ -41,7 +41,7 @@ altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::begi
 }
 
 
-altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::appendByte(uint8_t byte) {
+altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::append(uint8_t byte) {
 	this->_buffer[this->_bufferWritten++] = byte;
 
 	return *this;

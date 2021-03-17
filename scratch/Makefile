@@ -1,3 +1,3 @@
 all:
-	gcc -O0 -o test ./test.c
-	objdump -h -S ./test > ./test.lss
+	gcc -O0 -masm=intel -o test ./test.c
+	objdump -M intel -h -S ./test > ./test.lss

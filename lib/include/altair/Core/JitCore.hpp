@@ -69,7 +69,7 @@ namespace altair {
 					~ExecutionByteBuffer();
 
 					ExecutionByteBuffer &begin();
-					ExecutionByteBuffer &appendByte(uint8_t byte);
+					ExecutionByteBuffer &append(uint8_t byte);
 					ExecutionByteBuffer &end();
 
 					FunctionPtr getFunction();
@@ -84,7 +84,7 @@ namespace altair {
 			};
 
 			// returns instruction size in bytes
-			typedef int (*OpHandler)(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+			typedef int (*OpHandler)(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
 
 		public:
 			JitCore(Pio &pio, uint16_t pc);
@@ -103,6 +103,7 @@ namespace altair {
 			Alu *alu() const override;
 
 		private:
+			void execute(bool singleInstruction);
 			void onTick(uint8_t ticks);
 
 			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
@@ -111,9 +112,17 @@ namespace altair {
 
 		private:
 			// Operands implementation
-			void _opAddDDD(uint8_t bit7, uint8_t bit6, Core::BReg registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
+			void _opAdd(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
+			void _opAddSSS(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t src, OpHandler handler);
+			void _opAddDDD(uint8_t bit7, uint8_t bit6, uint8_t dst, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
+			void _opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint8_t src, OpHandler handler);
 
-			static int _opMvi(ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+			static int _opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+			static int _opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+
+			static int _opMovRR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+			static int _opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
+			static int _opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop);
 
 		private:
 			JitCore();

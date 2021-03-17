@@ -26,7 +26,8 @@ typedef struct _T {
 	void *codeSegment;
 
 	uint8_t   intMask;
-	uint16_t  intData;
+	uint16_t  intAddress;
+	uint8_t   intValue;
 	void    (*intHandler)(void *);
 } T;
 
@@ -34,13 +35,16 @@ void nexti(void *data, uint8_t ticks) {
 	// execute int callback
 	{
 		__asm(
-			"push rax                      \n\t"
-			"mov  al, [rbp + %[off_flags]] \n\t"
-			"or  al, 2                     \n\t"
-			"mov [rbp + %[off_flags]], al  \n\t"
+			"push rax                       \n\t"
 
-			"mov ax, 13423                 \n\t"
-			"mov [rbp + %[off_data]], ax   \n\t"
+			"mov al, 2                      \n\t"
+			"mov [rbp + %[off_flags]], al   \n\t"
+
+			"mov ax, 13423                  \n\t"
+			"mov [rbp + %[off_address]], ax \n\t"
+
+			"mov al, 12                     \n\t"
+			"mov [rbp + %[off_value]], al   \n\t"
 
 			"mov  rax, [rbp + %[off_hndlr]] \n\t"
 
@@ -68,9 +72,10 @@ void nexti(void *data, uint8_t ticks) {
 			"pop  rax                       \n\t"
 			:
 			:
-				[off_flags] "i" (offsetof (struct _T, intMask)),
-				[off_data]  "i" (offsetof (struct _T, intData)),
-				[off_hndlr] "i" (offsetof (struct _T, intHandler))
+				[off_flags]    "i" (offsetof (struct _T, intMask)),
+				[off_address]  "i" (offsetof (struct _T, intAddress)),
+				[off_value]    "i" (offsetof (struct _T, intValue)),
+				[off_hndlr]    "i" (offsetof (struct _T, intHandler))
 			:
 		);
 	}

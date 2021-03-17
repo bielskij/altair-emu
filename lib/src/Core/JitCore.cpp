@@ -50,13 +50,13 @@ enum Reg {
 void JitCore_onNativeInt(void *ctx) {
 	altair::JitCore::Regs *regs = reinterpret_cast<altair::JitCore::Regs *>(ctx);
 
-	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, data: %u (%04u)",
-		__func__, regs, regs->self, regs->intFlags, regs->intData, regs->intData
+	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, address: %04x, data: %u (%04u)",
+		__func__, regs, regs->self, regs->intFlags, regs->intAddress, regs->intValue, regs->intValue
 	));
 
 	if (regs->intFlags & INT_FLAG_TICKS) {
 		DBG(("CALL"));
-		regs->self->onTick(regs->intData);
+		regs->self->onTick(regs->intValue);
 	}
 }
 
@@ -86,7 +86,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
 		this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
 		this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
-#if 0
+#if 1
 		this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
 #endif
 	}
@@ -187,6 +187,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 	ret->begin();
 	{
 		uint8_t opcode;
+		uint8_t ticks;
 		bool    stop;
 		uint8_t instructionSize;
 
@@ -200,7 +201,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				throw std::runtime_error("Opcode " + std::to_string(opcode) +  " is not supported!");
 			}
 
-			instructionSize = handler(this, ret, opcode, pc, stop);
+			instructionSize = handler(this, ret, opcode, pc, ticks, stop);
 
 			// Increase PC
 			if (! stop) {
@@ -233,7 +234,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 			}
 
 			// TODO: Call ticks callback there!
-			this->addTickIntCode(ret, 7);
+			this->addTickIntCode(ret, ticks);
 		} while (! singleInstruction && ! stop);
 
 		ret->append(0xc3); // retq
@@ -244,18 +245,13 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 }
 
 
-void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t data) {
+void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t address, uint8_t value) {
 	buffer->
 		// push rax
 		append(0x50).
 
-		// mov  al,BYTE PTR [rbp+offsetof(intFlags)]
-		append(0x8a).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intFlags)).
-
-		// OR al, mask      ; set int mask
-		append(0x0c).
+		// mov al,flags
+		append(0xb0).
 		append(flag).
 
 		// mov  BYTE PTR [rbp+offsetof(intFlags)],al
@@ -263,17 +259,26 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 		append(0x45).
 		append(offsetof(struct altair::JitCore::Regs, intFlags)).
 
-		// mov ax,data      ; set int data
+		// mov ax,data      ; set int address
 		append(0x66).
 		append(0xb8).
-		append(data & 0xff).
-		append(data >> 8).
+		append(address & 0xff).
+		append(address >> 8).
 
-		// mov  WORD PTR [rbp+offsetof(intData)],ax
+		// mov  WORD PTR [rbp+offsetof(intAddress)],ax
 		append(0x66).
 		append(0x89).
 		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intData)).
+		append(offsetof(struct altair::JitCore::Regs, intAddress)).
+
+		// mov al,0xc
+		append(0xb0).
+		append(value).
+
+		// mov  BYTE PTR [rbp+offsetof(intValue)],al
+		append(0x88).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
 
 		// mov rax,QWORD PTR [rbp+offsetof(intHandler)] ; load callback address
 		append(0x48).
@@ -281,6 +286,7 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 		append(0x45).
 		append(offsetof(struct altair::JitCore::Regs, intHandler)).
 
+		// Store caller-save registers
 		append(0x51).              // push rcx
 		append(0x52).              // push rdx
 		append(0x56).              // push rsi
@@ -299,6 +305,7 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 		append(0xff).
 		append(0xd0).
 
+		// Restore caller-save registers
 		append(0x41).append(0x5b). // pop r11
 		append(0x41).append(0x5a). // pop r10
 		append(0x41).append(0x59). // pop r9
@@ -314,7 +321,12 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 
 
 void altair::JitCore::addTickIntCode(ExecutionByteBuffer *buffer, uint16_t ticks) {
-	this->addIntCode(buffer, INT_FLAG_TICKS, ticks);
+	this->addIntCode(buffer, INT_FLAG_TICKS, 0, ticks);
+}
+
+
+void altair::JitCore::addMemoryWriteIntCode(ExecutionByteBuffer *buffer, uint16_t address, uint8_t value) {
+	this->addIntCode(buffer, INT_FLAG_MEM_WR, address, value);
 }
 
 
@@ -487,7 +499,7 @@ static Reg _dstR(uint8_t reg) {
 }
 
 
-int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	switch(_dstR(opcode)) {
 		case Reg::B: buffer->append(0xb7); break; // mov bh, i
 		case Reg::C: buffer->append(0xb3); break; // mov bl, i
@@ -505,25 +517,31 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 	buffer->append(core->_pio.memoryRead(pc + 1));
 
-	return 2; //7; // TODO: instruction bytes!
+	ticks = 7;
+
+	return 2;
 }
 
 
-int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
-	return 10;
+int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addMemoryWriteIntCode(buffer, 0, core->_pio.memoryRead(pc + 1));
+
+	ticks = 10;
+
+	return 2;
 }
 
 
-int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	return 5;
 }
 
 
-int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	return 7;
 }
 
 
-int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, bool &stop) {
+int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	return 7;
 }

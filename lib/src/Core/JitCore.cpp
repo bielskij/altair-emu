@@ -30,6 +30,13 @@
 #include "common/debug.h"
 
 
+#define INT_FLAG_TICKS  (1 << 0)
+#define INT_FLAG_MEM_RD (1 << 1)
+#define INT_FLAG_MEM_WR (1 << 2)
+#define INT_FLAG_IO_RD  (1 << 3)
+#define INT_FLAG_IO_WR  (1 << 4)
+
+
 enum Reg {
 	B = 0,
 	C = 1,
@@ -40,31 +47,32 @@ enum Reg {
 	A = 7
 };
 
-void _onTick(void *ctx, uint8_t ticks) {
-	altair::JitCore::Regs *core = reinterpret_cast<altair::JitCore::Regs *>(ctx);
+void JitCore_onNativeInt(void *ctx) {
+	altair::JitCore::Regs *regs = reinterpret_cast<altair::JitCore::Regs *>(ctx);
 
-	DBG(("%s(): CALL, regs: %p, ticks: %u, regs: %p", __func__, ctx, ticks, core));
+	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, data: %u (%04u)",
+		__func__, regs, regs->self, regs->intFlags, regs->intData, regs->intData
+	));
 
-	core->self->onTick(ticks);
+	if (regs->intFlags & INT_FLAG_TICKS) {
+		DBG(("CALL"));
+		regs->self->onTick(regs->intData);
+	}
 }
-//
-//static void _onTick(void *ctx, uint8_t ticks) {
-//
-//}
 
 
 void altair::JitCore::onTick(uint8_t ticks) {
-	if (ticks == 128) {
-		std::abort();
-	}
-	DBG(("%s(): CALL for ticks: %u, regs: %p", __func__, ticks, &this->_regs));
+	DBG(("%s(): CALL! ticks: %d", __func__, ticks));
+
+	this->_pio.clk(ticks);
 }
 
 
 altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_regs.PC = pc;
 
-	this->_regs.self = this;
+	this->_regs.self       = this;
+	this->_regs.intHandler = JitCore_onNativeInt;
 
 	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
 
@@ -187,6 +195,8 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 
 			OpHandler handler = this->_opHandlers[opcode];
 			if (handler == nullptr) {
+				ERR(("%s(): opcode %02x is not implemented!", __func__, opcode));
+
 				throw std::runtime_error("Opcode " + std::to_string(opcode) +  " is not supported!");
 			}
 
@@ -222,7 +232,8 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				pc += instructionSize;
 			}
 
-			// Call ticks callback!
+			// TODO: Call ticks callback there!
+			this->addTickIntCode(ret, 7);
 		} while (! singleInstruction && ! stop);
 
 		ret->append(0xc3); // retq
@@ -230,6 +241,80 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 	ret->end();
 
 	return ret;
+}
+
+
+void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t data) {
+	buffer->
+		// push rax
+		append(0x50).
+
+		// mov  al,BYTE PTR [rbp+offsetof(intFlags)]
+		append(0x8a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intFlags)).
+
+		// OR al, mask      ; set int mask
+		append(0x0c).
+		append(flag).
+
+		// mov  BYTE PTR [rbp+offsetof(intFlags)],al
+		append(0x88).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intFlags)).
+
+		// mov ax,data      ; set int data
+		append(0x66).
+		append(0xb8).
+		append(data & 0xff).
+		append(data >> 8).
+
+		// mov  WORD PTR [rbp+offsetof(intData)],ax
+		append(0x66).
+		append(0x89).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intData)).
+
+		// mov rax,QWORD PTR [rbp+offsetof(intHandler)] ; load callback address
+		append(0x48).
+		append(0x8b).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intHandler)).
+
+		append(0x51).              // push rcx
+		append(0x52).              // push rdx
+		append(0x56).              // push rsi
+		append(0x57).              // push rdi
+		append(0x41).append(0x50). // push r8
+		append(0x41).append(0x51). // push r9
+		append(0x41).append(0x52). // push r10
+		append(0x41).append(0x53). // push r11
+
+		// mov rdi, rbp ; forward ctx as function parameters
+		append(0x48).
+		append(0x89).
+		append(0xef).
+
+		// call rax       ; call int handler
+		append(0xff).
+		append(0xd0).
+
+		append(0x41).append(0x5b). // pop r11
+		append(0x41).append(0x5a). // pop r10
+		append(0x41).append(0x59). // pop r9
+		append(0x41).append(0x58). // pop r8
+		append(0x5f).              // pop rdi
+		append(0x5e).              // pop rsi
+		append(0x5a).              // pop rdx
+		append(0x59).              // pop rcx
+
+		// pop rax
+		append(0x58);
+}
+
+
+void altair::JitCore::addTickIntCode(ExecutionByteBuffer *buffer, uint16_t ticks) {
+	this->addIntCode(buffer, INT_FLAG_TICKS, ticks);
 }
 
 
@@ -260,12 +345,13 @@ void altair::JitCore::execute(bool singleInstruction) {
 		regs->codeSegment = codeSegment->getPtr();
 
 		__asm (
-			"push r8                 \n\t"
-			"push r9                 \n\t"
 			"push rax                \n\t"
 			"push rbx                \n\t"
 			"push rcx                \n\t"
 			"push rdx                \n\t"
+			"push rdi                \n\t"
+			"push rsi                \n\t"
+			"push rsp                \n\t"
 			"push rbp                \n\t"
 
 			"mov rbp, rax            \n\t"
@@ -291,12 +377,13 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"mov [rbp + %[off_a]], al \n\t"
 
 			"pop rbp                 \n\t"
+			"pop rsp                 \n\t"
+			"pop rsi                 \n\t"
+			"pop rdi                 \n\t"
 			"pop rdx                 \n\t"
 			"pop rcx                 \n\t"
 			"pop rbx                 \n\t"
 			"pop rax                 \n\t"
-			"pop r9                  \n\t"
-			"pop r8                  \n\t"
 			:
 			:
 				"a" (regs),
@@ -325,6 +412,8 @@ uint8_t  altair::JitCore::bR(BReg reg) const {
 		case BReg::L: return this->_regs.L;
 	}
 
+	ERR(("%s(): Not supported BReg value! (%02x)", __func__, (uint8_t)reg));
+
 	throw std::runtime_error("Not supported BReg value!");
 }
 
@@ -335,7 +424,13 @@ void altair::JitCore::bR(BReg r, uint8_t val) {
 
 
 uint16_t altair::JitCore::wR(WReg reg) const {
+	switch (reg) {
+		case WReg::PC: return this->_regs.PC;
+	}
 
+	ERR(("%s(): Not supported WReg value! (%02x)", __func__, (uint8_t)reg));
+
+	throw std::runtime_error("Not supported WReg value!");
 }
 
 
@@ -403,6 +498,8 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 		case Reg::A: buffer->append(0xb0); break; // mov al, i
 
 		default:
+			ERR(("%s(): Not supported src reg! (%02x)", __func__, _dstR(opcode)));
+
 			throw std::runtime_error("Not supported src reg! " + std::to_string(_dstR(opcode)));
 	}
 

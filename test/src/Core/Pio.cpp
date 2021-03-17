@@ -175,5 +175,5 @@ void test::Pio::ioWrite(uint8_t number, uint8_t data) {
 
 
 void test::Pio::clk(uint8_t ticks) {
-
+	this->clkCount += ticks;
 }

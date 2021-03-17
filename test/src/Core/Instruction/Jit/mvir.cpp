@@ -43,13 +43,13 @@ CUNIT_TEST(core_instruction_jit, mvir_clk) {
 
 
 CUNIT_TEST(core_instruction_jit, mvir) {
-	// mov a,1
-	// mov b,2
-	// mov c,3
-	// mov d,4
-	// mov e,5
-	// mov h,6
-	// mov l,7
+	// mvi a,1
+	// mvi b,2
+	// mvi c,3
+	// mvi d,4
+	// mvi e,5
+	// mvi h,6
+	// mvi l,7
 	test::Pio  pio({ 0x3E, 0x01, 0x06, 0x02, 0x0E, 0x03, 0x16, 0x04, 0x1E, 0x05, 0x26, 0x06, 0x2E, 0x07 });
 
 	test::Core core(pio, true);
@@ -64,15 +64,8 @@ CUNIT_TEST(core_instruction_jit, mvir) {
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0x00);
 
 	core.nextInstruction();
-	CUNIT_MSG("B: %02x, C: %02x, D: %02x, E: %02x, H: %02x, L: %02x, A: %02x,",
-		core.bR(altair::Core::BReg::B), core.bR(altair::Core::BReg::C), core.bR(altair::Core::BReg::D),
-		core.bR(altair::Core::BReg::E), core.bR(altair::Core::BReg::H), core.bR(altair::Core::BReg::L),
-		core.bR(altair::Core::BReg::A)
-	);
-
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x02);
-
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
 	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x00);

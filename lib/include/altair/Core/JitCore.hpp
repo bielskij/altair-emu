@@ -29,7 +29,7 @@
 
 #include "altair/Core.hpp"
 
-extern void _onTick(void *ctx, uint8_t ticks);
+extern void JitCore_onNativeInt(void *ctx);
 
 namespace altair {
 	class JitCore : public altair::Core {
@@ -41,6 +41,11 @@ namespace altair {
 				JitCore *self;
 
 				void *codeSegment;
+
+				// Interrupt callback flags
+				uint8_t  intFlags;
+				void   (*intHandler)(void *ctx);
+				uint16_t intData;
 
 				Regs() {
 					this->A = 0;
@@ -56,6 +61,9 @@ namespace altair {
 
 					this->self        = nullptr;
 					this->codeSegment = nullptr;
+					this->intHandler  = nullptr;
+					this->intFlags    = 0;
+					this->intData     = 0;
 				}
 			};
 
@@ -104,11 +112,15 @@ namespace altair {
 
 		private:
 			void execute(bool singleInstruction);
+
 			void onTick(uint8_t ticks);
 
 			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
 
-			friend void ::_onTick(void *ctx, uint8_t ticks);
+			void addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t data);
+			void addTickIntCode(ExecutionByteBuffer *buffer, uint16_t ticks);
+
+			friend void ::JitCore_onNativeInt(void *ctx);
 
 		private:
 			// Operands implementation

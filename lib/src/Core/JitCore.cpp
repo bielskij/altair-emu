@@ -180,7 +180,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
-#if 0
+
 		this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, D, _opMovMR);
@@ -188,7 +188,6 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
-#endif
 	}
 }
 
@@ -321,26 +320,26 @@ void altair::JitCore::addIntCodeCall(ExecutionByteBuffer *buffer, uint8_t flag) 
 }
 
 
-void altair::JitCore::addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *buffer, uint8_t reg) {
+void altair::JitCore::addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *b, uint8_t reg) {
 	switch (reg) {
 		case RegDouble::BC:
 			// mov    WORD PTR [rbp+offsetof(intAddress)],bx
-			buffer->append(0x66).append(0x89).append(0x5d).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			b->append(0x66).append(0x89).append(0x5d).append(offsetof(struct altair::JitCore::Regs, intAddress));
 			break;
 
 		case RegDouble::DE:
 			// mov    WORD PTR [rbp+offsetof(intAddress)],cx
-			buffer->append(0x66).append(0x89).append(0x4d).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			b->append(0x66).append(0x89).append(0x4d).append(offsetof(struct altair::JitCore::Regs, intAddress));
 			break;
 
 		case RegDouble::HL:
 			// mov    WORD PTR [rbp+offsetof(intAddress)],dx
-			buffer->append(0x66).append(0x89).append(0x55).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			b->append(0x66).append(0x89).append(0x55).append(offsetof(struct altair::JitCore::Regs, intAddress));
 			break;
 
 		case RegDouble::SP:
 			// mov    WORD PTR [rbp+offsetof(intAddress)],si
-			buffer->append(0x66).append(0x89).append(0x75).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			b->append(0x66).append(0x89).append(0x75).append(offsetof(struct altair::JitCore::Regs, intAddress));
 			break;
 
 		default:
@@ -351,8 +350,25 @@ void altair::JitCore::addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *buffer, 
 }
 
 
-void altair::JitCore::addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *buffer, uint8_t reg) {
-	ERR(("TODO: Implement!"));
+void altair::JitCore::addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *b, uint8_t reg) {
+	b->append(0x88);
+
+	switch(reg) {
+		case RegSingle::B: b->append(0x7d); break;
+		case RegSingle::C: b->append(0x5d); break;
+		case RegSingle::D: b->append(0x6d); break;
+		case RegSingle::E: b->append(0x4d); break;
+		case RegSingle::H: b->append(0x75); break;
+		case RegSingle::L: b->append(0x55); break;
+		case RegSingle::A: b->append(0x45); break;
+
+	default:
+		ERR(("%s(): Not supported single register %u!", __func__, reg));
+
+		throw std::runtime_error("Not supported single register!");
+	}
+
+	b->append(offsetof(struct altair::JitCore::Regs, intValue));
 }
 
 
@@ -729,7 +745,11 @@ int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *b, uint8_t opc
 }
 
 
-int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromReg (b, RegDouble::HL);
+	core->addIntCodeLoadIntValueFromReg(b, _srcR(opcode));
+	core->addIntCodeCallMemoryWrite(b);
+
 	ticks = 7;
 
 	return 1;

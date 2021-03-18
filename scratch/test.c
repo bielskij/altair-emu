@@ -109,6 +109,23 @@ void movRM() {
 	);
 }
 
+void movMR() {
+	__asm (
+		// set address from M reg
+		"mov [rbp + %[off_value]], bh \n\t"
+		"mov [rbp + %[off_value]], bl \n\t"
+		"mov [rbp + %[off_value]], ch \n\t"
+		"mov [rbp + %[off_value]], cl \n\t"
+		"mov [rbp + %[off_value]], dh \n\t"
+		"mov [rbp + %[off_value]], dl \n\t"
+		"mov [rbp + %[off_value]], al \n\t"
+		:
+		:
+			[off_value]  "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
 
 void nexti(void *data, uint8_t ticks) {
 	// execute int callback

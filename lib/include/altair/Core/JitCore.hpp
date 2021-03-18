@@ -119,6 +119,7 @@ namespace altair {
 			void onMemoryWriteInt(uint16_t address, uint8_t value);
 			void onMemoryReadInt(uint16_t address, uint8_t &value);
 			void onIoWriteInt(uint8_t address, uint8_t value);
+			void onIoReadInt(uint8_t address, uint8_t &value);
 
 			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
 
@@ -133,6 +134,7 @@ namespace altair {
 			void addIntCodeCallMemoryWrite(ExecutionByteBuffer *buffer);
 			void addIntCodeCallMemoryRead(ExecutionByteBuffer *buffer);
 			void addIntCodeCallIoWr(ExecutionByteBuffer *buffer);
+			void addIntCodeCallIoRd(ExecutionByteBuffer *buffer);
 
 
 			friend void ::JitCore_onNativeInt(void *ctx);
@@ -152,6 +154,7 @@ namespace altair {
 			static int _opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 			static int _opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+			static int _opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 		private:
 			JitCore();

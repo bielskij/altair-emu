@@ -165,7 +165,9 @@ void test::Pio::memoryWrite(uint16_t address, uint8_t value) {
 
 
 uint8_t test::Pio::ioRead(uint8_t number) {
-	return 0;
+	this->address = number | (number << 8);
+
+	return this->data;
 }
 
 

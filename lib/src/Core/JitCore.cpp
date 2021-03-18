@@ -73,6 +73,9 @@ void JitCore_onNativeInt(void *ctx) {
 
 	} else if (regs->intFlags & INT_FLAG_IO_WR) {
 		regs->self->onIoWriteInt(regs->intAddress, regs->intValue);
+
+	} else if (regs->intFlags & INT_FLAG_IO_RD) {
+		regs->self->onIoReadInt(regs->intAddress, regs->intValue);
 	}
 }
 
@@ -96,6 +99,11 @@ void altair::JitCore::onMemoryReadInt(uint16_t address, uint8_t &value) {
 
 void altair::JitCore::onIoWriteInt(uint8_t address, uint8_t value) {
 	this->_pio.ioWrite(address, value);
+}
+
+
+void altair::JitCore::onIoReadInt(uint8_t address, uint8_t &value) {
+	value = this->_pio.ioRead(address);
 }
 
 
@@ -200,6 +208,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 	// OUT
 	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
+	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
 }
 
 
@@ -437,6 +446,11 @@ void altair::JitCore::addIntCodeCallMemoryRead(ExecutionByteBuffer *buffer) {
 
 void altair::JitCore::addIntCodeCallIoWr(ExecutionByteBuffer *buffer) {
 	this->addIntCodeCall(buffer, INT_FLAG_IO_WR);
+}
+
+
+void altair::JitCore::addIntCodeCallIoRd(ExecutionByteBuffer *buffer) {
+	this->addIntCodeCall(buffer, INT_FLAG_IO_RD);
 }
 
 
@@ -788,6 +802,21 @@ int altair::JitCore::_opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
 	core->addIntCodeLoadIntValueFromReg(buffer, RegSingle::A);
 	core->addIntCodeCallIoWr(buffer);
+
+	ticks = 10;
+
+	return 2;
+}
+
+
+int altair::JitCore::_opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeCallIoRd(buffer);
+
+	buffer->
+		append(0x8a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 10;
 

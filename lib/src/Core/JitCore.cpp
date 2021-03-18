@@ -67,6 +67,9 @@ void JitCore_onNativeInt(void *ctx) {
 
 	} else if (regs->intFlags & INT_FLAG_MEM_WR) {
 		regs->self->onMemoryWriteInt(regs->intAddress, regs->intValue);
+
+	} else if (regs->intFlags & INT_FLAG_MEM_RD) {
+		regs->self->onMemoryReadInt(regs->intAddress, regs->intValue);
 	}
 }
 
@@ -80,6 +83,11 @@ void altair::JitCore::onTickInt(uint8_t ticks) {
 
 void altair::JitCore::onMemoryWriteInt(uint16_t address, uint8_t value) {
 	this->_pio.memoryWrite(address, value);
+}
+
+
+void altair::JitCore::onMemoryReadInt(uint16_t address, uint8_t &value) {
+	value = this->_pio.memoryRead(address);
 }
 
 
@@ -164,7 +172,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
-#if 0
+
 		this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, D, 1, 1, 0, _opMovRM);
@@ -172,7 +180,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
-
+#if 0
 		this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, D, _opMovMR);
@@ -380,6 +388,11 @@ void altair::JitCore::addIntCodeCallTick(ExecutionByteBuffer *buffer, uint16_t t
 
 void altair::JitCore::addIntCodeCallMemoryWrite(ExecutionByteBuffer *buffer) {
 	this->addIntCodeCall(buffer, INT_FLAG_MEM_WR);
+}
+
+
+void altair::JitCore::addIntCodeCallMemoryRead(ExecutionByteBuffer *buffer) {
+	this->addIntCodeCall(buffer, INT_FLAG_MEM_RD);
 }
 
 
@@ -692,7 +705,24 @@ int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *b, uint8_t opc
 }
 
 
-int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromReg(b, RegDouble::HL);
+	core->addIntCodeCallMemoryRead(b);
+
+	b->append(0x8a);
+
+	switch (_dstR(opcode)) {
+		case RegSingle::B: b->append(0x7d); break;
+		case RegSingle::C: b->append(0x5d); break;
+		case RegSingle::D: b->append(0x6d); break;
+		case RegSingle::E: b->append(0x4d); break;
+		case RegSingle::H: b->append(0x75); break;
+		case RegSingle::L: b->append(0x55); break;
+		case RegSingle::A: b->append(0x45); break;
+	}
+
+	b->append(offsetof(struct altair::JitCore::Regs, intValue));
+
 	ticks = 7;
 
 	return 1;

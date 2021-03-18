@@ -31,6 +31,66 @@ typedef struct _T {
 	void    (*intHandler)(void *);
 } T;
 
+void _movrr() {
+	__asm(
+		"mov bh,bh  \t\n"
+		"mov bh,bl  \t\n"
+		"mov bh,ch  \t\n"
+		"mov bh,cl  \t\n"
+		"mov bh,dh  \t\n"
+		"mov bh,dl  \t\n"
+		"mov bh,al  \t\n"
+
+		"mov bl,bh  \t\n"
+		"mov bl,bl  \t\n"
+		"mov bl,ch  \t\n"
+		"mov bl,cl  \t\n"
+		"mov bl,dh  \t\n"
+		"mov bl,dl  \t\n"
+		"mov bl,al  \t\n"
+
+		"mov ch,bh  \t\n"
+		"mov ch,bl  \t\n"
+		"mov ch,ch  \t\n"
+		"mov ch,cl  \t\n"
+		"mov ch,dh  \t\n"
+		"mov ch,dl  \t\n"
+		"mov ch,al  \t\n"
+
+		"mov cl,bh  \t\n"
+		"mov cl,bl  \t\n"
+		"mov cl,ch  \t\n"
+		"mov cl,cl  \t\n"
+		"mov cl,dh  \t\n"
+		"mov cl,dl  \t\n"
+		"mov cl,al  \t\n"
+
+		"mov dh,bh  \t\n"
+		"mov dh,bl  \t\n"
+		"mov dh,ch  \t\n"
+		"mov dh,cl  \t\n"
+		"mov dh,dh  \t\n"
+		"mov dh,dl  \t\n"
+		"mov dh,al  \t\n"
+
+		"mov dl,bh  \t\n"
+		"mov dl,bl  \t\n"
+		"mov dl,ch  \t\n"
+		"mov dl,cl  \t\n"
+		"mov dl,dh  \t\n"
+		"mov dl,dl  \t\n"
+		"mov dl,al  \t\n"
+
+		"mov al,bh  \t\n"
+		"mov al,bl  \t\n"
+		"mov al,ch  \t\n"
+		"mov al,cl  \t\n"
+		"mov al,dh  \t\n"
+		"mov al,dl  \t\n"
+		"mov al,al  \t\n"
+	);
+}
+
 void nexti(void *data, uint8_t ticks) {
 	// execute int callback
 	{

@@ -101,11 +101,10 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
 		this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
 		this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
-#if 1
+
 		this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
-#endif
 	}
-#if 0
+
 	// MOV R, R
 	// MOV R, M
 	// MOV M, R
@@ -165,7 +164,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
-
+#if 0
 		this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
 		this->_opAddDDD(0, 1, D, 1, 1, 0, _opMovRM);
@@ -181,8 +180,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
-	}
 #endif
+	}
 }
 
 
@@ -579,7 +578,7 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 			throw std::runtime_error("Not supported src reg! " + std::to_string(_dstR(opcode)));
 	}
 
-	buffer->append(core->_pio.memoryRead(pc + 1));
+	buffer->append(core->_pio.memoryRead(pc + 1)); // imm
 
 	ticks = 7;
 
@@ -598,16 +597,110 @@ int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 }
 
 
-int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	return 5;
+int altair::JitCore::_opMovRR(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	b->append(0x88);
+
+	switch (_dstR(opcode)) {
+		case RegSingle::B:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: break; // NOP
+				case RegSingle::C: b->append(0xdf); break;
+				case RegSingle::D: b->append(0xef); break;
+				case RegSingle::E: b->append(0xcf); break;
+				case RegSingle::H: b->append(0xf7); break;
+				case RegSingle::L: b->append(0xd7); break;
+				case RegSingle::A: b->append(0xc7); break;
+			}
+			break;
+
+		case RegSingle::C:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xfb); break;
+				case RegSingle::C: break; // NOP
+				case RegSingle::D: b->append(0xeb); break;
+				case RegSingle::E: b->append(0xcb); break;
+				case RegSingle::H: b->append(0xf3); break;
+				case RegSingle::L: b->append(0xd3); break;
+				case RegSingle::A: b->append(0xc3); break;
+			}
+			break;
+
+		case RegSingle::D:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xfd); break;
+				case RegSingle::C: b->append(0xdd); break;
+				case RegSingle::D: break; // NOP
+				case RegSingle::E: b->append(0xcd); break;
+				case RegSingle::H: b->append(0xf5); break;
+				case RegSingle::L: b->append(0xd5); break;
+				case RegSingle::A: b->append(0xc5); break;
+			}
+			break;
+
+		case RegSingle::E:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xf9); break;
+				case RegSingle::C: b->append(0xd9); break;
+				case RegSingle::D: b->append(0xe9); break;
+				case RegSingle::E: break; // NOP
+				case RegSingle::H: b->append(0xf1); break;
+				case RegSingle::L: b->append(0xd1); break;
+				case RegSingle::A: b->append(0xc1); break;
+			}
+			break;
+
+		case RegSingle::H:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xfe); break;
+				case RegSingle::C: b->append(0xde); break;
+				case RegSingle::D: b->append(0xee); break;
+				case RegSingle::E: b->append(0xce); break;
+				case RegSingle::H: break; // NOP
+				case RegSingle::L: b->append(0xd6); break;
+				case RegSingle::A: b->append(0xc6); break;
+			}
+			break;
+
+		case RegSingle::L:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xfa); break;
+				case RegSingle::C: b->append(0xda); break;
+				case RegSingle::D: b->append(0xea); break;
+				case RegSingle::E: b->append(0xca); break;
+				case RegSingle::H: b->append(0xf2); break;
+				case RegSingle::L: break; // NOP
+				case RegSingle::A: b->append(0xc2); break;
+			}
+			break;
+
+		case RegSingle::A:
+			switch (_srcR(opcode)) {
+				case RegSingle::B: b->append(0xf8); break;
+				case RegSingle::C: b->append(0xd8); break;
+				case RegSingle::D: b->append(0xe8); break;
+				case RegSingle::E: b->append(0xc8); break;
+				case RegSingle::H: b->append(0xf0); break;
+				case RegSingle::L: b->append(0xd0); break;
+				case RegSingle::A: break; // NOP
+			}
+			break;
+	}
+
+	ticks = 5;
+
+	return 1;
 }
 
 
 int altair::JitCore::_opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	return 7;
+	ticks = 7;
+
+	return 1;
 }
 
 
 int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	return 7;
+	ticks = 7;
+
+	return 1;
 }

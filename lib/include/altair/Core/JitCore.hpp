@@ -115,13 +115,20 @@ namespace altair {
 		private:
 			void execute(bool singleInstruction);
 
-			void onTick(uint8_t ticks);
+			void onTickInt(uint8_t ticks);
+			void onMemoryWriteInt(uint16_t address, uint8_t value);
 
 			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
 
-			void addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t adress, uint8_t value);
-			void addTickIntCode(ExecutionByteBuffer *buffer, uint16_t ticks);
-			void addMemoryWriteIntCode(ExecutionByteBuffer *buffer, uint16_t address, uint8_t value);
+			void addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *buffer, uint8_t reg);
+			void addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *buffer, uint8_t reg);
+			void addIntCodeLoadIntValueFromImm(ExecutionByteBuffer *buffer, uint8_t imm);
+			void addIntCodeLoadRegFromIntValue(ExecutionByteBuffer *buffer, uint8_t reg);
+
+			void addIntCodeCall(ExecutionByteBuffer *buffer, uint8_t flag);
+			void addIntCodeCallTick(ExecutionByteBuffer *buffer, uint16_t ticks);
+			void addIntCodeCallMemoryWrite(ExecutionByteBuffer *buffer);
+
 
 			friend void ::JitCore_onNativeInt(void *ctx);
 

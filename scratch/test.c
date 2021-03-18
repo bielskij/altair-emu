@@ -35,16 +35,25 @@ void nexti(void *data, uint8_t ticks) {
 	// execute int callback
 	{
 		__asm(
+			// set address from M reg
+			"mov [rbp + %[off_address]], bx \n\t"
+			"mov [rbp + %[off_address]], cx \n\t"
+			"mov [rbp + %[off_address]], dx \n\t"
+			"mov [rbp + %[off_address]], si \n\t"
+			:
+			:
+				[off_address]  "i" (offsetof (struct _T, intAddress))
+			:
+		);
+
+//		[off_address]  "i" (offsetof (struct _T, intAddress)),
+//		[off_value]    "i" (offsetof (struct _T, intValue)),
+
+		__asm(
 			"push rax                       \n\t"
 
 			"mov al, 2                      \n\t"
 			"mov [rbp + %[off_flags]], al   \n\t"
-
-			"mov ax, 13423                  \n\t"
-			"mov [rbp + %[off_address]], ax \n\t"
-
-			"mov al, 12                     \n\t"
-			"mov [rbp + %[off_value]], al   \n\t"
 
 			"mov  rax, [rbp + %[off_hndlr]] \n\t"
 
@@ -73,8 +82,6 @@ void nexti(void *data, uint8_t ticks) {
 			:
 			:
 				[off_flags]    "i" (offsetof (struct _T, intMask)),
-				[off_address]  "i" (offsetof (struct _T, intAddress)),
-				[off_value]    "i" (offsetof (struct _T, intValue)),
 				[off_hndlr]    "i" (offsetof (struct _T, intHandler))
 			:
 		);

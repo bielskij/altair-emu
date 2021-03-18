@@ -37,7 +37,7 @@
 #define INT_FLAG_IO_WR  (1 << 4)
 
 
-enum Reg {
+enum RegSingle {
 	B = 0,
 	C = 1,
 	D = 2,
@@ -47,24 +47,39 @@ enum Reg {
 	A = 7
 };
 
+enum RegDouble {
+	BC = 0,
+	DE = 1,
+	HL = 2,
+	SP = 3
+};
+
+
 void JitCore_onNativeInt(void *ctx) {
 	altair::JitCore::Regs *regs = reinterpret_cast<altair::JitCore::Regs *>(ctx);
 
-	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, address: %04x, data: %u (%04u)",
+	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, address: %04x, data: %u (%02x)",
 		__func__, regs, regs->self, regs->intFlags, regs->intAddress, regs->intValue, regs->intValue
 	));
 
 	if (regs->intFlags & INT_FLAG_TICKS) {
-		DBG(("CALL"));
-		regs->self->onTick(regs->intValue);
+		regs->self->onTickInt(regs->intValue);
+
+	} else if (regs->intFlags & INT_FLAG_MEM_WR) {
+		regs->self->onMemoryWriteInt(regs->intAddress, regs->intValue);
 	}
 }
 
 
-void altair::JitCore::onTick(uint8_t ticks) {
+void altair::JitCore::onTickInt(uint8_t ticks) {
 	DBG(("%s(): CALL! ticks: %d", __func__, ticks));
 
 	this->_pio.clk(ticks);
+}
+
+
+void altair::JitCore::onMemoryWriteInt(uint16_t address, uint8_t value) {
+	this->_pio.memoryWrite(address, value);
 }
 
 
@@ -234,7 +249,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 			}
 
 			// TODO: Call ticks callback there!
-			this->addTickIntCode(ret, ticks);
+			this->addIntCodeCallTick(ret, ticks);
 		} while (! singleInstruction && ! stop);
 
 		ret->append(0xc3); // retq
@@ -245,7 +260,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 }
 
 
-void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint16_t address, uint8_t value) {
+void altair::JitCore::addIntCodeCall(ExecutionByteBuffer *buffer, uint8_t flag) {
 	buffer->
 		// push rax
 		append(0x50).
@@ -258,27 +273,6 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 		append(0x88).
 		append(0x45).
 		append(offsetof(struct altair::JitCore::Regs, intFlags)).
-
-		// mov ax,data      ; set int address
-		append(0x66).
-		append(0xb8).
-		append(address & 0xff).
-		append(address >> 8).
-
-		// mov  WORD PTR [rbp+offsetof(intAddress)],ax
-		append(0x66).
-		append(0x89).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intAddress)).
-
-		// mov al,0xc
-		append(0xb0).
-		append(value).
-
-		// mov  BYTE PTR [rbp+offsetof(intValue)],al
-		append(0x88).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intValue)).
 
 		// mov rax,QWORD PTR [rbp+offsetof(intHandler)] ; load callback address
 		append(0x48).
@@ -320,13 +314,73 @@ void altair::JitCore::addIntCode(ExecutionByteBuffer *buffer, uint8_t flag, uint
 }
 
 
-void altair::JitCore::addTickIntCode(ExecutionByteBuffer *buffer, uint16_t ticks) {
-	this->addIntCode(buffer, INT_FLAG_TICKS, 0, ticks);
+void altair::JitCore::addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *buffer, uint8_t reg) {
+	switch (reg) {
+		case RegDouble::BC:
+			// mov    WORD PTR [rbp+offsetof(intAddress)],bx
+			buffer->append(0x66).append(0x89).append(0x5d).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			break;
+
+		case RegDouble::DE:
+			// mov    WORD PTR [rbp+offsetof(intAddress)],cx
+			buffer->append(0x66).append(0x89).append(0x4d).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			break;
+
+		case RegDouble::HL:
+			// mov    WORD PTR [rbp+offsetof(intAddress)],dx
+			buffer->append(0x66).append(0x89).append(0x55).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			break;
+
+		case RegDouble::SP:
+			// mov    WORD PTR [rbp+offsetof(intAddress)],si
+			buffer->append(0x66).append(0x89).append(0x75).append(offsetof(struct altair::JitCore::Regs, intAddress));
+			break;
+
+		default:
+			ERR(("%s(): Not supported double register %u!", __func__, reg));
+
+			throw std::runtime_error("Not supported double register!");
+	}
 }
 
 
-void altair::JitCore::addMemoryWriteIntCode(ExecutionByteBuffer *buffer, uint16_t address, uint8_t value) {
-	this->addIntCode(buffer, INT_FLAG_MEM_WR, address, value);
+void altair::JitCore::addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *buffer, uint8_t reg) {
+	ERR(("TODO: Implement!"));
+}
+
+
+void altair::JitCore::addIntCodeLoadIntValueFromImm(ExecutionByteBuffer *buffer, uint8_t imm) {
+	buffer->
+		// push rax
+		append(0x50).
+
+		// mov al,0xc
+		append(0xb0).
+		append(imm).
+
+		// mov  BYTE PTR [rbp+offsetof(intValue)],al
+		append(0x88).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
+
+		// pop rax
+		append(0x58);
+}
+
+
+void altair::JitCore::addIntCodeLoadRegFromIntValue(ExecutionByteBuffer *buffer, uint8_t reg) {
+
+}
+
+
+void altair::JitCore::addIntCodeCallTick(ExecutionByteBuffer *buffer, uint16_t ticks) {
+	this->addIntCodeLoadIntValueFromImm(buffer, ticks);
+	this->addIntCodeCall(buffer, INT_FLAG_TICKS);
+}
+
+
+void altair::JitCore::addIntCodeCallMemoryWrite(ExecutionByteBuffer *buffer) {
+	this->addIntCodeCall(buffer, INT_FLAG_MEM_WR);
 }
 
 
@@ -349,6 +403,7 @@ void altair::JitCore::execute(bool singleInstruction) {
 	 * [B][C] -> [BH][BL] rbx
 	 * [D][E] -> [CH][CL] rcx
 	 * [H][L] -> [DH][DL] rdx
+	 * [SP]   -> [SI]     rsi
 	 */
 
 	{
@@ -376,17 +431,19 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"mov dh, [rbp + %[off_h]]  \n\t"
 			"mov dl, [rbp + %[off_l]]  \n\t"
 			"mov al, [rbp + %[off_a]]  \n\t"
+			"mov si, [rbp + %[off_sp]] \n\t"
 
 			"callq [rbp + %[off_cs]]  \n\t"
 
 			// Store 8080 regs
-			"mov [rbp + %[off_b]], bh \n\t"
-			"mov [rbp + %[off_c]], bl \n\t"
-			"mov [rbp + %[off_d]], ch \n\t"
-			"mov [rbp + %[off_e]], cl \n\t"
-			"mov [rbp + %[off_h]], dh \n\t"
-			"mov [rbp + %[off_l]], dl \n\t"
-			"mov [rbp + %[off_a]], al \n\t"
+			"mov [rbp + %[off_b]],  bh \n\t"
+			"mov [rbp + %[off_c]],  bl \n\t"
+			"mov [rbp + %[off_d]],  ch \n\t"
+			"mov [rbp + %[off_e]],  cl \n\t"
+			"mov [rbp + %[off_h]],  dh \n\t"
+			"mov [rbp + %[off_l]],  dl \n\t"
+			"mov [rbp + %[off_a]],  al \n\t"
+			"mov [rbp + %[off_sp]], si \n\t"
 
 			"pop rbp                 \n\t"
 			"pop rsp                 \n\t"
@@ -406,6 +463,7 @@ void altair::JitCore::execute(bool singleInstruction) {
 				[off_h]  "i" (offsetof (struct altair::JitCore::Regs, H)),
 				[off_l]  "i" (offsetof (struct altair::JitCore::Regs, L)),
 				[off_a]  "i" (offsetof (struct altair::JitCore::Regs, A)),
+				[off_sp] "i" (offsetof (struct altair::JitCore::Regs, SP)),
 				[off_cs] "i" (offsetof (struct altair::JitCore::Regs, codeSegment))
 			:
 		);
@@ -438,6 +496,7 @@ void altair::JitCore::bR(BReg r, uint8_t val) {
 uint16_t altair::JitCore::wR(WReg reg) const {
 	switch (reg) {
 		case WReg::PC: return this->_regs.PC;
+		case WReg::SP: return this->_regs.SP;
 	}
 
 	ERR(("%s(): Not supported WReg value! (%02x)", __func__, (uint8_t)reg));
@@ -489,25 +548,30 @@ void altair::JitCore::_opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint
 }
 
 
-static Reg _srcR(uint8_t reg) {
-	return (Reg)(reg & 0x07);
+static RegSingle _srcR(uint8_t reg) {
+	return (RegSingle)(reg & 0x07);
 }
 
 
-static Reg _dstR(uint8_t reg) {
-	return (Reg)((reg >> 3) & 0x07);
+static RegSingle _dstR(uint8_t reg) {
+	return (RegSingle)((reg >> 3) & 0x07);
+}
+
+
+static RegDouble _rp(uint8_t reg) {
+	return (RegDouble)((reg >> 4) & 0x03);
 }
 
 
 int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	switch(_dstR(opcode)) {
-		case Reg::B: buffer->append(0xb7); break; // mov bh, i
-		case Reg::C: buffer->append(0xb3); break; // mov bl, i
-		case Reg::D: buffer->append(0xb5); break; // mov ch, i
-		case Reg::E: buffer->append(0xb1); break; // mov cl, i
-		case Reg::H: buffer->append(0xb6); break; // mov dh, i
-		case Reg::L: buffer->append(0xb2); break; // mov dl, i
-		case Reg::A: buffer->append(0xb0); break; // mov al, i
+		case RegSingle::B: buffer->append(0xb7); break; // mov bh, imm
+		case RegSingle::C: buffer->append(0xb3); break; // mov bl, imm
+		case RegSingle::D: buffer->append(0xb5); break; // mov ch, imm
+		case RegSingle::E: buffer->append(0xb1); break; // mov cl, imm
+		case RegSingle::H: buffer->append(0xb6); break; // mov dh, imm
+		case RegSingle::L: buffer->append(0xb2); break; // mov dl, imm
+		case RegSingle::A: buffer->append(0xb0); break; // mov al, imm
 
 		default:
 			ERR(("%s(): Not supported src reg! (%02x)", __func__, _dstR(opcode)));
@@ -524,7 +588,9 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	core->addMemoryWriteIntCode(buffer, 0, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeLoadIntAddrFromReg (buffer, RegDouble::HL);
+	core->addIntCodeLoadIntValueFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeCallMemoryWrite(buffer);
 
 	ticks = 10;
 

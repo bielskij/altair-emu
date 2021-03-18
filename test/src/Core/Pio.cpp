@@ -170,7 +170,8 @@ uint8_t test::Pio::ioRead(uint8_t number) {
 
 
 void test::Pio::ioWrite(uint8_t number, uint8_t data) {
-
+	this->address = number | (number << 8);
+	this->data    = data;
 }
 
 

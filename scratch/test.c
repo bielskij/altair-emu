@@ -31,6 +31,17 @@ typedef struct _T {
 	void    (*intHandler)(void *);
 } T;
 
+
+void _io() {
+	__asm(
+		"mov WORD PTR [rbp + %[off_address]], 0x1234 \n\t"
+		:
+		:
+			[off_address]  "i" (offsetof (struct _T, intAddress))
+		:
+	);
+}
+
 void _movrr() {
 	__asm(
 		"mov bh,bh  \t\n"

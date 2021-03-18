@@ -70,6 +70,9 @@ void JitCore_onNativeInt(void *ctx) {
 
 	} else if (regs->intFlags & INT_FLAG_MEM_RD) {
 		regs->self->onMemoryReadInt(regs->intAddress, regs->intValue);
+
+	} else if (regs->intFlags & INT_FLAG_IO_WR) {
+		regs->self->onIoWriteInt(regs->intAddress, regs->intValue);
 	}
 }
 
@@ -88,6 +91,11 @@ void altair::JitCore::onMemoryWriteInt(uint16_t address, uint8_t value) {
 
 void altair::JitCore::onMemoryReadInt(uint16_t address, uint8_t &value) {
 	value = this->_pio.memoryRead(address);
+}
+
+
+void altair::JitCore::onIoWriteInt(uint8_t address, uint8_t value) {
+	this->_pio.ioWrite(address, value);
 }
 
 
@@ -189,6 +197,9 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
 		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
 	}
+
+	// OUT
+	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
 }
 
 
@@ -350,6 +361,18 @@ void altair::JitCore::addIntCodeLoadIntAddrFromReg(ExecutionByteBuffer *b, uint8
 }
 
 
+void altair::JitCore::addIntCodeLoadIntAddrFromImm(ExecutionByteBuffer *buffer, uint16_t imm) {
+	// mov WORD PTR [rbp+offsetof(intAddress)],imm
+	buffer->
+		append(0x66).
+		append(0xc7).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intAddress)).
+		append(imm & 0xff).
+		append(imm >> 8);
+}
+
+
 void altair::JitCore::addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *b, uint8_t reg) {
 	b->append(0x88);
 
@@ -409,6 +432,11 @@ void altair::JitCore::addIntCodeCallMemoryWrite(ExecutionByteBuffer *buffer) {
 
 void altair::JitCore::addIntCodeCallMemoryRead(ExecutionByteBuffer *buffer) {
 	this->addIntCodeCall(buffer, INT_FLAG_MEM_RD);
+}
+
+
+void altair::JitCore::addIntCodeCallIoWr(ExecutionByteBuffer *buffer) {
+	this->addIntCodeCall(buffer, INT_FLAG_IO_WR);
 }
 
 
@@ -753,4 +781,15 @@ int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *b, uint8_t opc
 	ticks = 7;
 
 	return 1;
+}
+
+
+int altair::JitCore::_opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeLoadIntValueFromReg(buffer, RegSingle::A);
+	core->addIntCodeCallIoWr(buffer);
+
+	ticks = 10;
+
+	return 2;
 }

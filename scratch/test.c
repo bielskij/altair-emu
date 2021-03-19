@@ -42,6 +42,12 @@ void _io() {
 	);
 }
 
+void _rrc() {
+	__asm(
+		"rcr al, 1 \t\n"
+	);
+}
+
 void _adi() {
 	__asm(
 		"add al, 0x13 \t\n"

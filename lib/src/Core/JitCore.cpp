@@ -211,6 +211,9 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
 
 	this->_opAdd(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
+
+	// rotate accumulator
+	this->_opAdd(0, 0, 0, 0, 1, 1, 1, 1, _opRrc);
 }
 
 
@@ -881,4 +884,15 @@ int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	ticks = 7;
 
 	return 2;
+}
+
+
+int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->
+		append(0xd0).
+		append(0xd8);
+
+	ticks = 4;
+
+	return 1;
 }

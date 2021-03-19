@@ -127,7 +127,7 @@ namespace altair {
 			virtual uint8_t wRL(WReg reg) = 0;
 			virtual uint8_t wRH(WReg reg) = 0;
 
-			virtual altair::Core::Alu *alu() const = 0;
+			virtual altair::Core::Alu *alu() = 0;
 
 		protected:
 			Core() {}

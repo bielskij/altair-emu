@@ -209,6 +209,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	// OUT
 	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
 	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
+
+	this->_opAdd(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
 }
 
 
@@ -490,8 +492,21 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"push rsi                \n\t"
 			"push rsp                \n\t"
 			"push rbp                \n\t"
+			"pushf                   \n\t"
 
 			"mov rbp, rax            \n\t"
+
+			//       [7][6][5][4][3][2][1][0]
+			// 8080:  S  Z  0  AC 0  P  1  C
+			// x86:   S  Z  0  AC 0  P  1  C
+			// Load flags
+			"pushfq                    \n\t"
+			"pop ax                    \n\t"
+			"and ax, 0xff2a            \n\t"
+			"mov bl, [rbp + %[off_f]]  \n\t"
+			"or  al, bl                \n\t"
+			"push ax                   \n\t"
+			"popfq                     \n\t"
 
 			// Load 8080 regs
 			"mov bh, [rbp + %[off_b]]  \n\t"
@@ -503,7 +518,7 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"mov al, [rbp + %[off_a]]  \n\t"
 			"mov si, [rbp + %[off_sp]] \n\t"
 
-			"callq [rbp + %[off_cs]]  \n\t"
+			"callq [rbp + %[off_cs]]   \n\t"
 
 			// Store 8080 regs
 			"mov [rbp + %[off_b]],  bh \n\t"
@@ -515,6 +530,14 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"mov [rbp + %[off_a]],  al \n\t"
 			"mov [rbp + %[off_sp]], si \n\t"
 
+			// Save flags
+			"pushfq                    \n\t"
+			"pop ax                    \n\t"
+			"and al, 0xd5              \n\t"
+			"mov [rbp + %[off_f]], al  \n\t"
+			"add rsp, 6                \n\t"
+
+			"popf                    \n\t"
 			"pop rbp                 \n\t"
 			"pop rsp                 \n\t"
 			"pop rsi                 \n\t"
@@ -533,6 +556,7 @@ void altair::JitCore::execute(bool singleInstruction) {
 				[off_h]  "i" (offsetof (struct altair::JitCore::Regs, H)),
 				[off_l]  "i" (offsetof (struct altair::JitCore::Regs, L)),
 				[off_a]  "i" (offsetof (struct altair::JitCore::Regs, A)),
+				[off_f]  "i" (offsetof (struct altair::JitCore::Regs, F)),
 				[off_sp] "i" (offsetof (struct altair::JitCore::Regs, SP)),
 				[off_cs] "i" (offsetof (struct altair::JitCore::Regs, codeSegment))
 			:
@@ -590,8 +614,33 @@ uint8_t altair::JitCore::wRH(WReg reg) {
 }
 
 
-altair::Core::Alu *altair::JitCore::alu() const {
-	return NULL;
+altair::Core::Alu *altair::JitCore::alu() {
+	return this;
+}
+
+
+bool altair::JitCore::fZ()  const {
+	return (this->_regs.F & (1 << 6)) != 0;
+}
+
+
+bool altair::JitCore::fCY() const {
+	return (this->_regs.F & (1 << 0)) != 0;
+}
+
+
+bool altair::JitCore::fS()  const {
+	return (this->_regs.F & (1 << 7)) != 0;
+}
+
+
+bool altair::JitCore::fP()  const {
+	return (this->_regs.F & (1 << 2)) != 0;
+}
+
+
+bool altair::JitCore::fAC() const {
+	return (this->_regs.F & (1 << 4)) != 0;
 }
 
 
@@ -819,6 +868,17 @@ int altair::JitCore::_opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t o
 		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 10;
+
+	return 2;
+}
+
+
+int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->
+		append(0x04).
+		append(core->_pio.memoryRead(pc + 1));
+
+	ticks = 7;
 
 	return 2;
 }

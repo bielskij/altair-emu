@@ -32,10 +32,10 @@
 extern void JitCore_onNativeInt(void *ctx);
 
 namespace altair {
-	class JitCore : public altair::Core {
+	class JitCore : public altair::Core, protected altair::Core::Alu {
 		private:
 			struct Regs {
-				uint8_t A, B, C, D, E, H, L;
+				uint8_t F, A, B, C, D, E, H, L;
 				uint16_t PC, SP;
 
 				JitCore *self;
@@ -49,6 +49,7 @@ namespace altair {
 				uint8_t  intValue;
 
 				Regs() {
+					this->F = 0;
 					this->A = 0;
 					this->B = 0;
 					this->C = 0;
@@ -110,7 +111,14 @@ namespace altair {
 			uint8_t  wRL(WReg reg)              override;
 			uint8_t  wRH(WReg reg)              override;
 
-			Alu *alu() const override;
+			Core::Alu *alu() override;
+
+		protected:
+			bool fZ()  const override;
+			bool fCY() const override;
+			bool fS()  const override;
+			bool fP()  const override;
+			bool fAC() const override;
 
 		private:
 			void execute(bool singleInstruction);
@@ -155,6 +163,8 @@ namespace altair {
 
 			static int _opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+
+			static int _opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 		private:
 			JitCore();

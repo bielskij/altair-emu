@@ -97,7 +97,7 @@ namespace test {
 				c->tick();
 			}
 
-			altair::InterpretedCore::Alu *alu() const {
+			altair::InterpretedCore::Alu *alu() {
 				return this->_core->alu();
 			}
 

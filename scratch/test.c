@@ -42,6 +42,12 @@ void _io() {
 	);
 }
 
+void _adi() {
+	__asm(
+		"add al, 0x13 \t\n"
+	);
+}
+
 void _movrr() {
 	__asm(
 		"mov bh,bh  \t\n"

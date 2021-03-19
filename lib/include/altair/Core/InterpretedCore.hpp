@@ -667,7 +667,7 @@ namespace altair {
 				return this->_pio;
 			}
 
-			inline Alu *alu() const {
+			inline Alu *alu() {
 				return this->_alu;
 			}
 

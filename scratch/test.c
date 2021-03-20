@@ -20,7 +20,7 @@ void _onInt(void *ctx) {
 typedef struct _T {
 	uint32_t junk;
 
-	uint8_t A, B, C, D, E, H, L;
+	uint8_t F, A, B, C, D, E, H, L;
 	uint16_t PC, SP;
 
 	void *codeSegment;
@@ -42,9 +42,51 @@ void _io() {
 	);
 }
 
+
+void _saveFlags() {
+	__asm(
+		// Save flags
+		"pushfq                    \n\t"
+		"pop ax                    \n\t"
+		"and al, 0xd5              \n\t"
+		"mov [rbp + %[off_f]], al  \n\t"
+		"add rsp, 6                \n\t"
+		:
+		:
+			[off_f]  "i" (offsetof (struct _T, F))
+		:
+	);
+}
+
+
+void _loadFlags() {
+	__asm(
+		"pushfq                    \n\t"
+		"pop ax                    \n\t"
+		"and ax, 0xff2a            \n\t"
+		"or  al, [rbp + %[off_f]]  \n\t"
+		"push ax                   \n\t"
+		"popfq                     \n\t"
+		:
+		:
+			[off_f]  "i" (offsetof (struct _T, F))
+		:
+	);
+}
+
+
 void _rrc() {
 	__asm(
-		"rcr al, 1 \t\n"
+		"pushfq                     \t\n"
+		"ror  al, 1                 \t\n"
+		"test al, 0x80              \t\n"
+		"jnz isset                  \t\n"
+		"  and byte ptr [rsp], 0xFE \t\n"
+		"  jmp done                 \t\n"
+		"isset:                     \t\n"
+		"  or byte ptr [rsp], 0x01  \t\n"
+		"done:                      \t\n"
+		"popfq                      \t\n"
 	);
 }
 

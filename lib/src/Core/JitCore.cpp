@@ -247,7 +247,61 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				throw std::runtime_error("Opcode " + std::to_string(opcode) +  " is not supported!");
 			}
 
+			// Load flags
+			//       [7][6][5][4][3][2][1][0]
+			// 8080:  S  Z  0  AC 0  P  1  C
+			// x86:   S  Z  0  AC 0  P  1  C
+			// Load flags
+			ret->
+				// push rax
+				append(0x50).
+				// pushf
+				append(0x9c).
+				// pop    ax
+				append(0x66).
+				append(0x58).
+				// and    ax,0xff2a
+				append(0x66).
+				append(0x25).
+				append(0x2a).
+				append(0xff).
+				// or     al,BYTE PTR [rbp+<flags_off>]
+				append(0x0a).
+				append(0x45).
+				append(0x04).
+				// push   ax
+				append(0x66).
+				append(0x50).
+				// popf
+				append(0x9d).
+				// pop rax
+				append(0x58);
+
 			instructionSize = handler(this, ret, opcode, pc, ticks, stop);
+
+			// Save flags
+			ret->
+				// push rax
+				append(0x50).
+				// pushf
+				append(0x9c).
+				// pop    ax
+				append(0x66).
+				append(0x58).
+				// and    al,0xd5
+				append(0x24).
+				append(0xd5).
+				// mov    BYTE PTR [rbp+<flags_off>],al
+				append(0x88).
+				append(0x45).
+				append(offsetof (struct altair::JitCore::Regs, F)).
+				// add    rsp,0x6
+				append(0x48).
+				append(0x83).
+				append(0xc4).
+				append(0x06).
+				// pop rax
+				append(0x58);
 
 			// Increase PC
 			if (! stop) {
@@ -499,18 +553,6 @@ void altair::JitCore::execute(bool singleInstruction) {
 
 			"mov rbp, rax            \n\t"
 
-			//       [7][6][5][4][3][2][1][0]
-			// 8080:  S  Z  0  AC 0  P  1  C
-			// x86:   S  Z  0  AC 0  P  1  C
-			// Load flags
-			"pushfq                    \n\t"
-			"pop ax                    \n\t"
-			"and ax, 0xff2a            \n\t"
-			"mov bl, [rbp + %[off_f]]  \n\t"
-			"or  al, bl                \n\t"
-			"push ax                   \n\t"
-			"popfq                     \n\t"
-
 			// Load 8080 regs
 			"mov bh, [rbp + %[off_b]]  \n\t"
 			"mov bl, [rbp + %[off_c]]  \n\t"
@@ -532,13 +574,6 @@ void altair::JitCore::execute(bool singleInstruction) {
 			"mov [rbp + %[off_l]],  dl \n\t"
 			"mov [rbp + %[off_a]],  al \n\t"
 			"mov [rbp + %[off_sp]], si \n\t"
-
-			// Save flags
-			"pushfq                    \n\t"
-			"pop ax                    \n\t"
-			"and al, 0xd5              \n\t"
-			"mov [rbp + %[off_f]], al  \n\t"
-			"add rsp, 6                \n\t"
 
 			"popf                    \n\t"
 			"pop rbp                 \n\t"
@@ -888,9 +923,41 @@ int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 
 
 int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+
 	buffer->
+		// pushf
+		append(0x9c).
+
+		// ror    al,1
 		append(0xd0).
-		append(0xd8);
+		append(0xc8).
+
+		// test   al,0x80
+		append(0xa8).
+		append(0x80).
+
+		// jne    +7 <isset>
+		append(0x75).
+		append(0x06).
+
+		// and    BYTE PTR [rsp],0xfe
+		append(0x80).
+		append(0x24).
+		append(0x24).
+		append(0xfe).
+
+		// jmp    +5 <done>
+		append(0xeb).
+		append(0x04).
+
+		// <isset> or     BYTE PTR [rsp],0x01
+		append(0x80).
+		append(0x0c).
+		append(0x24).
+		append(0x01).
+
+		// popf
+		append(0x9d);
 
 	ticks = 4;
 

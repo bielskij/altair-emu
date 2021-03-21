@@ -67,6 +67,11 @@ void altair::card::Cpu::ClkSource::tick() {
 }
 
 
+void altair::card::Cpu::ClkSource::tick(int ticks) {
+	this->_ticksTurn += ticks;
+}
+
+
 bool altair::card::Cpu::PioImpl::getReset() {
 #warning "TODO implement"
 	return false;
@@ -184,4 +189,6 @@ void altair::card::Cpu::PioImpl::ioWrite(uint8_t number, uint8_t data) {
 
 void altair::card::Cpu::PioImpl::clk(uint8_t ticks) {
 	this->_conn->clk(ticks);
+
+	this->_clkSource->tick(ticks);
 }

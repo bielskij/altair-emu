@@ -58,9 +58,9 @@ enum RegDouble {
 void JitCore_onNativeInt(void *ctx) {
 	altair::JitCore::Regs *regs = reinterpret_cast<altair::JitCore::Regs *>(ctx);
 
-	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, address: %04x, data: %u (%02x)",
-		__func__, regs, regs->self, regs->intFlags, regs->intAddress, regs->intValue, regs->intValue
-	));
+//	DBG(("%s(): CALL, regs: %p, self: %p, mask: %02x, address: %04x, data: %u (%02x)",
+//		__func__, regs, regs->self, regs->intFlags, regs->intAddress, regs->intValue, regs->intValue
+//	));
 
 	if (regs->intFlags & INT_FLAG_TICKS) {
 		regs->self->onTickInt(regs->intValue);
@@ -81,7 +81,7 @@ void JitCore_onNativeInt(void *ctx) {
 
 
 void altair::JitCore::onTickInt(uint8_t ticks) {
-	DBG(("%s(): CALL! ticks: %d", __func__, ticks));
+//	DBG(("%s(): CALL! ticks: %d", __func__, ticks));
 
 	this->_pio.clk(ticks);
 }
@@ -214,6 +214,17 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 	// rotate accumulator
 	this->_opAdd(0, 0, 0, 0, 1, 1, 1, 1, _opRrc);
+
+	// JMPX
+	this->_opAdd(1, 1, 0, 0, 0, 0, 1, 1, _opJmp); // jmp
+	this->_opAdd(1, 1, 0, 0, 0, 0, 1, 0, _opJmp); // jnz
+	this->_opAdd(1, 1, 0, 0, 1, 0, 1, 0, _opJmp); // jz
+	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 0, _opJmp); // jnc
+	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 0, _opJmp); // jc
+	this->_opAdd(1, 1, 1, 0, 0, 0, 1, 0, _opJmp); // jpo
+	this->_opAdd(1, 1, 1, 0, 1, 0, 1, 0, _opJmp); // jpe
+	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 0, _opJmp); // jp
+	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 0, _opJmp); // jm
 }
 
 
@@ -268,7 +279,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				// or     al,BYTE PTR [rbp+<flags_off>]
 				append(0x0a).
 				append(0x45).
-				append(0x04).
+				append(offsetof (struct altair::JitCore::Regs, F)).
 				// push   ax
 				append(0x66).
 				append(0x50).
@@ -962,4 +973,90 @@ int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	ticks = 4;
 
 	return 1;
+}
+
+
+int altair::JitCore::_opJmp(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	uint16_t dstPc = core->_pio.memoryRead(pc + 1) | (core->_pio.memoryRead(pc + 2) << 8);
+
+	if (opcode & 0x01) { // jmp
+		buffer->
+			// mov    WORD PTR [rbp+<pc>],new_PC
+			append(0x66).
+			append(0xc7).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			append(dstPc & 0xff).
+			append(dstPc >> 8);
+
+	} else {
+		switch (_dstR(opcode)) {
+			case 0: // jnz
+				buffer->append(0x74).append(0x08); // jz <false>
+				break;
+
+			case 1: // jz
+				buffer->append(0x75).append(0x08); // jnz <false>
+				break;
+
+			case 2: // jnc
+				buffer->append(0x72).append(0x08); // jc <false>
+				break;
+
+			case 3: // jc
+				buffer->append(0x73).append(0x08); // jnc <false>
+				break;
+
+			case 4: // jpo
+				buffer->append(0x7a).append(0x08); // jpe <false>
+				break;
+
+			case 5: // jpe
+				buffer->append(0x7b).append(0x08); // jpo <false>
+				break;
+
+			case 6: // jp
+				buffer->append(0x78).append(0x08); // jm <false>
+				break;
+
+			case 7: // jm
+				buffer->append(0x79).append(0x08); // jp <false>
+				break;
+		}
+
+		buffer->
+			// mov    WORD PTR [rbp+<pc>],new_PC
+			append(0x66).
+			append(0xc7).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			append(dstPc & 0xff).
+			append(dstPc >> 8).
+
+			// jmp <done>
+			append(0xeb).
+			append(0x07).
+
+			// <false> pushf
+			append(0x9c).
+
+			// add    WORD PTR [rbp+<pc>],3
+			append(0x66).
+			append(0x83).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			append(3).
+
+			// popf
+			append(0x9d).
+
+			// <done> nop
+			append(0x90);
+	}
+
+	stop = true;
+
+	ticks = 10;
+
+	return 3;
 }

@@ -53,6 +53,7 @@ namespace altair {
 						}
 
 						void tick();
+						void tick(int ticks);
 
 					private:
 						altair::Core *_cpu;

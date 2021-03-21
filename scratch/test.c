@@ -192,6 +192,25 @@ void movMR() {
 }
 
 
+void _jmp() {
+	__asm (
+		// jnc
+		"jc z_false                             \n\t"
+		"mov word ptr [rbp + %[off_pc]], 0x1234 \n\t"
+		"jmp done_jmp                           \n\t"
+	"z_false:                               \n\t"
+		"pushf                                  \n\t"
+		"add word ptr [rbp + %[off_pc]], 3      \n\t"
+		"popf                                   \n\t"
+	"done_jmp:                                  \n\t"
+		"nop                                    \n\t"
+		:
+		:
+			[off_pc] "i" (offsetof (struct _T, PC))
+		:
+	);
+}
+
 void nexti(void *data, uint8_t ticks) {
 	// execute int callback
 	{

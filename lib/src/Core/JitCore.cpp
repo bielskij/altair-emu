@@ -35,6 +35,7 @@
 #define INT_FLAG_MEM_WR (1 << 2)
 #define INT_FLAG_IO_RD  (1 << 3)
 #define INT_FLAG_IO_WR  (1 << 4)
+#define INT_FLAG_INTE   (1 << 5)
 
 
 enum RegSingle {
@@ -44,14 +45,18 @@ enum RegSingle {
 	E = 3,
 	H = 4,
 	L = 5,
-	A = 7
+	A = 7,
+
+	PSW = 8
 };
 
 enum RegDouble {
 	BC = 0,
 	DE = 1,
 	HL = 2,
-	SP = 3
+
+	SP   = 3,
+	PSWA = 3
 };
 
 
@@ -76,6 +81,9 @@ void JitCore_onNativeInt(void *ctx) {
 
 	} else if (regs->intFlags & INT_FLAG_IO_RD) {
 		regs->self->onIoReadInt(regs->intAddress, regs->intValue);
+
+	} else if (regs->intFlags & INT_FLAG_INTE) {
+		regs->self->onInte(regs->intValue);
 	}
 }
 
@@ -84,6 +92,8 @@ void altair::JitCore::onTickInt(uint8_t ticks) {
 //	DBG(("%s(): CALL! ticks: %d", __func__, ticks));
 
 	this->_pio.clk(ticks);
+
+	this->_regs.intFF = (this->_pio.getInt() && this->_pio.getInte());
 }
 
 
@@ -107,6 +117,11 @@ void altair::JitCore::onIoReadInt(uint8_t address, uint8_t &value) {
 }
 
 
+void altair::JitCore::onInte(uint8_t value) {
+	this->_pio.setInte(value != 0);
+}
+
+
 altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_regs.PC = pc;
 
@@ -114,6 +129,9 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_regs.intHandler = JitCore_onNativeInt;
 
 	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
+
+	// NOP
+	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
 
 	// MVI R, I
 	// MVI M, I
@@ -127,6 +145,14 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
 
 		this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
+	}
+
+	// LXI
+	{
+		this->_opAddRp(0, 0, BC, 0, 0, 0, 1, _opLxi);
+		this->_opAddRp(0, 0, DE, 0, 0, 0, 1, _opLxi);
+		this->_opAddRp(0, 0, HL, 0, 0, 0, 1, _opLxi);
+		this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
 	}
 
 	// MOV R, R
@@ -206,9 +232,13 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
 	}
 
-	// OUT
+	// IN/OUT
 	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
 	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
+
+	// EI/DI
+	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 1, _opEid);
+	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 1, _opEid);
 
 	this->_opAdd(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
 
@@ -225,6 +255,16 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAdd(1, 1, 1, 0, 1, 0, 1, 0, _opJmp); // jpe
 	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 0, _opJmp); // jp
 	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 0, _opJmp); // jm
+
+	// PUSH/POP
+	this->_opAddRp(1, 1, BC,   0, 1, 0, 1, _opPush);
+	this->_opAddRp(1, 1, DE,   0, 1, 0, 1, _opPush);
+	this->_opAddRp(1, 1, HL,   0, 1, 0, 1, _opPush);
+	this->_opAddRp(1, 1, PSWA, 0, 1, 0, 1, _opPush);
+	this->_opAddRp(1, 1, BC,   0, 0, 0, 1, _opPop);
+	this->_opAddRp(1, 1, DE,   0, 0, 0, 1, _opPop);
+	this->_opAddRp(1, 1, HL,   0, 0, 0, 1, _opPop);
+	this->_opAddRp(1, 1, PSWA, 0, 0, 0, 1, _opPop);
 }
 
 
@@ -241,6 +281,8 @@ void altair::JitCore::shutdown() {
 altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool singleInstruction) {
 	ExecutionByteBuffer *ret = new ExecutionByteBuffer();
 
+	uint16_t currPc = pc;
+
 	ret->begin();
 	{
 		uint8_t opcode;
@@ -249,7 +291,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 		uint8_t instructionSize;
 
 		do {
-			opcode = this->_pio.memoryRead(pc);
+			opcode = this->_pio.memoryRead(currPc);
 
 			OpHandler handler = this->_opHandlers[opcode];
 			if (handler == nullptr) {
@@ -288,7 +330,7 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				// pop rax
 				append(0x58);
 
-			instructionSize = handler(this, ret, opcode, pc, ticks, stop);
+			instructionSize = handler(this, ret, opcode, currPc, ticks, stop);
 
 			// Save flags
 			ret->
@@ -299,9 +341,6 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 				// pop    ax
 				append(0x66).
 				append(0x58).
-				// and    al,0xd5
-				append(0x24).
-				append(0xd5).
 				// mov    BYTE PTR [rbp+<flags_off>],al
 				append(0x88).
 				append(0x45).
@@ -341,16 +380,32 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 					// pop rax
 					append(0x58);
 
-				pc += instructionSize;
+				currPc += instructionSize;
 			}
 
-			// TODO: Call ticks callback there!
 			this->addIntCodeCallTick(ret, ticks);
+
+			// Interruption checking
+			ret->
+				// test   BYTE PTR [rbp+offsetof(intFF)], 0x1
+				append(0xf6).
+				append(0x45).
+				append(offsetof(struct altair::JitCore::Regs, intFF)).
+				append(0x01).
+				// je <noint>
+				append(0x74).
+				append(0x01).
+				// ret
+				append(0xc3).
+				// nop
+				append(0x90);
 		} while (! singleInstruction && ! stop);
 
 		ret->append(0xc3); // retq
 	}
 	ret->end();
+
+	DBG(("%s(): Compiled range between %04x - %04x", __func__, pc, currPc))
 
 	return ret;
 }
@@ -453,24 +508,32 @@ void altair::JitCore::addIntCodeLoadIntAddrFromImm(ExecutionByteBuffer *buffer, 
 
 
 void altair::JitCore::addIntCodeLoadIntValueFromReg(ExecutionByteBuffer *b, uint8_t reg) {
-	b->append(0x88);
+	if (reg == PSW) {
+		// mov dil, PSW
+		b->append(0x40).append(0x8a).append(0x7d).append(offsetof(struct altair::JitCore::Regs, F));
+		// mov intValue, dil
+		b->append(0x40).append(0x88).append(0x7d).append(offsetof(struct altair::JitCore::Regs, intValue));
 
-	switch(reg) {
-		case RegSingle::B: b->append(0x7d); break;
-		case RegSingle::C: b->append(0x5d); break;
-		case RegSingle::D: b->append(0x6d); break;
-		case RegSingle::E: b->append(0x4d); break;
-		case RegSingle::H: b->append(0x75); break;
-		case RegSingle::L: b->append(0x55); break;
-		case RegSingle::A: b->append(0x45); break;
+	} else {
+		b->append(0x88);
 
-	default:
-		ERR(("%s(): Not supported single register %u!", __func__, reg));
+		switch(reg) {
+			case RegSingle::B: b->append(0x7d); break;
+			case RegSingle::C: b->append(0x5d); break;
+			case RegSingle::D: b->append(0x6d); break;
+			case RegSingle::E: b->append(0x4d); break;
+			case RegSingle::H: b->append(0x75); break;
+			case RegSingle::L: b->append(0x55); break;
+			case RegSingle::A: b->append(0x45); break;
 
-		throw std::runtime_error("Not supported single register!");
+		default:
+			ERR(("%s(): Not supported single register %u!", __func__, reg));
+
+			throw std::runtime_error("Not supported single register!");
+		}
+
+		b->append(offsetof(struct altair::JitCore::Regs, intValue));
 	}
-
-	b->append(offsetof(struct altair::JitCore::Regs, intValue));
 }
 
 
@@ -544,6 +607,8 @@ void altair::JitCore::execute(bool singleInstruction) {
 	 * [D][E] -> [CH][CL] rcx
 	 * [H][L] -> [DH][DL] rdx
 	 * [SP]   -> [SI]     rsi
+	 *
+	 * rdi - temporary register (used in push/pop/ret instructions)
 	 */
 
 	{
@@ -611,6 +676,39 @@ void altair::JitCore::execute(bool singleInstruction) {
 			:
 		);
 	}
+
+	// Handle interrupt
+	if (this->_regs.intFF) {
+		uint8_t ir = this->_pio.getData();
+
+		DBG(("%s(): Interrupt! saving current PC (%04x)", __func__, this->_regs.PC));
+
+		if ((ir & 0xc7) != 0xc7) {
+			throw std::runtime_error("Invalid instruction on interrupt! RST is the only one supported!");
+		}
+
+		// Disable interrupts
+		this->_pio.setInte(false);
+
+		// Put return address on stack
+		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC >> 8);
+		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC & 0xff);
+
+		switch ((ir >> 3) & 0x07) {
+			case 0: this->_regs.PC = 0x0000; break;
+			case 1: this->_regs.PC = 0x0008; break;
+			case 2: this->_regs.PC = 0x0010; break;
+			case 3: this->_regs.PC = 0x0018; break;
+			case 4: this->_regs.PC = 0x0020; break;
+			case 5: this->_regs.PC = 0x0028; break;
+			case 6: this->_regs.PC = 0x0030; break;
+			case 7: this->_regs.PC = 0x0038; break;
+		}
+
+		DBG(("%s(): Interrupt handler PC: %04x", __func__, this->_regs.PC));
+
+		this->_regs.intFF = 0;
+	}
 }
 
 
@@ -623,6 +721,7 @@ uint8_t  altair::JitCore::bR(BReg reg) const {
 		case BReg::E: return this->_regs.E;
 		case BReg::H: return this->_regs.H;
 		case BReg::L: return this->_regs.L;
+		case BReg::F: return this->_regs.F;
 	}
 
 	ERR(("%s(): Not supported BReg value! (%02x)", __func__, (uint8_t)reg));
@@ -640,6 +739,9 @@ uint16_t altair::JitCore::wR(WReg reg) const {
 	switch (reg) {
 		case WReg::PC: return this->_regs.PC;
 		case WReg::SP: return this->_regs.SP;
+		case WReg::B:  return ((this->_regs.B << 8) | this->_regs.C);
+		case WReg::D:  return ((this->_regs.D << 8) | this->_regs.E);
+		case WReg::H:  return ((this->_regs.H << 8) | this->_regs.L);
 	}
 
 	ERR(("%s(): Not supported WReg value! (%02x)", __func__, (uint8_t)reg));
@@ -716,6 +818,11 @@ void altair::JitCore::_opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint
 }
 
 
+void altair::JitCore::_opAddRp(uint8_t bit7, uint8_t bit6, uint8_t rp, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+	this->_opAdd(bit7, bit6, (rp & 2) >> 1, (rp & 1), bit3, bit2,  bit1, bit0, handler);
+}
+
+
 static RegSingle _srcR(uint8_t reg) {
 	return (RegSingle)(reg & 0x07);
 }
@@ -728,6 +835,13 @@ static RegSingle _dstR(uint8_t reg) {
 
 static RegDouble _rp(uint8_t reg) {
 	return (RegDouble)((reg >> 4) & 0x03);
+}
+
+
+int altair::JitCore::_opNop(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	ticks = 4;
+
+	return 1;
 }
 
 
@@ -896,6 +1010,25 @@ int altair::JitCore::_opMovMR(JitCore *core, ExecutionByteBuffer *b, uint8_t opc
 }
 
 
+int altair::JitCore::_opLxi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->append(0x66);
+
+	switch (_rp(opcode)) {
+		case RegDouble::BC: buffer->append(0xbb); break;
+		case RegDouble::DE: buffer->append(0xb9); break;
+		case RegDouble::HL: buffer->append(0xba); break;
+		case RegDouble::SP: buffer->append(0xbe); break;
+	}
+
+	buffer->append(core->_pio.memoryRead(pc + 1));
+	buffer->append(core->_pio.memoryRead(pc + 2));
+
+	ticks = 10;
+
+	return 3;
+}
+
+
 int altair::JitCore::_opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
 	core->addIntCodeLoadIntValueFromReg(buffer, RegSingle::A);
@@ -919,6 +1052,188 @@ int altair::JitCore::_opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t o
 	ticks = 10;
 
 	return 2;
+}
+
+
+int altair::JitCore::_opEid(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntValueFromImm(buffer, (opcode & 0x08) != 0);
+	core->addIntCodeCall(buffer, INT_FLAG_INTE);
+
+	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// dec si
+	buffer->
+		append(0x66).
+		append(0xff).
+		append(0xce);
+	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
+
+	switch (_rp(opcode)) {
+		case BC:   core->addIntCodeLoadIntValueFromReg(buffer, B);   break;
+		case DE:   core->addIntCodeLoadIntValueFromReg(buffer, D);   break;
+		case HL:   core->addIntCodeLoadIntValueFromReg(buffer, H);   break;
+		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, PSW); break;
+	}
+
+	core->addIntCodeCallMemoryWrite(buffer);
+
+	// dec si
+	buffer->
+		append(0x66).
+		append(0xff).
+		append(0xce);
+	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
+
+	switch (_rp(opcode)) {
+		case BC:   core->addIntCodeLoadIntValueFromReg(buffer, C);   break;
+		case DE:   core->addIntCodeLoadIntValueFromReg(buffer, E);   break;
+		case HL:   core->addIntCodeLoadIntValueFromReg(buffer, L);   break;
+		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, A); break;
+	}
+
+	core->addIntCodeCallMemoryWrite(buffer);
+
+	ticks = 11;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	{
+		core->addIntCodeLoadIntAddrFromReg(b, SP);
+		core->addIntCodeCallMemoryRead(b);
+
+		b->append(0x8a);
+		switch (_rp(opcode)) {
+			case BC:   b->append(0x5d); break;
+			case DE:   b->append(0x4d); break;
+			case HL:   b->append(0x55); break;
+			case PSWA: b->append(0x45); break;
+		}
+		b->append(offsetof(struct altair::JitCore::Regs, intValue));
+
+		// inc si (with saved flags)
+		b->
+			// pushf
+			append(0x9c).
+			// inc
+			append(0x66).
+			append(0xff).
+			append(0xc6).
+			// popf
+			append(0x9d);
+	}
+
+	{
+		core->addIntCodeLoadIntAddrFromReg(b, SP);
+		core->addIntCodeCallMemoryRead(b);
+
+		if (_rp(opcode) == PSWA) {
+			// Load flags register
+			b->
+				// pushf
+				append(0x9c).
+				// mov    dil, intValue
+				append(0x40).
+				append(0x8a).
+				append(0x7d).
+				append(offsetof(struct altair::JitCore::Regs, intValue)).
+				// and    BYTE PTR [rsp],0x2a
+				append(0x80).
+				append(0x24).
+				append(0x24).
+				append(0x2a).
+				// or     BYTE PTR [rsp],dil
+				append(0x40).
+				append(0x08).
+				append(0x3c).
+				append(0x24).
+				// popf
+				append(0x9d);
+
+		} else {
+			b->append(0x8a);
+			switch (_rp(opcode)) {
+				case BC:   b->append(0x7d); break;
+				case DE:   b->append(0x6d); break;
+				case HL:   b->append(0x75); break;
+				case PSWA:  break;
+			}
+			b->append(offsetof(struct altair::JitCore::Regs, intValue));
+		}
+
+		// inc si
+		b->
+			// pushf
+			append(0x9c).
+			// inc
+			append(0x66).
+			append(0xff).
+			append(0xc6).
+			// popf
+			append(0x9d);
+	}
+
+	ticks = 10;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+
+
+	//	buffer-> // pushf
+	//		append(0x9c);
+	//
+	//	this->addIntCodeLoadIntAddrFromReg(buffer, RegDouble::SP);
+	//	this->addIntCodeCallMemoryRead(buffer);
+	//
+	//	buffer->
+	//		// mov dil,BYTE PTR [rbp+offsetof(intValue)]
+	//		append(0x40).
+	//		append(0x8a).
+	//		append(0x7d).
+	//		append(0x24).
+	//		// shl di, 8
+	//		append(0x66).
+	//		append(0xc1).
+	//		append(0xe7).
+	//		append(0x08).
+	//		// inc si
+	//		append(0x66).
+	//		append(0xff).
+	//		append(0xc6);
+	//
+	//	this->addIntCodeLoadIntAddrFromReg(buffer, RegDouble::SP);
+	//	this->addIntCodeCallMemoryRead(buffer);
+	//
+	//	buffer->
+	//		// mov dil,BYTE PTR [rbp+offsetof(intValue)]
+	//		append(0x40).
+	//		append(0x8a).
+	//		append(0x7d).
+	//		append(0x24).
+	//		// inc si
+	//		append(0x66).
+	//		append(0xff).
+	//		append(0xc6).
+	//		// mov    si,di
+	//		append(0x66).
+	//		append(0x89).
+	//		append(0xfe).
+	//		// popf
+	//		append(0x9d);
+	//
+	//	ticks = 10;
+	//
+	//	return 1;
 }
 
 

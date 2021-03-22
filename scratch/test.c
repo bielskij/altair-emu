@@ -23,6 +23,8 @@ typedef struct _T {
 	uint8_t F, A, B, C, D, E, H, L;
 	uint16_t PC, SP;
 
+	uint8_t intFF;
+
 	void *codeSegment;
 
 	uint8_t   intMask;
@@ -30,6 +32,71 @@ typedef struct _T {
 	uint8_t   intValue;
 	void    (*intHandler)(void *);
 } T;
+
+
+void _ret() {
+	__asm(
+			"pushfq                              \t\n"
+			"mov dil, BYTE PTR [rbp + %[off_sp]] \t\n"
+			"shl di, 8                           \t\n"
+			"inc si                              \t\n"
+			"mov WORD PTR [rbp + %[off_pc]] , di \t\n"
+			"popfq                               \t\n"
+			:
+			:
+				[off_sp]  "i" (offsetof (struct _T, SP)),
+				[off_pc]  "i" (offsetof (struct _T, PC))
+			:
+		);
+}
+
+
+void _pushpop() {
+	__asm(
+		"dec si \t\n"
+		"inc si \t\n"
+
+		"pushf                         \n\t"
+		"mov dil, [rbp + %[off_value]] \n\t"
+		"and byte ptr [rsp], 0xd5      \n\t"
+		"or  [rsp], dil                \n\t"
+		"popf                          \n\t"
+
+		"mov [rbp + %[off_f]], dil \n\t"
+
+		"mov dil, [rbp + %[off_f]] \n\t"
+		"mov [rbp + %[off_value]], dil \n\t"
+		:
+		:
+			[off_value]  "i" (offsetof (struct _T, intValue)),
+			[off_f]      "i" (offsetof (struct _T, F))
+		:
+	);
+}
+
+
+void _lxi() {
+	__asm(
+		"mov bx, 0x1234 \t\n"
+		"mov cx, 0x1234 \t\n"
+		"mov dx, 0x1234 \t\n"
+		"mov si, 0x1234 \t\n"
+	);
+}
+
+void _checkint() {
+	__asm(
+		"test BYTE PTR [rbp + %[off_int]], 1 \n\t"
+		"jz noint \n\t"
+		"retq     \n\t"
+		"noint:   \n\t"
+		"nop      \n\t"
+		:
+		:
+			[off_int]  "i" (offsetof (struct _T, intFF))
+		:
+	);
+}
 
 
 void _io() {

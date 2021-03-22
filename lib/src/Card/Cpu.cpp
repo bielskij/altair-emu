@@ -188,6 +188,9 @@ void altair::card::Cpu::PioImpl::ioWrite(uint8_t number, uint8_t data) {
 
 
 void altair::card::Cpu::PioImpl::clk(uint8_t ticks) {
+	// equivalent to pull up
+	this->_conn->pint(false);
+
 	this->_conn->clk(ticks);
 
 	this->_clkSource->tick(ticks);

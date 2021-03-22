@@ -244,6 +244,9 @@ void altair::MainBoard::ioOut(uint8_t number, uint8_t data) {
 
 
 void altair::MainBoard::clk(uint8_t ticks) {
+	this->din(0xff);
+	this->vi(0xff);
+
 	for (auto c : _connectors) {
 		c->onClk(ticks);
 	}

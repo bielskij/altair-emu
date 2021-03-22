@@ -38,6 +38,8 @@ namespace altair {
 				uint8_t F, A, B, C, D, E, H, L;
 				uint16_t PC, SP;
 
+				uint8_t intFF;
+
 				JitCore *self;
 
 				void *codeSegment;
@@ -60,6 +62,8 @@ namespace altair {
 
 					this->PC = 0;
 					this->SP = 0;
+
+					this->intFF = 0;
 
 					this->self        = nullptr;
 					this->codeSegment = nullptr;
@@ -128,6 +132,7 @@ namespace altair {
 			void onMemoryReadInt(uint16_t address, uint8_t &value);
 			void onIoWriteInt(uint8_t address, uint8_t value);
 			void onIoReadInt(uint8_t address, uint8_t &value);
+			void onInte(uint8_t value);
 
 			ExecutionByteBuffer *compile(uint16_t pc, bool singleInstruction);
 
@@ -153,6 +158,9 @@ namespace altair {
 			void _opAddSSS(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t src, OpHandler handler);
 			void _opAddDDD(uint8_t bit7, uint8_t bit6, uint8_t dst, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
 			void _opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint8_t src, OpHandler handler);
+			void _opAddRp(uint8_t bit7, uint8_t bit6, uint8_t rp, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler);
+
+			static int _opNop(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 			static int _opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
@@ -161,8 +169,15 @@ namespace altair {
 			static int _opMovRM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opMovMR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
+			static int _opLxi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+
 			static int _opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+			static int _opEid(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+
+			static int _opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+			static int _opPop(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+			static int _opRet(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 			static int _opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);

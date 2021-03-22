@@ -185,7 +185,7 @@ namespace altair {
 					}
 				}
 
-				void onClk() override {
+				void _onClk() {
 					bool    pint;
 					uint8_t vi;
 
@@ -214,6 +214,14 @@ namespace altair {
 
 					this->pint(pint);
 					this->vi(vi);
+				}
+
+				void onClk(uint8_t ticks) override {
+					this->_onClk();
+				}
+
+				void onClk() override {
+					this->_onClk();
 				}
 
 			private:

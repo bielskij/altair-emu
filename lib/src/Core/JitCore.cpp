@@ -265,6 +265,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(1, 1, DE,   0, 0, 0, 1, _opPop);
 	this->_opAddRp(1, 1, HL,   0, 0, 0, 1, _opPop);
 	this->_opAddRp(1, 1, PSWA, 0, 0, 0, 1, _opPop);
+
+	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 1, _opRet);
 }
 
 
@@ -691,8 +693,8 @@ void altair::JitCore::execute(bool singleInstruction) {
 		this->_pio.setInte(false);
 
 		// Put return address on stack
-		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC >> 8);
 		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC & 0xff);
+		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC >> 8);
 
 		switch ((ir >> 3) & 0x07) {
 			case 0: this->_regs.PC = 0x0000; break;
@@ -1105,6 +1107,9 @@ int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// pushf
+	b->append(0x9c);
+
 	{
 		core->addIntCodeLoadIntAddrFromReg(b, SP);
 		core->addIntCodeCallMemoryRead(b);
@@ -1118,16 +1123,11 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 		}
 		b->append(offsetof(struct altair::JitCore::Regs, intValue));
 
-		// inc si (with saved flags)
+		// inc SP
 		b->
-			// pushf
-			append(0x9c).
-			// inc
 			append(0x66).
 			append(0xff).
-			append(0xc6).
-			// popf
-			append(0x9d);
+			append(0xc6);
 	}
 
 	{
@@ -1137,8 +1137,6 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 		if (_rp(opcode) == PSWA) {
 			// Load flags register
 			b->
-				// pushf
-				append(0x9c).
 				// mov    dil, intValue
 				append(0x40).
 				append(0x8a).
@@ -1153,9 +1151,7 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 				append(0x40).
 				append(0x08).
 				append(0x3c).
-				append(0x24).
-				// popf
-				append(0x9d);
+				append(0x24);
 
 		} else {
 			b->append(0x8a);
@@ -1168,17 +1164,15 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 			b->append(offsetof(struct altair::JitCore::Regs, intValue));
 		}
 
-		// inc si
+		// inc SP
 		b->
-			// pushf
-			append(0x9c).
-			// inc
 			append(0x66).
 			append(0xff).
-			append(0xc6).
-			// popf
-			append(0x9d);
+			append(0xc6);
 	}
+
+	// popf
+	b->append(0x9d);
 
 	ticks = 10;
 
@@ -1186,54 +1180,60 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 }
 
 
-int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// pushf
+	b->append(0x9c);
 
+	{
+		core->addIntCodeLoadIntAddrFromReg(b, SP);
+		core->addIntCodeCallMemoryRead(b);
 
-	//	buffer-> // pushf
-	//		append(0x9c);
-	//
-	//	this->addIntCodeLoadIntAddrFromReg(buffer, RegDouble::SP);
-	//	this->addIntCodeCallMemoryRead(buffer);
-	//
-	//	buffer->
-	//		// mov dil,BYTE PTR [rbp+offsetof(intValue)]
-	//		append(0x40).
-	//		append(0x8a).
-	//		append(0x7d).
-	//		append(0x24).
-	//		// shl di, 8
-	//		append(0x66).
-	//		append(0xc1).
-	//		append(0xe7).
-	//		append(0x08).
-	//		// inc si
-	//		append(0x66).
-	//		append(0xff).
-	//		append(0xc6);
-	//
-	//	this->addIntCodeLoadIntAddrFromReg(buffer, RegDouble::SP);
-	//	this->addIntCodeCallMemoryRead(buffer);
-	//
-	//	buffer->
-	//		// mov dil,BYTE PTR [rbp+offsetof(intValue)]
-	//		append(0x40).
-	//		append(0x8a).
-	//		append(0x7d).
-	//		append(0x24).
-	//		// inc si
-	//		append(0x66).
-	//		append(0xff).
-	//		append(0xc6).
-	//		// mov    si,di
-	//		append(0x66).
-	//		append(0x89).
-	//		append(0xfe).
-	//		// popf
-	//		append(0x9d);
-	//
-	//	ticks = 10;
-	//
-	//	return 1;
+		b->
+			// mov dil, BYTE PTR [rbp+intValue]
+			append(0x40).
+			append(0x8a).
+			append(0x7d).
+			append(offsetof(struct altair::JitCore::Regs, intValue)).
+			// shl di,8
+			append(0x66).
+			append(0xc1).
+			append(0xe7).
+			append(0x08).
+			// inc SP
+			append(0x66).
+			append(0xff).
+			append(0xc6);
+	}
+
+	{
+		core->addIntCodeLoadIntAddrFromReg(b, SP);
+		core->addIntCodeCallMemoryRead(b);
+
+		b->
+			// mov dil, BYTE PTR [rbp+intValue]
+			append(0x40).
+			append(0x8a).
+			append(0x7d).
+			append(offsetof(struct altair::JitCore::Regs, intValue)).
+			// mov    WORD PTR [rbp+PC],di
+			append(0x66).
+			append(0x89).
+			append(0x7d).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			// inc SP
+			append(0x66).
+			append(0xff).
+			append(0xc6);
+	}
+
+	// popf
+	b->append(0x9d);
+
+	stop = true;
+
+	ticks = 10;
+
+	return 1;
 }
 
 

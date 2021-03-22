@@ -107,5 +107,6 @@ CUNIT_TEST(core_instruction_jit, push_pop) {
 	core.nextInstruction();
 	core.nextInstruction();
 
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x000f);
 	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::D), 0x1234);
 }

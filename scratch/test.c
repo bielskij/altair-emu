@@ -34,17 +34,29 @@ typedef struct _T {
 } T;
 
 
+void _stc() {
+	__asm("stc");
+}
+
 void _ret() {
 	__asm(
-			"pushfq                              \t\n"
-			"mov dil, BYTE PTR [rbp + %[off_sp]] \t\n"
-			"shl di, 8                           \t\n"
-			"inc si                              \t\n"
-			"mov WORD PTR [rbp + %[off_pc]] , di \t\n"
+			"pushfq         \t\n"
+			"push rax \t\n"
+
+			"mov al, BYTE PTR [rbp + %[off_value]] \t\n"
+			"inc si  \t\n"
+
+			"mov ah, BYTE PTR [rbp + %[off_value]] \t\n"
+			"inc si  \t\n"
+
+			"mov WORD PTR [rbp + %[off_pc]] , ax \t\n"
+
+			"pop  rax \t\n"
 			"popfq                               \t\n"
+
 			:
 			:
-				[off_sp]  "i" (offsetof (struct _T, SP)),
+				[off_value]  "i" (offsetof (struct _T, intValue)),
 				[off_pc]  "i" (offsetof (struct _T, PC))
 			:
 		);
@@ -53,6 +65,14 @@ void _ret() {
 
 void _pushpop() {
 	__asm(
+		"mov bh, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov bl, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov ch, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov cl, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov dh, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov dl, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov al, BYTE PTR [rbp + %[off_value]] \t\n"
+
 		"dec si \t\n"
 		"inc si \t\n"
 

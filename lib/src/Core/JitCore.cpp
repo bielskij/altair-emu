@@ -267,6 +267,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(1, 1, PSWA, 0, 0, 0, 1, _opPop);
 
 	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 1, _opRet);
+
+	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 1, _opStc);
 }
 
 
@@ -415,6 +417,8 @@ altair::JitCore::ExecutionByteBuffer *altair::JitCore::compile(uint16_t pc, bool
 
 void altair::JitCore::addIntCodeCall(ExecutionByteBuffer *buffer, uint8_t flag) {
 	buffer->
+		// pushf
+		append(0x9c).
 		// push rax
 		append(0x50).
 
@@ -463,7 +467,9 @@ void altair::JitCore::addIntCodeCall(ExecutionByteBuffer *buffer, uint8_t flag) 
 		append(0x59).              // pop rcx
 
 		// pop rax
-		append(0x58);
+		append(0x58).
+		// popf
+		append(0x9d);
 }
 
 
@@ -683,7 +689,7 @@ void altair::JitCore::execute(bool singleInstruction) {
 	if (this->_regs.intFF) {
 		uint8_t ir = this->_pio.getData();
 
-		DBG(("%s(): Interrupt! saving current PC (%04x)", __func__, this->_regs.PC));
+		DBG(("%s(): Interrupt! saving current PC (%04x), SP: %04x", __func__, this->_regs.PC, this->_regs.SP));
 
 		if ((ir & 0xc7) != 0xc7) {
 			throw std::runtime_error("Invalid instruction on interrupt! RST is the only one supported!");
@@ -693,8 +699,8 @@ void altair::JitCore::execute(bool singleInstruction) {
 		this->_pio.setInte(false);
 
 		// Put return address on stack
-		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC & 0xff);
-		this->_pio.memoryWrite(++this->_regs.SP, this->_regs.PC >> 8);
+		this->_pio.memoryWrite(--this->_regs.SP, this->_regs.PC >> 8);
+		this->_pio.memoryWrite(--this->_regs.SP, this->_regs.PC & 0xff);
 
 		switch ((ir >> 3) & 0x07) {
 			case 0: this->_regs.PC = 0x0000; break;
@@ -1068,6 +1074,9 @@ int altair::JitCore::_opEid(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 
 
 int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// pushf
+	buffer->append(0x9c);
+
 	// dec si
 	buffer->
 		append(0x66).
@@ -1076,10 +1085,10 @@ int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
 
 	switch (_rp(opcode)) {
-		case BC:   core->addIntCodeLoadIntValueFromReg(buffer, B);   break;
-		case DE:   core->addIntCodeLoadIntValueFromReg(buffer, D);   break;
-		case HL:   core->addIntCodeLoadIntValueFromReg(buffer, H);   break;
-		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, PSW); break;
+		case BC:   core->addIntCodeLoadIntValueFromReg(buffer, B); break;
+		case DE:   core->addIntCodeLoadIntValueFromReg(buffer, D); break;
+		case HL:   core->addIntCodeLoadIntValueFromReg(buffer, H); break;
+		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, A); break;
 	}
 
 	core->addIntCodeCallMemoryWrite(buffer);
@@ -1095,10 +1104,13 @@ int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 		case BC:   core->addIntCodeLoadIntValueFromReg(buffer, C);   break;
 		case DE:   core->addIntCodeLoadIntValueFromReg(buffer, E);   break;
 		case HL:   core->addIntCodeLoadIntValueFromReg(buffer, L);   break;
-		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, A); break;
+		case PSWA: core->addIntCodeLoadIntValueFromReg(buffer, PSW); break;
 	}
 
 	core->addIntCodeCallMemoryWrite(buffer);
+
+	// popf
+	buffer->append(0x9d);
 
 	ticks = 11;
 
@@ -1109,26 +1121,6 @@ int altair::JitCore::_opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 	// pushf
 	b->append(0x9c);
-
-	{
-		core->addIntCodeLoadIntAddrFromReg(b, SP);
-		core->addIntCodeCallMemoryRead(b);
-
-		b->append(0x8a);
-		switch (_rp(opcode)) {
-			case BC:   b->append(0x5d); break;
-			case DE:   b->append(0x4d); break;
-			case HL:   b->append(0x55); break;
-			case PSWA: b->append(0x45); break;
-		}
-		b->append(offsetof(struct altair::JitCore::Regs, intValue));
-
-		// inc SP
-		b->
-			append(0x66).
-			append(0xff).
-			append(0xc6);
-	}
 
 	{
 		core->addIntCodeLoadIntAddrFromReg(b, SP);
@@ -1156,13 +1148,33 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 		} else {
 			b->append(0x8a);
 			switch (_rp(opcode)) {
-				case BC:   b->append(0x7d); break;
-				case DE:   b->append(0x6d); break;
-				case HL:   b->append(0x75); break;
+				case BC:   b->append(0x5d); break;
+				case DE:   b->append(0x4d); break;
+				case HL:   b->append(0x55); break;
 				case PSWA:  break;
 			}
 			b->append(offsetof(struct altair::JitCore::Regs, intValue));
 		}
+
+		// inc SP
+		b->
+			append(0x66).
+			append(0xff).
+			append(0xc6);
+	}
+
+	{
+		core->addIntCodeLoadIntAddrFromReg(b, SP);
+		core->addIntCodeCallMemoryRead(b);
+
+		b->append(0x8a);
+		switch (_rp(opcode)) {
+			case BC:   b->append(0x7d); break;
+			case DE:   b->append(0x6d); break;
+			case HL:   b->append(0x75); break;
+			case PSWA: b->append(0x45); break;
+		}
+		b->append(offsetof(struct altair::JitCore::Regs, intValue));
 
 		// inc SP
 		b->
@@ -1181,53 +1193,48 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 
 
 int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	// pushf
-	b->append(0x9c);
+	b->
+		// pushf
+		append(0x9c).
+		// push rax
+		append(0x50);
 
-	{
-		core->addIntCodeLoadIntAddrFromReg(b, SP);
-		core->addIntCodeCallMemoryRead(b);
+	core->addIntCodeLoadIntAddrFromReg(b, SP);
+	core->addIntCodeCallMemoryRead(b);
 
-		b->
-			// mov dil, BYTE PTR [rbp+intValue]
-			append(0x40).
-			append(0x8a).
-			append(0x7d).
-			append(offsetof(struct altair::JitCore::Regs, intValue)).
-			// shl di,8
-			append(0x66).
-			append(0xc1).
-			append(0xe7).
-			append(0x08).
-			// inc SP
-			append(0x66).
-			append(0xff).
-			append(0xc6);
-	}
+	b->
+		// mov    al,BYTE PTR [rbp+intValue]
+		append(0x8a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
+		// inc    si
+		append(0x66).
+		append(0xff).
+		append(0xc6);
 
-	{
-		core->addIntCodeLoadIntAddrFromReg(b, SP);
-		core->addIntCodeCallMemoryRead(b);
+	core->addIntCodeLoadIntAddrFromReg(b, SP);
+	core->addIntCodeCallMemoryRead(b);
 
-		b->
-			// mov dil, BYTE PTR [rbp+intValue]
-			append(0x40).
-			append(0x8a).
-			append(0x7d).
-			append(offsetof(struct altair::JitCore::Regs, intValue)).
-			// mov    WORD PTR [rbp+PC],di
-			append(0x66).
-			append(0x89).
-			append(0x7d).
-			append(offsetof(struct altair::JitCore::Regs, PC)).
-			// inc SP
-			append(0x66).
-			append(0xff).
-			append(0xc6);
-	}
+	b->
+		// mov    ah,BYTE PTR [rbp+intValue]
+		append(0x8a).
+		append(0x65).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
+		// inc si
+		append(0x66).
+		append(0xff).
+		append(0xc6).
+		// mov    WORD PTR [rbp+PC],ax
+		append(0x66).
+		append(0x89).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, PC));
 
-	// popf
-	b->append(0x9d);
+	b->
+		// pop rax
+		append(0x58).
+		// popf
+		append(0x9d);
 
 	stop = true;
 
@@ -1284,6 +1291,16 @@ int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 
 		// popf
 		append(0x9d);
+
+	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opStc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// STC
+	buffer->append(0xf9);
 
 	ticks = 4;
 

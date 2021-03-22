@@ -28,37 +28,27 @@
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction_jit, poppsw_clk) {
+CUNIT_TEST(core_instruction_jit, stc_clk) {
 	test::Pio  pio({
-		0x31, 0x08, 0x00, 0xf5, 0x00, 0x00, 0x00, 0x00,
+		0x37
 	});
 
 	test::Core core(pio, true);
 
 	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 21);
+	CUNIT_ASSERT_EQ(pio.clkCount, 4);
+	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
 }
 
 
-CUNIT_TEST(core_instruction_jit, poppsw_reg) {
-	// lxi sp,0x0006
-	// pop psw
+CUNIT_TEST(core_instruction_jit, stc) {
+	// lda 0x0007
 	test::Pio  pio({
-		0x31, 0x06, 0x00, 0xf1, 0x00, 0x00, 0x93, 0xa5
+		0x37
 	});
 
 	test::Core core(pio, true);
 
 	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::SP), 0x0008);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::F), 0x93);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0xa5);
-
-	CUNIT_ASSERT_TRUE (core.alu()->fS());
-	CUNIT_ASSERT_FALSE(core.alu()->fZ());
-	CUNIT_ASSERT_FALSE(core.alu()->fP());
-	CUNIT_ASSERT_TRUE (core.alu()->fAC());
-	CUNIT_ASSERT_TRUE (core.alu()->fCY());
+	CUNIT_ASSERT_TRUE(core.alu()->fCY());
 }

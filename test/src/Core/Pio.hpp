@@ -46,7 +46,15 @@ namespace test {
 			std::vector<uint8_t> program;
 
 		public:
-			Pio(const std::vector<uint8_t> &program) : program(program) {
+			Pio() {
+				this->reset();
+			}
+
+			Pio(const std::vector<uint8_t> &program) : Pio() {
+				this->program = program;
+			}
+
+			void reset() {
 				this->clkCount = 0;
 				this->address  = 0;
 				this->data     = 0;
@@ -80,6 +88,12 @@ namespace test {
 			uint8_t ioRead(uint8_t number) override;
 			void ioWrite(uint8_t number, uint8_t data) override;
 			void clk(uint8_t ticks) override;
+
+			void setProgram(const std::vector<uint8_t> &data) {
+				this->program = data;
+
+				this->reset();
+			}
 
 		public:
 			uint8_t mem(uint16_t addr) {

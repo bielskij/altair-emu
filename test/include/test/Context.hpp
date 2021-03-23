@@ -22,33 +22,15 @@
  * SOFTWARE.
  */
 
-#include "cunit.h"
+#ifndef CORE_CONTEXT_HPP_
+#define CORE_CONTEXT_HPP_
 
-#include "test/Core.hpp"
-#include "Core/Pio.hpp"
+#include <memory>
+#include <vector>
 
+#include "altair/Core.hpp"
 
-CUNIT_TEST(core_instruction_jit, adi_clk) {
-	test::Pio  pio({
-		0xc6, 0x10
-	});
-
-	test::Core core(pio, true);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 7);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 2);
-}
+std::vector<std::unique_ptr<altair::Core>> getCores(altair::Core::Pio &pio);
 
 
-CUNIT_TEST(core_instruction_jit, adi_regs) {
-	// adi 0x10
-	test::Pio  pio({
-		0xc6, 0x10
-	});
-
-	test::Core core(pio, true);
-
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x10);
-}
+#endif /* CORE_CONTEXT_HPP_ */

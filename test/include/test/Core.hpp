@@ -39,6 +39,10 @@ namespace test {
 				}
 			}
 
+			Core(altair::Core *core) {
+				this->_core = core;
+			}
+
 			void turn() {
 				this->_core->turn();
 			}
@@ -90,11 +94,9 @@ namespace test {
 
 			void tick() {
 				altair::InterpretedCore *c = dynamic_cast<altair::InterpretedCore *>(this->_core);
-				if (c == nullptr) {
-					throw std::runtime_error("JIT core does not support tick method!");
+				if (c != nullptr) {
+					c->tick();
 				}
-
-				c->tick();
 			}
 
 			altair::InterpretedCore::Alu *alu() {

@@ -106,7 +106,24 @@ namespace asm8080 {
 			Compiler &rrc();
 
 			Compiler &call(const Imm16 &address);
+			Compiler &cc(const Imm16 &address);
+			Compiler &cnc(const Imm16 &address);
+			Compiler &cz(const Imm16 &address);
+			Compiler &cnz(const Imm16 &address);
+			Compiler &cp(const Imm16 &address);
+			Compiler &cm(const Imm16 &address);
+			Compiler &cpe(const Imm16 &address);
+			Compiler &cpo(const Imm16 &address);
+
 			Compiler &ret();
+			Compiler &rc();
+			Compiler &rnc();
+			Compiler &rz();
+			Compiler &rnz();
+			Compiler &rp();
+			Compiler &rm();
+			Compiler &rpe();
+			Compiler &rpo();
 
 			Compiler &jmp(const Imm16 &address);
 			Compiler &jc(const Imm16 &address);

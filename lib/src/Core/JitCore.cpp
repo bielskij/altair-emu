@@ -1268,10 +1268,13 @@ int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 		b->append(retCode.getPtr(), retCode.getSize());
 
 	} else {
+		// mov    dil,11 ; ticks
+		retCode.append(0x40).append(0xb7).append(11);
+
 		// Skip code that sets PC+3
 		retCode.
 			append(0xeb).
-			append(0x05);
+			append(0x08);
 
 		switch (_dstR(opcode)) {
 			case 0: // jnz
@@ -1316,7 +1319,13 @@ int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 			append(0x83).
 			append(0x45).
 			append(offsetof(struct altair::JitCore::Regs, PC)).
-			append(3);
+			append(1);
+
+		// mov    dil,5 ; ticks
+		b->
+			append(0x40).
+			append(0xb7).
+			append(5);
 	}
 
 	b->
@@ -1327,7 +1336,7 @@ int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 
 	stop = true;
 
-	if (pc & 0x01) {
+	if (opcode & 0x01) {
 		ticks = 10;
 
 	} else {
@@ -1338,48 +1347,122 @@ int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 }
 
 
-int altair::JitCore::_opCall(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+int altair::JitCore::_opCall(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	ExecutionByteBuffer callCode;
+
 	pc += 3;
 
-	// pushf
-	buffer->append(0x9c);
-
-	// dec si
-	buffer->
-		append(0x66).
-		append(0xff).
-		append(0xce);
-	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
-	core->addIntCodeLoadIntValueFromImm(buffer, pc >> 8);
-	core->addIntCodeCallMemoryWrite(buffer);
-
-	// dec si
-	buffer->
-		append(0x66).
-		append(0xff).
-		append(0xce);
-	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
-	core->addIntCodeLoadIntValueFromImm(buffer, pc & 0xff);
-	core->addIntCodeCallMemoryWrite(buffer);
-
 	{
-		uint16_t dstPc = core->_pio.memoryRead(pc - 2) | (core->_pio.memoryRead(pc - 1) << 8);
-
-		buffer->
+		// dec si
+		callCode.
 			append(0x66).
-			append(0xc7).
+			append(0xff).
+			append(0xce);
+		core->addIntCodeLoadIntAddrFromReg(&callCode, SP);
+		core->addIntCodeLoadIntValueFromImm(&callCode, pc >> 8);
+		core->addIntCodeCallMemoryWrite(&callCode);
+
+		// dec si
+		callCode.
+			append(0x66).
+			append(0xff).
+			append(0xce);
+		core->addIntCodeLoadIntAddrFromReg(&callCode, SP);
+		core->addIntCodeLoadIntValueFromImm(&callCode, pc & 0xff);
+		core->addIntCodeCallMemoryWrite(&callCode);
+
+		{
+			uint16_t dstPc = core->_pio.memoryRead(pc - 2) | (core->_pio.memoryRead(pc - 1) << 8);
+
+			callCode.
+				append(0x66).
+				append(0xc7).
+				append(0x45).
+				append(offsetof(struct altair::JitCore::Regs, PC)).
+				append(dstPc & 0xff).
+				append(dstPc >> 8);
+		}
+	}
+
+	// pushf
+	b->append(0x9c);
+
+	if (opcode & 1) {
+		// Add RET code
+		b->append(callCode.getPtr(), callCode.getSize());
+
+	} else {
+		// mov    dil,17 ; ticks
+		callCode.append(0x40).append(0xb7).append(17);
+
+		// Skip code that sets PC+3
+		callCode.
+			append(0xeb).
+			append(0x08);
+
+		switch (_dstR(opcode)) {
+			case 0: // jnz
+				b->append(0x74).append(callCode.getSize()); // jz <false>
+				break;
+
+			case 1: // jz
+				b->append(0x75).append(callCode.getSize()); // jnz <false>
+				break;
+
+			case 2: // jnc
+				b->append(0x72).append(callCode.getSize()); // jc <false>
+				break;
+
+			case 3: // jc
+				b->append(0x73).append(callCode.getSize()); // jnc <false>
+				break;
+
+			case 4: // jpo
+				b->append(0x7a).append(callCode.getSize()); // jpe <false>
+				break;
+
+			case 5: // jpe
+				b->append(0x7b).append(callCode.getSize()); // jpo <false>
+				break;
+
+			case 6: // jp
+				b->append(0x78).append(callCode.getSize()); // jm <false>
+				break;
+
+			case 7: // jm
+				b->append(0x79).append(callCode.getSize()); // jp <false>
+				break;
+		}
+
+		// Add CALL code
+		b->append(callCode.getPtr(), callCode.getSize());
+
+		b->
+			// add    WORD PTR [rbp+<pc>],3
+			append(0x66).
+			append(0x83).
 			append(0x45).
 			append(offsetof(struct altair::JitCore::Regs, PC)).
-			append(dstPc & 0xff).
-			append(dstPc >> 8);
+			append(3);
+
+		// mov    dil,11 ; ticks
+		b->
+			append(0x40).
+			append(0xb7).
+			append(11);
 	}
 
 	// popf
-	buffer->append(0x9d);
+	b->append(0x9d);
 
 	stop = true;
 
-	ticks = 17;
+	if (opcode & 0x01) {
+		ticks = 17;
+
+	} else {
+		ticks = 0;
+	}
 
 	return 3;
 }

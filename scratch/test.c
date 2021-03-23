@@ -54,6 +54,8 @@ void _ret() {
 			"pop  rax \t\n"
 			"popfq                               \t\n"
 
+			"mov dil, 10 \t\n"
+
 			:
 			:
 				[off_value]  "i" (offsetof (struct _T, intValue)),

@@ -180,8 +180,136 @@ asm8080::Compiler &asm8080::Compiler::call(const Imm16 &address) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::cc(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xdc;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cnc(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xd4;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cz(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xcc;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cnz(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xc4;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cp(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xf4;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cm(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xfc;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cpe(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xec;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cpo(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xe4;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::ret() {
 	this->_memory[this->_addr++] = 0xc9;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rc() {
+	this->_memory[this->_addr++] = 0xd8;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rnc() {
+	this->_memory[this->_addr++] = 0xd0;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rz() {
+	this->_memory[this->_addr++] = 0xc8;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rnz() {
+	this->_memory[this->_addr++] = 0xc0;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rp() {
+	this->_memory[this->_addr++] = 0xf0;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rm() {
+	this->_memory[this->_addr++] = 0xf8;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rpe() {
+	this->_memory[this->_addr++] = 0xe8;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rpo() {
+	this->_memory[this->_addr++] = 0xe0;
 
 	return *this;
 }

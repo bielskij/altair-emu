@@ -122,6 +122,7 @@ void _checkint() {
 void _io() {
 	__asm(
 		"mov WORD PTR [rbp + %[off_address]], 0x1234 \n\t"
+		"mov al, BYTE PTR [rbp + %[off_address]] \n\t"
 		:
 		:
 			[off_address]  "i" (offsetof (struct _T, intAddress))

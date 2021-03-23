@@ -25,30 +25,54 @@
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, stc_clk) {
-	test::Pio  pio({
-		0x37
-	});
+using namespace asm8080;
 
-	test::Core core(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+CUNIT_TEST(core_instruction, ei) {
+	test::Pio pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(
+			Compiler()
+				.ei()
+				.toBin()
+		);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 4);
+		CUNIT_ASSERT_TRUE(pio.getInte());
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
-CUNIT_TEST(core_instruction, stc) {
-	// lda 0x0007
-	test::Pio  pio({
-		0x37
-	});
+CUNIT_TEST(core_instruction, di) {
+	test::Pio pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_TRUE(core.alu()->fCY());
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(
+			Compiler()
+				.di()
+				.toBin()
+		);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 4);
+		CUNIT_ASSERT_FALSE(pio.getInte());
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }

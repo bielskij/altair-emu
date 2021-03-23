@@ -37,16 +37,28 @@ namespace asm8080 {
 
 	class Reg8 : public Operand {
 		public:
-			Reg8(uint8_t val);
-
 			uint8_t getVal(bool isSrc) const;
+
+			static Reg8 fromRaw(uint8_t val);
+
+		private:
+			Reg8(uint8_t val);
 
 		private:
 			uint8_t _val;
 	};
 
 	class Reg16 : public Operand {
+		public:
+			uint8_t getVal() const;
 
+			static Reg16 fromRaw(uint8_t val);
+
+		private:
+			Reg16(uint8_t val);
+
+		private:
+			uint8_t _val;
 	};
 
 	class Imm8 : public Operand {
@@ -60,7 +72,13 @@ namespace asm8080 {
 	};
 
 	class Imm16 : public Operand {
+		public:
+			Imm16(uint16_t val);
+			uint8_t valH() const;
+			uint8_t valL() const;
 
+		private:
+			uint16_t _val;
 	};
 
 	class Compiler {
@@ -77,6 +95,31 @@ namespace asm8080 {
 		public:
 			Compiler &adi(const Imm8 &imm);
 			Compiler &mvi(const Reg8 &reg, const Imm8 &imm);
+			Compiler &lxi(const Reg16 &reg, const Imm16 &imm);
+
+			Compiler &mov(const Reg8 &dst, const Reg8 &src);
+
+			Compiler &push(const Reg16 &reg);
+			Compiler &pop(const Reg16 &reg);
+
+			Compiler &stc();
+			Compiler &rrc();
+
+			Compiler &jmp(const Imm16 &address);
+			Compiler &jc(const Imm16 &address);
+			Compiler &jnc(const Imm16 &address);
+			Compiler &jz(const Imm16 &address);
+			Compiler &jnz(const Imm16 &address);
+			Compiler &jp(const Imm16 &address);
+			Compiler &jm(const Imm16 &address);
+			Compiler &jpe(const Imm16 &address);
+			Compiler &jpo(const Imm16 &address);
+
+			Compiler &in(const Imm8 &port);
+			Compiler &out(const Imm8 &port);
+
+			Compiler &ei();
+			Compiler &di();
 
 			Compiler &org(uint16_t address);
 			Compiler &label(const std::string &name);

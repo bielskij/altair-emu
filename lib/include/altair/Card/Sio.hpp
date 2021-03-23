@@ -117,7 +117,7 @@ namespace altair {
 					}
 				}
 
-				void onClk() override {
+				void _onClk() {
 					Connector::onClk();
 
 					bool canRead, canWrite;
@@ -157,6 +157,14 @@ namespace altair {
 							this->vi(ivVal);
 						}
 					}
+				}
+
+				void onClk() override {
+					this->_onClk();
+				}
+
+				void onClk(uint8_t ticks) {
+					this->_onClk();
 				}
 
 			private:

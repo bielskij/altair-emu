@@ -79,17 +79,19 @@ namespace test {
 				return this->_core->wRH(reg);
 			}
 
+			bool supportsCycling() const {
+				return dynamic_cast<altair::InterpretedCore *>(this->_core) != nullptr;
+			}
+
 			void nextInstruction() {
 				this->_core->nexti();
 			}
 
 			void nextCycle() {
 				altair::InterpretedCore *c = dynamic_cast<altair::InterpretedCore *>(this->_core);
-				if (c == nullptr) {
-					throw std::runtime_error("JIT core does not support tick method!");
+				if (c != nullptr) {
+					c->nextCycle();
 				}
-
-				c->nextCycle();
 			}
 
 			void tick() {

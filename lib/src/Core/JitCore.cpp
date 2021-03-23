@@ -570,7 +570,16 @@ void altair::JitCore::addIntCodeLoadRegFromIntValue(ExecutionByteBuffer *buffer,
 
 
 void altair::JitCore::addIntCodeCallTick(ExecutionByteBuffer *buffer, uint16_t ticks) {
-	this->addIntCodeLoadIntValueFromImm(buffer, ticks);
+	// ticks == 0 indicates that number of ticks is runtime dependent. In that case
+	// number of ticks spent, is put into dil register by opcode handler.
+	if (ticks > 0) {
+		this->addIntCodeLoadIntValueFromImm(buffer, ticks);
+
+	} else {
+		// mov intValue, dil
+		buffer->append(0x40).append(0x88).append(0x7d).append(offsetof(struct altair::JitCore::Regs, intValue));
+	}
+
 	this->addIntCodeCall(buffer, INT_FLAG_TICKS);
 }
 

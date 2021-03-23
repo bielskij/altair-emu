@@ -105,6 +105,9 @@ namespace asm8080 {
 			Compiler &stc();
 			Compiler &rrc();
 
+			Compiler &call(const Imm16 &address);
+			Compiler &ret();
+
 			Compiler &jmp(const Imm16 &address);
 			Compiler &jc(const Imm16 &address);
 			Compiler &jnc(const Imm16 &address);

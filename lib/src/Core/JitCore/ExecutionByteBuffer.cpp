@@ -48,6 +48,15 @@ altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::appe
 }
 
 
+altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::append(void *data, size_t dataSize) {
+	for (size_t i = 0; i < dataSize; i++) {
+		this->_buffer[this->_bufferWritten++] = ((uint8_t *)data)[i];
+	}
+
+	return *this;
+}
+
+
 altair::JitCore::ExecutionByteBuffer &altair::JitCore::ExecutionByteBuffer::end() {
 	mprotect(this->_buffer, this->_bufferSize, PROT_EXEC);
 
@@ -62,4 +71,9 @@ altair::JitCore::ExecutionByteBuffer::FunctionPtr altair::JitCore::ExecutionByte
 
 void *altair::JitCore::ExecutionByteBuffer::getPtr() {
 	return this->_buffer;
+}
+
+
+size_t altair::JitCore::ExecutionByteBuffer::getSize() {
+	return this->_bufferWritten;
 }

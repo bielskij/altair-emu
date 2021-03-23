@@ -256,6 +256,28 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 0, _opJmp); // jp
 	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 0, _opJmp); // jm
 
+	// CALLX
+	this->_opAdd(1, 1, 0, 0, 1, 1, 0, 1, _opCall); // call
+	this->_opAdd(1, 1, 0, 0, 0, 1, 0, 0, _opCall); // cnz
+	this->_opAdd(1, 1, 0, 0, 1, 1, 0, 0, _opCall); // cz
+	this->_opAdd(1, 1, 0, 1, 0, 1, 0, 0, _opCall); // cnc
+	this->_opAdd(1, 1, 0, 1, 1, 1, 0, 0, _opCall); // cc
+	this->_opAdd(1, 1, 1, 0, 0, 1, 0, 0, _opCall); // cpo
+	this->_opAdd(1, 1, 1, 0, 1, 1, 0, 0, _opCall); // cpe
+	this->_opAdd(1, 1, 1, 1, 0, 1, 0, 0, _opCall); // cp
+	this->_opAdd(1, 1, 1, 1, 1, 1, 0, 0, _opCall); // cm
+
+	// RETX
+	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 1, _opRet); // ret
+	this->_opAdd(1, 1, 0, 0, 0, 0, 0, 0, _opRet); // rnz
+	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 0, _opRet); // rz
+	this->_opAdd(1, 1, 0, 1, 0, 0, 0, 0, _opRet); // rnc
+	this->_opAdd(1, 1, 0, 1, 1, 0, 0, 0, _opRet); // rc
+	this->_opAdd(1, 1, 1, 0, 0, 0, 0, 0, _opRet); // rpo
+	this->_opAdd(1, 1, 1, 0, 1, 0, 0, 0, _opRet); // rpe
+	this->_opAdd(1, 1, 1, 1, 0, 0, 0, 0, _opRet); // rp
+	this->_opAdd(1, 1, 1, 1, 1, 0, 0, 0, _opRet); // rm
+
 	// PUSH/POP
 	this->_opAddRp(1, 1, BC,   0, 1, 0, 1, _opPush);
 	this->_opAddRp(1, 1, DE,   0, 1, 0, 1, _opPush);
@@ -265,8 +287,6 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(1, 1, DE,   0, 0, 0, 1, _opPop);
 	this->_opAddRp(1, 1, HL,   0, 0, 0, 1, _opPop);
 	this->_opAddRp(1, 1, PSWA, 0, 0, 0, 1, _opPop);
-
-	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 1, _opRet);
 
 	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 1, _opStc);
 }
@@ -1202,42 +1222,102 @@ int altair::JitCore::_opPop(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 
 
 int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	ExecutionByteBuffer retCode;
+
+	{
+		core->addIntCodeLoadIntAddrFromReg(&retCode, SP);
+		core->addIntCodeCallMemoryRead(&retCode);
+
+		retCode.
+			// mov    al,BYTE PTR [rbp+intValue]
+			append(0x8a).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, intValue)).
+			// inc    si
+			append(0x66).
+			append(0xff).
+			append(0xc6);
+
+		core->addIntCodeLoadIntAddrFromReg(&retCode, SP);
+		core->addIntCodeCallMemoryRead(&retCode);
+
+		retCode.
+			// mov    ah,BYTE PTR [rbp+intValue]
+			append(0x8a).
+			append(0x65).
+			append(offsetof(struct altair::JitCore::Regs, intValue)).
+			// inc si
+			append(0x66).
+			append(0xff).
+			append(0xc6).
+			// mov    WORD PTR [rbp+PC],ax
+			append(0x66).
+			append(0x89).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC));
+	}
+
 	b->
 		// pushf
 		append(0x9c).
 		// push rax
 		append(0x50);
 
-	core->addIntCodeLoadIntAddrFromReg(b, SP);
-	core->addIntCodeCallMemoryRead(b);
+	if (opcode & 1) {
+		// Add RET code
+		b->append(retCode.getPtr(), retCode.getSize());
 
-	b->
-		// mov    al,BYTE PTR [rbp+intValue]
-		append(0x8a).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intValue)).
-		// inc    si
-		append(0x66).
-		append(0xff).
-		append(0xc6);
+	} else {
+		// Skip code that sets PC+3
+		retCode.
+			append(0xeb).
+			append(0x05);
 
-	core->addIntCodeLoadIntAddrFromReg(b, SP);
-	core->addIntCodeCallMemoryRead(b);
+		switch (_dstR(opcode)) {
+			case 0: // jnz
+				b->append(0x74).append(retCode.getSize()); // jz <false>
+				break;
 
-	b->
-		// mov    ah,BYTE PTR [rbp+intValue]
-		append(0x8a).
-		append(0x65).
-		append(offsetof(struct altair::JitCore::Regs, intValue)).
-		// inc si
-		append(0x66).
-		append(0xff).
-		append(0xc6).
-		// mov    WORD PTR [rbp+PC],ax
-		append(0x66).
-		append(0x89).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, PC));
+			case 1: // jz
+				b->append(0x75).append(retCode.getSize()); // jnz <false>
+				break;
+
+			case 2: // jnc
+				b->append(0x72).append(retCode.getSize()); // jc <false>
+				break;
+
+			case 3: // jc
+				b->append(0x73).append(retCode.getSize()); // jnc <false>
+				break;
+
+			case 4: // jpo
+				b->append(0x7a).append(retCode.getSize()); // jpe <false>
+				break;
+
+			case 5: // jpe
+				b->append(0x7b).append(retCode.getSize()); // jpo <false>
+				break;
+
+			case 6: // jp
+				b->append(0x78).append(retCode.getSize()); // jm <false>
+				break;
+
+			case 7: // jm
+				b->append(0x79).append(retCode.getSize()); // jp <false>
+				break;
+		}
+
+		// Add RET code
+		b->append(retCode.getPtr(), retCode.getSize());
+
+		b->
+			// add    WORD PTR [rbp+<pc>],3
+			append(0x66).
+			append(0x83).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			append(3);
+	}
 
 	b->
 		// pop rax
@@ -1247,9 +1327,61 @@ int altair::JitCore::_opRet(JitCore *core, ExecutionByteBuffer *b, uint8_t opcod
 
 	stop = true;
 
-	ticks = 10;
+	if (pc & 0x01) {
+		ticks = 10;
+
+	} else {
+		ticks = 0;
+	}
 
 	return 1;
+}
+
+
+int altair::JitCore::_opCall(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	pc += 3;
+
+	// pushf
+	buffer->append(0x9c);
+
+	// dec si
+	buffer->
+		append(0x66).
+		append(0xff).
+		append(0xce);
+	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
+	core->addIntCodeLoadIntValueFromImm(buffer, pc >> 8);
+	core->addIntCodeCallMemoryWrite(buffer);
+
+	// dec si
+	buffer->
+		append(0x66).
+		append(0xff).
+		append(0xce);
+	core->addIntCodeLoadIntAddrFromReg(buffer, SP);
+	core->addIntCodeLoadIntValueFromImm(buffer, pc & 0xff);
+	core->addIntCodeCallMemoryWrite(buffer);
+
+	{
+		uint16_t dstPc = core->_pio.memoryRead(pc - 2) | (core->_pio.memoryRead(pc - 1) << 8);
+
+		buffer->
+			append(0x66).
+			append(0xc7).
+			append(0x45).
+			append(offsetof(struct altair::JitCore::Regs, PC)).
+			append(dstPc & 0xff).
+			append(dstPc >> 8);
+	}
+
+	// popf
+	buffer->append(0x9d);
+
+	stop = true;
+
+	ticks = 17;
+
+	return 3;
 }
 
 

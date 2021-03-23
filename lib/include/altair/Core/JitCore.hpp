@@ -85,10 +85,12 @@ namespace altair {
 
 					ExecutionByteBuffer &begin();
 					ExecutionByteBuffer &append(uint8_t byte);
+					ExecutionByteBuffer &append(void *data, size_t dataSize);
 					ExecutionByteBuffer &end();
 
 					FunctionPtr getFunction();
 					void       *getPtr();
+					size_t      getSize();
 
 				private:
 					uint8_t *_buffer;
@@ -178,6 +180,7 @@ namespace altair {
 			static int _opPush(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opPop(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opRet(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
+			static int _opCall(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 
 			static int _opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);
 			static int _opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop);

@@ -171,6 +171,22 @@ asm8080::Compiler &asm8080::Compiler::rrc() {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::call(const Imm16 &address) {
+	this->_memory[this->_addr++] = 0xcd;
+	this->_memory[this->_addr++] = address.valL();
+	this->_memory[this->_addr++] = address.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ret() {
+	this->_memory[this->_addr++] = 0xc9;
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::in(const Imm8 &port) {
 	this->_memory[this->_addr++] = 0xdb;
 	this->_memory[this->_addr++] = port.val();

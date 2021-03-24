@@ -25,46 +25,67 @@
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
+using namespace asm8080;
+
+
 CUNIT_TEST(core_instruction, xchg_clk) {
-	test::Pio  pio({
-		0xEB
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			xchg().
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 4);
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
 CUNIT_TEST(core_instruction, xchg) {
-	// mvi h,1
-	// mvi l,2
-	// mvi d,3
-	// mvi e,4
-	// xchg
-	test::Pio  pio({
-		0x26, 0x01, 0x2E, 0x02, 0x16, 0x03, 0x1E, 0x04, 0xEB
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 1);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 2);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 3);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 4);
+	for (auto &core : cores) {
+		test::Core c(core.get());
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 3);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 4);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 1);
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 2);
+		pio.setProgram(Compiler().
+			mvi(H, 1).
+			mvi(L, 2).
+			mvi(D, 3).
+			mvi(E, 4).
+			xchg().
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 1);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 2);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::D), 3);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 4);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 3);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 4);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::D), 1);
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 2);
+	}
 }

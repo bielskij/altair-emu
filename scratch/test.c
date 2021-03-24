@@ -34,6 +34,19 @@ typedef struct _T {
 } T;
 
 
+void _xchg() {
+	__asm(
+		"pushf      \t\n"
+		"xor dh, ch \t\n"
+		"xor ch, dh \t\n"
+		"xor dh, ch \t\n"
+		"xor dl, cl \t\n"
+		"xor cl, dl \t\n"
+		"xor dl, cl \t\n"
+		"popf       \t\n"
+	);
+}
+
 void _lhld() {
 	__asm(
 		"mov dh, BYTE PTR [rbp + %[off_value]] \t\n"

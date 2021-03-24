@@ -185,6 +185,13 @@ asm8080::Compiler &asm8080::Compiler::stax(const Reg16 &reg) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::xchg() {
+	this->_memory[this->_addr++] = 0xeb;
+
+	return *this;
+}
+
+
 
 
 

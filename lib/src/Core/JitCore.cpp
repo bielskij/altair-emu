@@ -234,7 +234,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	// STAX
 	this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
 	this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
-
+	// XCHG
+	this->_opAdd(1, 1, 1, 0, 1, 0, 1, 1, _opXchg);
 
 
 
@@ -1246,6 +1247,31 @@ int altair::JitCore::_opStax(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 	core->addIntCodeCallMemoryWrite(buffer);
 
 	ticks = 7;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opXchg (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->
+		// pushf
+		append(0x9c).
+		// xor    dh,ch
+		append(0x30).append(0xee).
+		// xor    ch,dh
+		append(0x30).append(0xf5).
+		// xor    dh,ch
+		append(0x30).append(0xee).
+		// xor    dl,cl
+		append(0x30).append(0xca).
+		// xor    cl,dl
+		append(0x30).append(0xd1).
+		// xor    dl,cl
+		append(0x30).append(0xca).
+		// popf
+		append(0x9d);
+
+	ticks = 4;
 
 	return 1;
 }

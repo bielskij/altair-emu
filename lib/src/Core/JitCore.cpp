@@ -214,20 +214,20 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
 	this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
 	// MVI M, I
-	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
+	this->_opAddBit(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
 	// LXI
 	this->_opAddRp(0, 0, BC, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, DE, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, HL, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
 	// LDA
-	this->_opAdd(0, 0, 1, 1, 1, 0, 1, 0, _opLda);
+	this->_opAddBit(0, 0, 1, 1, 1, 0, 1, 0, _opLda);
 	// STA
-	this->_opAdd(0, 0, 1, 1, 0, 0, 1, 0, _opSta);
+	this->_opAddBit(0, 0, 1, 1, 0, 0, 1, 0, _opSta);
 	// LHLD
-	this->_opAdd(0, 0, 1, 0, 1, 0, 1, 0, _opLhld);
+	this->_opAddBit(0, 0, 1, 0, 1, 0, 1, 0, _opLhld);
 	// SHLD
-	this->_opAdd(0, 0, 1, 0, 0, 0, 1, 0, _opShld);
+	this->_opAddBit(0, 0, 1, 0, 0, 0, 1, 0, _opShld);
 	// LDAX
 	this->_opAddRp(0, 0, BC, 1, 0, 1, 0, _opLdax);
 	this->_opAddRp(0, 0, DE, 1, 0, 1, 0, _opLdax);
@@ -235,13 +235,22 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
 	this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
 	// XCHG
-	this->_opAdd(1, 1, 1, 0, 1, 0, 1, 1, _opXchg);
+	this->_opAddBit(1, 1, 1, 0, 1, 0, 1, 1, _opXchg);
+
+	// ADD R
+	this->_opAddSSS(1, 0, 0, 0, 0, B, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, C, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, D, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, E, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, H, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, L, _opAddR);
+	this->_opAddSSS(1, 0, 0, 0, 0, A, _opAddR);
 
 
 
 
 	// NOP
-	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
+	this->_opAddBit(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
 
 	{
 
@@ -274,18 +283,18 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddSSS(1, 0, 1, 1, 1, A, _opCmp);
 
 	// CPI
-	this->_opAdd(1, 1, 1, 1, 1, 1, 1, 0, _opCpi);
+	this->_opAddBit(1, 1, 1, 1, 1, 1, 1, 0, _opCpi);
 
 	// IN/OUT
-	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
-	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
+	this->_opAddBit(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
+	this->_opAddBit(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
 
 	// EI/DI
-	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 1, _opEid);
-	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 1, _opEid);
+	this->_opAddBit(1, 1, 1, 1, 1, 0, 1, 1, _opEid);
+	this->_opAddBit(1, 1, 1, 1, 0, 0, 1, 1, _opEid);
 
 	// ADI
-	this->_opAdd(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
+	this->_opAddBit(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
 
 	// SBBr
 	this->_opAddSSS(1, 0, 0, 1, 1, B, _opSbbR);
@@ -297,40 +306,40 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddSSS(1, 0, 0, 1, 1, A, _opSbbR);
 
 	// rotate accumulator
-	this->_opAdd(0, 0, 0, 0, 1, 1, 1, 1, _opRrc);
+	this->_opAddBit(0, 0, 0, 0, 1, 1, 1, 1, _opRrc);
 
 	// JMPX
-	this->_opAdd(1, 1, 0, 0, 0, 0, 1, 1, _opJmp); // jmp
-	this->_opAdd(1, 1, 0, 0, 0, 0, 1, 0, _opJmp); // jnz
-	this->_opAdd(1, 1, 0, 0, 1, 0, 1, 0, _opJmp); // jz
-	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 0, _opJmp); // jnc
-	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 0, _opJmp); // jc
-	this->_opAdd(1, 1, 1, 0, 0, 0, 1, 0, _opJmp); // jpo
-	this->_opAdd(1, 1, 1, 0, 1, 0, 1, 0, _opJmp); // jpe
-	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 0, _opJmp); // jp
-	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 0, _opJmp); // jm
+	this->_opAddBit(1, 1, 0, 0, 0, 0, 1, 1, _opJmp); // jmp
+	this->_opAddBit(1, 1, 0, 0, 0, 0, 1, 0, _opJmp); // jnz
+	this->_opAddBit(1, 1, 0, 0, 1, 0, 1, 0, _opJmp); // jz
+	this->_opAddBit(1, 1, 0, 1, 0, 0, 1, 0, _opJmp); // jnc
+	this->_opAddBit(1, 1, 0, 1, 1, 0, 1, 0, _opJmp); // jc
+	this->_opAddBit(1, 1, 1, 0, 0, 0, 1, 0, _opJmp); // jpo
+	this->_opAddBit(1, 1, 1, 0, 1, 0, 1, 0, _opJmp); // jpe
+	this->_opAddBit(1, 1, 1, 1, 0, 0, 1, 0, _opJmp); // jp
+	this->_opAddBit(1, 1, 1, 1, 1, 0, 1, 0, _opJmp); // jm
 
 	// CALLX
-	this->_opAdd(1, 1, 0, 0, 1, 1, 0, 1, _opCall); // call
-	this->_opAdd(1, 1, 0, 0, 0, 1, 0, 0, _opCall); // cnz
-	this->_opAdd(1, 1, 0, 0, 1, 1, 0, 0, _opCall); // cz
-	this->_opAdd(1, 1, 0, 1, 0, 1, 0, 0, _opCall); // cnc
-	this->_opAdd(1, 1, 0, 1, 1, 1, 0, 0, _opCall); // cc
-	this->_opAdd(1, 1, 1, 0, 0, 1, 0, 0, _opCall); // cpo
-	this->_opAdd(1, 1, 1, 0, 1, 1, 0, 0, _opCall); // cpe
-	this->_opAdd(1, 1, 1, 1, 0, 1, 0, 0, _opCall); // cp
-	this->_opAdd(1, 1, 1, 1, 1, 1, 0, 0, _opCall); // cm
+	this->_opAddBit(1, 1, 0, 0, 1, 1, 0, 1, _opCall); // call
+	this->_opAddBit(1, 1, 0, 0, 0, 1, 0, 0, _opCall); // cnz
+	this->_opAddBit(1, 1, 0, 0, 1, 1, 0, 0, _opCall); // cz
+	this->_opAddBit(1, 1, 0, 1, 0, 1, 0, 0, _opCall); // cnc
+	this->_opAddBit(1, 1, 0, 1, 1, 1, 0, 0, _opCall); // cc
+	this->_opAddBit(1, 1, 1, 0, 0, 1, 0, 0, _opCall); // cpo
+	this->_opAddBit(1, 1, 1, 0, 1, 1, 0, 0, _opCall); // cpe
+	this->_opAddBit(1, 1, 1, 1, 0, 1, 0, 0, _opCall); // cp
+	this->_opAddBit(1, 1, 1, 1, 1, 1, 0, 0, _opCall); // cm
 
 	// RETX
-	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 1, _opRet); // ret
-	this->_opAdd(1, 1, 0, 0, 0, 0, 0, 0, _opRet); // rnz
-	this->_opAdd(1, 1, 0, 0, 1, 0, 0, 0, _opRet); // rz
-	this->_opAdd(1, 1, 0, 1, 0, 0, 0, 0, _opRet); // rnc
-	this->_opAdd(1, 1, 0, 1, 1, 0, 0, 0, _opRet); // rc
-	this->_opAdd(1, 1, 1, 0, 0, 0, 0, 0, _opRet); // rpo
-	this->_opAdd(1, 1, 1, 0, 1, 0, 0, 0, _opRet); // rpe
-	this->_opAdd(1, 1, 1, 1, 0, 0, 0, 0, _opRet); // rp
-	this->_opAdd(1, 1, 1, 1, 1, 0, 0, 0, _opRet); // rm
+	this->_opAddBit(1, 1, 0, 0, 1, 0, 0, 1, _opRet); // ret
+	this->_opAddBit(1, 1, 0, 0, 0, 0, 0, 0, _opRet); // rnz
+	this->_opAddBit(1, 1, 0, 0, 1, 0, 0, 0, _opRet); // rz
+	this->_opAddBit(1, 1, 0, 1, 0, 0, 0, 0, _opRet); // rnc
+	this->_opAddBit(1, 1, 0, 1, 1, 0, 0, 0, _opRet); // rc
+	this->_opAddBit(1, 1, 1, 0, 0, 0, 0, 0, _opRet); // rpo
+	this->_opAddBit(1, 1, 1, 0, 1, 0, 0, 0, _opRet); // rpe
+	this->_opAddBit(1, 1, 1, 1, 0, 0, 0, 0, _opRet); // rp
+	this->_opAddBit(1, 1, 1, 1, 1, 0, 0, 0, _opRet); // rm
 
 	// PUSH/POP
 	this->_opAddRp(1, 1, BC,   0, 1, 0, 1, _opPush);
@@ -342,7 +351,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(1, 1, HL,   0, 0, 0, 1, _opPop);
 	this->_opAddRp(1, 1, PSWA, 0, 0, 0, 1, _opPop);
 
-	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 1, _opStc);
+	this->_opAddBit(0, 0, 1, 1, 0, 1, 1, 1, _opStc);
 }
 
 
@@ -904,7 +913,7 @@ bool altair::JitCore::fAC() const {
 }
 
 
-void altair::JitCore::_opAdd(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
+void altair::JitCore::_opAddBit(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
 	this->_opHandlers[
 		(bit7 << 7) | (bit6 << 6) | (bit5 << 5) | (bit4 << 4) |
 		(bit3 << 3) | (bit2 << 2) | (bit1 << 1) | (bit0 << 0)
@@ -913,12 +922,12 @@ void altair::JitCore::_opAdd(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t b
 
 
 void altair::JitCore::_opAddSSS(uint8_t bit7, uint8_t bit6, uint8_t bit5, uint8_t bit4, uint8_t bit3, uint8_t src, OpHandler handler) {
-	this->_opAdd(bit7, bit6, bit5, bit4, bit3, (src & 4) >> 2, (src & 2) >> 1, src & 1, handler);
+	this->_opAddBit(bit7, bit6, bit5, bit4, bit3, (src & 4) >> 2, (src & 2) >> 1, src & 1, handler);
 }
 
 
 void altair::JitCore::_opAddDDD(uint8_t bit7, uint8_t bit6, uint8_t registers, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
-	this->_opAdd(bit7, bit6, (registers & 4) >> 2, (registers & 2) >> 1, registers & 1, bit2, bit1, bit0, handler);
+	this->_opAddBit(bit7, bit6, (registers & 4) >> 2, (registers & 2) >> 1, registers & 1, bit2, bit1, bit0, handler);
 }
 
 
@@ -928,7 +937,7 @@ void altair::JitCore::_opAddDDDSSS(uint8_t bit7, uint8_t bit6, uint8_t dst, uint
 
 
 void altair::JitCore::_opAddRp(uint8_t bit7, uint8_t bit6, uint8_t rp, uint8_t bit3, uint8_t bit2, uint8_t bit1, uint8_t bit0, OpHandler handler) {
-	this->_opAdd(bit7, bit6, (rp & 2) >> 1, (rp & 1), bit3, bit2,  bit1, bit0, handler);
+	this->_opAddBit(bit7, bit6, (rp & 2) >> 1, (rp & 1), bit3, bit2,  bit1, bit0, handler);
 }
 
 
@@ -1274,6 +1283,36 @@ int altair::JitCore::_opXchg (JitCore *core, ExecutionByteBuffer *buffer, uint8_
 	ticks = 4;
 
 	return 1;
+}
+
+
+int altair::JitCore::_opAddR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->append(0x00);
+
+	switch (_srcR(opcode)) {
+		case B: buffer->append(0xf8); break;
+		case C: buffer->append(0xd8); break;
+		case D: buffer->append(0xe8); break;
+		case E: buffer->append(0xc8); break;
+		case H: buffer->append(0xf0); break;
+		case L: buffer->append(0xd0); break;
+		case A: buffer->append(0xc0); break;
+	}
+
+	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->
+		append(0x04).
+		append(core->_pio.memoryRead(pc + 1));
+
+	ticks = 7;
+
+	return 2;
 }
 
 
@@ -1712,17 +1751,6 @@ int altair::JitCore::_opCall(JitCore *core, ExecutionByteBuffer *b, uint8_t opco
 	}
 
 	return 3;
-}
-
-
-int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	buffer->
-		append(0x04).
-		append(core->_pio.memoryRead(pc + 1));
-
-	ticks = 7;
-
-	return 2;
 }
 
 

@@ -34,6 +34,19 @@ typedef struct _T {
 } T;
 
 
+void _addR() {
+	__asm(
+		"add al, bh \t\n"
+		"add al, bl \t\n"
+		"add al, ch \t\n"
+		"add al, cl \t\n"
+		"add al, dh \t\n"
+		"add al, dl \t\n"
+		"add al, al \t\n"
+	);
+}
+
+
 void _xchg() {
 	__asm(
 		"pushf      \t\n"

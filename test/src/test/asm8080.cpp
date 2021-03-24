@@ -192,7 +192,11 @@ asm8080::Compiler &asm8080::Compiler::xchg() {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::add(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0x80 | src.getVal(true);
 
+	return *this;
+}
 
 
 asm8080::Compiler &asm8080::Compiler::adi(const Imm8 &imm8) {
@@ -201,6 +205,8 @@ asm8080::Compiler &asm8080::Compiler::adi(const Imm8 &imm8) {
 
 	return *this;
 }
+
+
 
 
 asm8080::Compiler &asm8080::Compiler::inx(const Reg16 &reg) {

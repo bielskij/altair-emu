@@ -99,6 +99,7 @@ namespace asm8080 {
 			Compiler &lda(const Imm16 &imm);
 			Compiler &sta(const Imm16 &imm);
 			Compiler &lhld(const Imm16 &imm);
+			Compiler &shld(const Imm16 &imm);
 
 			Compiler &adi(const Imm8 &imm);
 

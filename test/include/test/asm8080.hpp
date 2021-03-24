@@ -97,6 +97,7 @@ namespace asm8080 {
 			Compiler &mvi(const Reg8 &reg, const Imm8 &imm);
 			Compiler &lxi(const Reg16 &reg, const Imm16 &imm);
 			Compiler &lda(const Imm16 &imm);
+			Compiler &sta(const Imm16 &imm);
 
 			Compiler &adi(const Imm8 &imm);
 

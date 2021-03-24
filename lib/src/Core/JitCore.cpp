@@ -228,6 +228,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	// LDA
 	this->_opAdd(0, 0, 1, 1, 1, 0, 1, 0, _opLda);
 
+	// STA
+	this->_opAdd(0, 0, 1, 1, 0, 0, 1, 0, _opSta);
 
 	// NOP
 	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
@@ -1142,6 +1144,17 @@ int altair::JitCore::_opLda(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 		append(0x8a).
 		append(0x45).
 		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	ticks = 13;
+
+	return 3;
+}
+
+
+int altair::JitCore::_opSta(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1) | (core->_pio.memoryRead(pc + 2) << 8));
+	core->addIntCodeLoadIntValueFromReg(buffer, A);
+	core->addIntCodeCallMemoryWrite(buffer);
 
 	ticks = 13;
 

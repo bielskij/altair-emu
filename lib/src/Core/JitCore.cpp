@@ -228,6 +228,13 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAdd(0, 0, 1, 0, 1, 0, 1, 0, _opLhld);
 	// SHLD
 	this->_opAdd(0, 0, 1, 0, 0, 0, 1, 0, _opShld);
+	// LDAX
+	this->_opAddRp(0, 0, BC, 1, 0, 1, 0, _opLdax);
+	this->_opAddRp(0, 0, DE, 1, 0, 1, 0, _opLdax);
+	// STAX
+	this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
+	this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
+
 
 
 
@@ -239,11 +246,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 	}
 
-	// STAX
-	{
-		this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
-		this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
-	}
+
 
 	// INX
 	this->_opAddRp(0, 0, BC, 0, 0, 1, 1, _opInx);
@@ -1203,12 +1206,40 @@ int altair::JitCore::_opShld (JitCore *core, ExecutionByteBuffer *buffer, uint8_
 }
 
 
-int altair::JitCore::_opStax(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	if ((opcode & 0x10) != 0) {
-		core->addIntCodeLoadIntAddrFromReg(buffer, DE);
+int altair::JitCore::_opLdax (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	switch (_rp(opcode)) {
+		case RegDouble::BC:
+		case RegDouble::DE:
+			core->addIntCodeLoadIntAddrFromReg(buffer, _rp(opcode));
+			break;
 
-	} else {
-		core->addIntCodeLoadIntAddrFromReg(buffer, BC);
+		default:
+			throw std::runtime_error("Not supported LDAX reg!");
+	}
+
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// mov al, intValue
+	buffer->
+		append(0x8a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	ticks = 7;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opStax(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	switch (_rp(opcode)) {
+		case RegDouble::BC:
+		case RegDouble::DE:
+			core->addIntCodeLoadIntAddrFromReg(buffer, _rp(opcode));
+			break;
+
+		default:
+			throw std::runtime_error("Not supported STAX reg!");
 	}
 
 	core->addIntCodeLoadIntValueFromReg(buffer, A);

@@ -130,55 +130,7 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 
 	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
 
-	// NOP
-	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
-
-	// MVI R, I
-	// MVI M, I
-	{
-		this->_opAddDDD(0, 0, B, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, C, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, D, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, E, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
-		this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
-
-		this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
-	}
-
-	// LXI
-	{
-		this->_opAddRp(0, 0, BC, 0, 0, 0, 1, _opLxi);
-		this->_opAddRp(0, 0, DE, 0, 0, 0, 1, _opLxi);
-		this->_opAddRp(0, 0, HL, 0, 0, 0, 1, _opLxi);
-		this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
-	}
-
-	// STAX
-	{
-		this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
-		this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
-	}
-
-	// INX
-	this->_opAddRp(0, 0, BC, 0, 0, 1, 1, _opInx);
-	this->_opAddRp(0, 0, DE, 0, 0, 1, 1, _opInx);
-	this->_opAddRp(0, 0, HL, 0, 0, 1, 1, _opInx);
-	this->_opAddRp(0, 0, SP, 0, 0, 1, 1, _opInx);
-
-	// DCR
-	this->_opAddDDD(0, 0, B, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, C, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, D, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, E, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, H, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, L, 1, 0, 1, _opDcr);
-	this->_opAddDDD(0, 0, A, 1, 0, 1, _opDcr);
-
 	// MOV R, R
-	// MOV R, M
-	// MOV M, R
 	{
 		this->_opAddDDDSSS(0, 1, A, B, _opMovRR);
 		this->_opAddDDDSSS(0, 1, A, C, _opMovRR);
@@ -235,23 +187,77 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
 		this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
-
-		this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, D, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, E, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
-		this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
-
-		this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, D, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, E, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
-		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
 	}
+
+	// MOV R, M
+	this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, D, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, E, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
+	this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
+
+	// MOV M, R
+	this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, D, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, E, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
+	this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
+
+	// MVI R, I
+	this->_opAddDDD(0, 0, B, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, C, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, D, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, E, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
+	this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
+
+	// MVI M, I
+	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
+
+	// LXI
+	this->_opAddRp(0, 0, BC, 0, 0, 0, 1, _opLxi);
+	this->_opAddRp(0, 0, DE, 0, 0, 0, 1, _opLxi);
+	this->_opAddRp(0, 0, HL, 0, 0, 0, 1, _opLxi);
+	this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
+
+	// LDA
+	this->_opAdd(0, 0, 1, 1, 1, 0, 1, 0, _opLda);
+
+
+	// NOP
+	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
+
+
+
+	{
+
+	}
+
+	// STAX
+	{
+		this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
+		this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
+	}
+
+	// INX
+	this->_opAddRp(0, 0, BC, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, DE, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, HL, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, SP, 0, 0, 1, 1, _opInx);
+
+	// DCR
+	this->_opAddDDD(0, 0, B, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, C, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, D, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, E, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, H, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, L, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, A, 1, 0, 1, _opDcr);
 
 	// CMP
 	this->_opAddSSS(1, 0, 1, 1, 1, B, _opCmp);
@@ -1122,6 +1128,22 @@ int altair::JitCore::_opLxi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	buffer->append(core->_pio.memoryRead(pc + 2));
 
 	ticks = 10;
+
+	return 3;
+}
+
+
+int altair::JitCore::_opLda(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1) | (core->_pio.memoryRead(pc + 2) << 8));
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// mov al, intValue
+	buffer->
+		append(0x8a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	ticks = 13;
 
 	return 3;
 }

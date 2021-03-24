@@ -93,14 +93,16 @@ namespace asm8080 {
 			virtual ~Compiler();
 
 		public:
-			Compiler &adi(const Imm8 &imm);
+			Compiler &mov(const Reg8 &dst, const Reg8 &src);
 			Compiler &mvi(const Reg8 &reg, const Imm8 &imm);
 			Compiler &lxi(const Reg16 &reg, const Imm16 &imm);
+			Compiler &lda(const Imm16 &imm);
+
+			Compiler &adi(const Imm8 &imm);
+
 			Compiler &stax(const Reg16 &reg);
 			Compiler &inx(const Reg16 &reg);
 			Compiler &dcr(const Reg8 &reg);
-
-			Compiler &mov(const Reg8 &dst, const Reg8 &src);
 
 			Compiler &push(const Reg16 &reg);
 			Compiler &pop(const Reg16 &reg);

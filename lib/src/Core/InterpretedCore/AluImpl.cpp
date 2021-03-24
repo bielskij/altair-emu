@@ -22,7 +22,8 @@
  * SOFTWARE.
  */
 #include "altair/Core/InterpretedCore.hpp"
-
+#define DEBUG_LEVEL 5
+#include "common/debug.h"
 
 void altair::InterpretedCore::AluImpl::reset() {
 	this->operation     = Op::IDLE;
@@ -66,7 +67,7 @@ void altair::InterpretedCore::AluImpl::clk() {
 						// subtraction is implemented on adders.
 						valTmp ^= 0xff;
 						valCy = (valCy + valTmp + (carry ^ 1)) ^ 0x0100;
-						valAc = (valAc + (valTmp & 0x0f) + (carry ^ 1));
+						valAc = (valAc + (valTmp & 0x0f) + (carry ^ 1)) ^ 0x10;
 					}
 					break;
 

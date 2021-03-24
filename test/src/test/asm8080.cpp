@@ -136,6 +136,27 @@ asm8080::Compiler &asm8080::Compiler::lxi(const Reg16 &reg, const Imm16 &imm) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::stax(const Reg16 &reg) {
+	this->_memory[this->_addr++] = 0x02 | reg.getVal();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::inx(const Reg16 &reg) {
+	this->_memory[this->_addr++] = 0x03 | reg.getVal();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::dcr(const Reg8 &reg) {
+	this->_memory[this->_addr++] = 0x05 | reg.getVal(false);
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::mov(const Reg8 &dst, const Reg8 &src) {
 	this->_memory[this->_addr++] = 0x40 | dst.getVal(false) | src.getVal(true);
 
@@ -166,6 +187,28 @@ asm8080::Compiler &asm8080::Compiler::stc() {
 
 asm8080::Compiler &asm8080::Compiler::rrc() {
 	this->_memory[this->_addr++] = 0x0f;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sbb(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0x98 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cmp(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0xb8 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cpi(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xfe;
+	this->_memory[this->_addr++] = imm.val();
 
 	return *this;
 }

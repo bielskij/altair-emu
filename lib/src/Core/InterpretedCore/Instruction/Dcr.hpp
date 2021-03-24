@@ -43,9 +43,9 @@ namespace altair {
 					}
 
 					bool t4() override {
-						core()->bR(InterpretedCore::BReg::TMP, core()->bR(ddd()));
+						core()->bR(InterpretedCore::BReg::TMP, 1);
 
-						alu()->op(0xff, ddd(), InterpretedCore::AluImpl::Op::ADD, false,
+						alu()->op(ddd(), ddd(), InterpretedCore::AluImpl::Op::SUB, false,
 							InterpretedCore::AluImpl::Z | InterpretedCore::AluImpl::S | InterpretedCore::AluImpl::P | InterpretedCore::AluImpl::AC,
 							1
 						);

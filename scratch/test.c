@@ -34,8 +34,68 @@ typedef struct _T {
 } T;
 
 
+void _cpi() {
+	__asm(
+		"push rax \t\n"
+		"sub al, 12 \t\n"
+		"pop rax \t\n"
+	);
+}
+
+void _cmp() {
+	__asm(
+		"push rax \t\n"
+		"sub al, bh \t\n"
+		"sub al, bl \t\n"
+		"sub al, ch \t\n"
+		"sub al, cl \t\n"
+		"sub al, dh \t\n"
+		"sub al, dl \t\n"
+		"sub al, al \t\n"
+		"pop rax \t\n"
+	);
+}
+
+
+void _sbb() {
+	__asm(
+		"sbb al, bh \t\n"
+		"sbb al, bl \t\n"
+		"sbb al, ch \t\n"
+		"sbb al, cl \t\n"
+		"sbb al, dh \t\n"
+		"sbb al, dl \t\n"
+		"sbb al, al \t\n"
+	);
+}
+
+void _dcr() {
+	__asm(
+		"dec bh \t\n"
+		"dec bl \t\n"
+		"dec ch \t\n"
+		"dec cl \t\n"
+		"dec dh \t\n"
+		"dec dl \t\n"
+		"dec al \t\n"
+		:
+		:
+		:
+	);
+}
+
+
 void _stc() {
 	__asm("stc");
+}
+
+void _inx() {
+	__asm(
+		"inc bx \t\n"
+		"inc cx \t\n"
+		"inc dx \t\n"
+		"inc si \t\n"
+	);
 }
 
 void _ret() {

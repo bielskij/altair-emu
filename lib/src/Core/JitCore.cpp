@@ -155,6 +155,27 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
 	}
 
+	// STAX
+	{
+		this->_opAddRp(0, 0, BC, 0, 0, 1, 0, _opStax);
+		this->_opAddRp(0, 0, DE, 0, 0, 1, 0, _opStax);
+	}
+
+	// INX
+	this->_opAddRp(0, 0, BC, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, DE, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, HL, 0, 0, 1, 1, _opInx);
+	this->_opAddRp(0, 0, SP, 0, 0, 1, 1, _opInx);
+
+	// DCR
+	this->_opAddDDD(0, 0, B, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, C, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, D, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, E, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, H, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, L, 1, 0, 1, _opDcr);
+	this->_opAddDDD(0, 0, A, 1, 0, 1, _opDcr);
+
 	// MOV R, R
 	// MOV R, M
 	// MOV M, R
@@ -232,6 +253,18 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 		this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
 	}
 
+	// CMP
+	this->_opAddSSS(1, 0, 1, 1, 1, B, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, C, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, D, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, E, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, H, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, L, _opCmp);
+	this->_opAddSSS(1, 0, 1, 1, 1, A, _opCmp);
+
+	// CPI
+	this->_opAdd(1, 1, 1, 1, 1, 1, 1, 0, _opCpi);
+
 	// IN/OUT
 	this->_opAdd(1, 1, 0, 1, 0, 0, 1, 1, _opOut);
 	this->_opAdd(1, 1, 0, 1, 1, 0, 1, 1, _opIn);
@@ -240,7 +273,17 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAdd(1, 1, 1, 1, 1, 0, 1, 1, _opEid);
 	this->_opAdd(1, 1, 1, 1, 0, 0, 1, 1, _opEid);
 
+	// ADI
 	this->_opAdd(1, 1, 0, 0, 0, 1, 1, 0, _opAdi);
+
+	// SBBr
+	this->_opAddSSS(1, 0, 0, 1, 1, B, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, C, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, D, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, E, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, H, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, L, _opSbbR);
+	this->_opAddSSS(1, 0, 0, 1, 1, A, _opSbbR);
 
 	// rotate accumulator
 	this->_opAdd(0, 0, 0, 0, 1, 1, 1, 1, _opRrc);
@@ -793,12 +836,30 @@ void altair::JitCore::wR(WReg reg, uint16_t val) {
 
 
 uint8_t altair::JitCore::wRL(WReg reg) {
+	switch (reg) {
+		case WReg::B:  return this->_regs.C;
+		case WReg::D:  return this->_regs.E;
+		case WReg::H:  return this->_regs.L;
+		case WReg::SP: return this->_regs.SP & 0xff;
+		default:
+			ERR(("%s(): Not supported WReg value! (%02x)", __func__, (uint8_t)reg));
 
+			throw std::runtime_error("Not supported WReg value!");
+	}
 }
 
 
 uint8_t altair::JitCore::wRH(WReg reg) {
+	switch (reg) {
+		case WReg::B:  return this->_regs.B;
+		case WReg::D:  return this->_regs.D;
+		case WReg::H:  return this->_regs.H;
+		case WReg::SP: return this->_regs.SP >> 8;
+		default:
+			ERR(("%s(): Not supported WReg value! (%02x)", __func__, (uint8_t)reg));
 
+			throw std::runtime_error("Not supported WReg value!");
+	}
 }
 
 
@@ -1063,6 +1124,59 @@ int altair::JitCore::_opLxi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	ticks = 10;
 
 	return 3;
+}
+
+
+int altair::JitCore::_opStax(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	if ((opcode & 0x10) != 0) {
+		core->addIntCodeLoadIntAddrFromReg(buffer, DE);
+
+	} else {
+		core->addIntCodeLoadIntAddrFromReg(buffer, BC);
+	}
+
+	core->addIntCodeLoadIntValueFromReg(buffer, A);
+	core->addIntCodeCallMemoryWrite(buffer);
+
+	ticks = 7;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opInx(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// pushf
+	b->append(0x9c);
+
+	b->append(0x66).append(0xff);
+
+	switch (_rp(opcode)) {
+		case RegDouble::BC:
+			b->append(0xc3);
+			break;
+
+		case RegDouble::DE:
+			b->append(0xc1);
+			break;
+
+		case RegDouble::HL:
+			b->append(0xc2);
+			break;
+
+		case RegDouble::SP:
+			b->append(0xc6);
+			break;
+
+		default:
+			break;
+	}
+
+	// popf
+	b->append(0x9d);
+
+	ticks = 5;
+
+	return 1;
 }
 
 
@@ -1479,6 +1593,25 @@ int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 }
 
 
+int altair::JitCore::_opSbbR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->append(0x18);
+
+	switch (_srcR(opcode)) {
+		case B: buffer->append(0xf8); break;
+		case C: buffer->append(0xd8); break;
+		case D: buffer->append(0xe8); break;
+		case E: buffer->append(0xc8); break;
+		case H: buffer->append(0xf0); break;
+		case L: buffer->append(0xd0); break;
+		case A: buffer->append(0xc0); break;
+	}
+
+	ticks = 4;
+
+	return 1;
+}
+
+
 int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
 
 	buffer->
@@ -1519,6 +1652,65 @@ int altair::JitCore::_opRrc(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	ticks = 4;
 
 	return 1;
+}
+
+
+int altair::JitCore::_opDcr(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	b->append(0xfe);
+
+	switch (_dstR(opcode)) {
+		case B: b->append(0xcf); break;
+		case C: b->append(0xcb); break;
+		case D: b->append(0xcd); break;
+		case E: b->append(0xc9); break;
+		case H: b->append(0xce); break;
+		case L: b->append(0xca); break;
+		case A: b->append(0xc8); break;
+	}
+
+	ticks = 5;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opCmp(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// push rax
+	b->append(0x50);
+
+	b->append(0x28); // sub
+	switch (_srcR(opcode)) {
+		case B: b->append(0xf8); break;
+		case C: b->append(0xd8); break;
+		case D: b->append(0xe8); break;
+		case E: b->append(0xc8); break;
+		case H: b->append(0xf0); break;
+		case L: b->append(0xd0); break;
+		case A: b->append(0xc0); break;
+	}
+
+	// pop rax
+	b->append(0x58);
+
+	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opCpi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	buffer->
+		// push rax
+		append(0x50).
+		// sub al, imm
+		append(0x2c).
+		append(core->_pio.memoryRead(pc + 1)).
+		// pop rax
+		append(0x58);
+
+	ticks = 7;
+
+	return 2;
 }
 
 

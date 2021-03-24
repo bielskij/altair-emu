@@ -131,64 +131,55 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	std::fill(std::begin(_opHandlers), std::begin(_opHandlers) + 0xff, nullptr);
 
 	// MOV R, R
-	{
-		this->_opAddDDDSSS(0, 1, A, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, A, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, B, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, B, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, C, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, C, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, D, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, D, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, E, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, E, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, H, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, H, A, _opMovRR);
-
-		this->_opAddDDDSSS(0, 1, L, B, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, C, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, D, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, E, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
-		this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
-	}
-
+	this->_opAddDDDSSS(0, 1, A, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, A, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, B, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, C, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, D, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, E, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, H, A, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, B, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, C, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, D, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, E, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, H, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, L, _opMovRR);
+	this->_opAddDDDSSS(0, 1, L, A, _opMovRR);
 	// MOV R, M
 	this->_opAddDDD(0, 1, B, 1, 1, 0, _opMovRM);
 	this->_opAddDDD(0, 1, C, 1, 1, 0, _opMovRM);
@@ -245,8 +236,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddSSS(1, 0, 0, 0, 0, H, _opAddR);
 	this->_opAddSSS(1, 0, 0, 0, 0, L, _opAddR);
 	this->_opAddSSS(1, 0, 0, 0, 0, A, _opAddR);
-
-
+	// ADD M
+	this->_opAddBit(1, 0, 0, 0, 0, 1, 1, 0, _opAddM);
 
 
 	// NOP
@@ -1300,6 +1291,22 @@ int altair::JitCore::_opAddR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 	}
 
 	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opAddM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromReg(buffer, HL);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// add    al,BYTE PTR [rbp+intValue]
+	buffer->
+		append(0x02).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	ticks = 7;
 
 	return 1;
 }

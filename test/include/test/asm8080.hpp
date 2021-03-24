@@ -105,6 +105,7 @@ namespace asm8080 {
 			Compiler &xchg();
 
 			Compiler &add(const Reg8 &src);
+			Compiler &addM();
 			Compiler &adi(const Imm8 &imm);
 
 			Compiler &inx(const Reg16 &reg);

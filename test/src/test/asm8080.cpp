@@ -199,6 +199,13 @@ asm8080::Compiler &asm8080::Compiler::add(const Reg8 &src) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::addM() {
+	this->_memory[this->_addr++] = 0x86;
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::adi(const Imm8 &imm8) {
 	this->_memory[this->_addr++] = 0xc6;
 	this->_memory[this->_addr++] = imm8.val();

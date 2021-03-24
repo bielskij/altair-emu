@@ -34,6 +34,17 @@ typedef struct _T {
 } T;
 
 
+
+void _addM() {
+	__asm(
+		"add al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
 void _addR() {
 	__asm(
 		"add al, bh \t\n"

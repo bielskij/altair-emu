@@ -34,6 +34,17 @@ typedef struct _T {
 } T;
 
 
+void _lhld() {
+	__asm(
+		"mov dh, BYTE PTR [rbp + %[off_value]] \t\n"
+		"mov dl, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
 void _cpi() {
 	__asm(
 		"push rax \t\n"

@@ -144,6 +144,24 @@ asm8080::Compiler &asm8080::Compiler::lda(const Imm16 &imm) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::sta(const Imm16 &imm) {
+	this->_memory[this->_addr++] = 0x32;
+	this->_memory[this->_addr++] = imm.valL();
+	this->_memory[this->_addr++] = imm.valH();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::lhld(const Imm16 &imm) {
+	this->_memory[this->_addr++] = 0x2a;
+	this->_memory[this->_addr++] = imm.valL();
+	this->_memory[this->_addr++] = imm.valH();
+
+	return *this;
+}
+
+
 
 
 

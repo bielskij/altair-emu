@@ -197,7 +197,6 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddDDD(0, 1, H, 1, 1, 0, _opMovRM);
 	this->_opAddDDD(0, 1, L, 1, 1, 0, _opMovRM);
 	this->_opAddDDD(0, 1, A, 1, 1, 0, _opMovRM);
-
 	// MOV M, R
 	this->_opAddSSS(0, 1, 1, 1, 0, B, _opMovMR);
 	this->_opAddSSS(0, 1, 1, 1, 0, C, _opMovMR);
@@ -206,7 +205,6 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddSSS(0, 1, 1, 1, 0, H, _opMovMR);
 	this->_opAddSSS(0, 1, 1, 1, 0, L, _opMovMR);
 	this->_opAddSSS(0, 1, 1, 1, 0, A, _opMovMR);
-
 	// MVI R, I
 	this->_opAddDDD(0, 0, B, 1, 1, 0, _opMviR);
 	this->_opAddDDD(0, 0, C, 1, 1, 0, _opMviR);
@@ -215,26 +213,24 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddDDD(0, 0, H, 1, 1, 0, _opMviR);
 	this->_opAddDDD(0, 0, L, 1, 1, 0, _opMviR);
 	this->_opAddDDD(0, 0, A, 1, 1, 0, _opMviR);
-
 	// MVI M, I
 	this->_opAdd(0, 0, 1, 1, 0, 1, 1, 0, _opMviM);
-
 	// LXI
 	this->_opAddRp(0, 0, BC, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, DE, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, HL, 0, 0, 0, 1, _opLxi);
 	this->_opAddRp(0, 0, SP, 0, 0, 0, 1, _opLxi);
-
 	// LDA
 	this->_opAdd(0, 0, 1, 1, 1, 0, 1, 0, _opLda);
-
 	// STA
 	this->_opAdd(0, 0, 1, 1, 0, 0, 1, 0, _opSta);
+	// LHLD
+	this->_opAdd(0, 0, 1, 0, 1, 0, 1, 0, _opLhld);
+
+
 
 	// NOP
 	this->_opAdd(0, 0, 0, 0, 0, 0, 0, 0, _opNop);
-
-
 
 	{
 
@@ -1157,6 +1153,31 @@ int altair::JitCore::_opSta(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	core->addIntCodeCallMemoryWrite(buffer);
 
 	ticks = 13;
+
+	return 3;
+}
+
+
+int altair::JitCore::_opLhld (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	uint16_t addr = core->_pio.memoryRead(pc + 1) | (core->_pio.memoryRead(pc + 2) << 8);
+
+	core->addIntCodeLoadIntAddrFromImm(buffer, addr);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	buffer->
+		append(0x8a).
+		append(0x55).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	core->addIntCodeLoadIntAddrFromImm(buffer, addr + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	buffer->
+		append(0x8a).
+		append(0x75).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
+
+	ticks = 16;
 
 	return 3;
 }

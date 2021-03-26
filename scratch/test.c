@@ -34,6 +34,168 @@ typedef struct _T {
 } T;
 
 
+void _anaR() {
+	__asm(
+		"and al, bh \t\n"
+		"and al, bl \t\n"
+		"and al, ch \t\n"
+		"and al, cl \t\n"
+		"and al, dh \t\n"
+		"and al, dl \t\n"
+		"and al, al \t\n"
+	);
+}
+
+
+void _anaM() {
+	__asm(
+		"and al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+
+void _ani() {
+	__asm(
+		"and al, 0x13 \t\n"
+	);
+}
+
+
+void _xraR() {
+	__asm(
+		"xor al, bh \t\n"
+		"xor al, bl \t\n"
+		"xor al, ch \t\n"
+		"xor al, cl \t\n"
+		"xor al, dh \t\n"
+		"xor al, dl \t\n"
+		"xor al, al \t\n"
+	);
+}
+
+
+void _xraM() {
+	__asm(
+		"xor al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+
+void _xri() {
+	__asm(
+		"xor al, 0x13 \t\n"
+	);
+}
+
+void _oraR() {
+	__asm(
+		"or al, bh \t\n"
+		"or al, bl \t\n"
+		"or al, ch \t\n"
+		"or al, cl \t\n"
+		"or al, dh \t\n"
+		"or al, dl \t\n"
+		"or al, al \t\n"
+	);
+}
+
+
+void _oraM() {
+	__asm(
+		"or al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+
+void _ori() {
+	__asm(
+		"or al, 0x13 \t\n"
+	);
+}
+
+
+void _subR() {
+	__asm(
+		"sub al, bh \t\n"
+		"sub al, bl \t\n"
+		"sub al, ch \t\n"
+		"sub al, cl \t\n"
+		"sub al, dh \t\n"
+		"sub al, dl \t\n"
+		"sub al, al \t\n"
+	);
+}
+
+void _subM() {
+	__asm(
+		"sub al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+
+void _sui() {
+	__asm(
+		"sub al, 0x13 \t\n"
+	);
+}
+
+
+void _sbbR() {
+	__asm(
+		"sbb al, bh \t\n"
+		"sbb al, bl \t\n"
+		"sbb al, ch \t\n"
+		"sbb al, cl \t\n"
+		"sbb al, dh \t\n"
+		"sbb al, dl \t\n"
+		"sbb al, al \t\n"
+	);
+}
+
+void _sbbM() {
+	__asm(
+		"sbb al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+
+void _sbi() {
+	__asm(
+		"sbb al, 0x13 \t\n"
+	);
+}
+
+
+void _adcM() {
+	__asm(
+		"adc al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
 
 void _addM() {
 	__asm(
@@ -58,6 +220,19 @@ void _addR() {
 }
 
 
+void _adcR() {
+	__asm(
+		"adc al, bh \t\n"
+		"adc al, bl \t\n"
+		"adc al, ch \t\n"
+		"adc al, cl \t\n"
+		"adc al, dh \t\n"
+		"adc al, dl \t\n"
+		"adc al, al \t\n"
+	);
+}
+
+
 void _xchg() {
 	__asm(
 		"pushf      \t\n"
@@ -70,6 +245,27 @@ void _xchg() {
 		"popf       \t\n"
 	);
 }
+
+void _inrM() {
+	__asm(
+		"inc BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
+void _dcrM() {
+	__asm(
+		"dec BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+
 
 void _lhld() {
 	__asm(
@@ -117,6 +313,21 @@ void _sbb() {
 	);
 }
 
+void _incR() {
+	__asm(
+		"inc bh \t\n"
+		"inc bl \t\n"
+		"inc ch \t\n"
+		"inc cl \t\n"
+		"inc dh \t\n"
+		"inc dl \t\n"
+		"inc al \t\n"
+		:
+		:
+		:
+	);
+}
+
 void _dcr() {
 	__asm(
 		"dec bh \t\n"
@@ -145,6 +356,38 @@ void _inx() {
 		"inc si \t\n"
 	);
 }
+
+
+void _dcx() {
+	__asm(
+		"dec bx \t\n"
+		"dec cx \t\n"
+		"dec dx \t\n"
+		"dec si \t\n"
+	);
+}
+
+
+void _dad() {
+	__asm(
+		"pushf \t\n"
+
+		"add dx, bx \t\n"
+		"add dx, cx \t\n"
+		"add dx, dx \t\n"
+		"add dx, si \t\n"
+
+		"pushf         \t\n"
+		"mov dil, 0x01 \t\n"
+		"and dil, byte ptr [rsp]  \t\n"
+		"popf   \t\n"
+		"and byte ptr [rsp], 0xfe \t\n"
+		"or  byte ptr [rsp], dil   \t\n"
+
+		"popf  \t\n"
+	);
+}
+
 
 void _ret() {
 	__asm(
@@ -288,9 +531,80 @@ void _rrc() {
 	);
 }
 
+void _rrl() {
+	__asm(
+		"pushfq                     \t\n"
+		"rol  al, 1                 \t\n"
+		"test al, 0x80              \t\n"
+		"jnz isset_rrl              \t\n"
+		"  and byte ptr [rsp], 0xFE \t\n"
+		"  jmp done_rrl             \t\n"
+		"isset_rrl:                 \t\n"
+		"  or byte ptr [rsp], 0x01  \t\n"
+		"done_rrl:                  \t\n"
+		"popfq                      \t\n"
+	);
+}
+
+void ralr() {
+	__asm(
+		"rcr al, 1 \t\n"
+		"rcl al, 1 \t\n"
+	);
+}
+
+void cma() {
+	__asm(
+		"pushf \t\n"
+		"xor al, 0xff \t\n"
+		"popf \t\n"
+	);
+}
+
+
+void _xthl() {
+	__asm(
+		"mov di, dx \t\n"
+		"mov BYTE PTR [rbp + %[off_intValue]], dil \t\n"
+		"inc WORD PTR [rbp + %[off_intAddress]]    \t\n"
+		"mov dh, BYTE PTR [rbp + %[off_intValue]] \t\n"
+		"mov dl, BYTE PTR [rbp + %[off_intValue]] \t\n"
+		"ror di, 8 \t\n"
+		:
+		:
+			[off_intValue]    "i" (offsetof (struct _T, intValue)),
+			[off_intAddress]  "i" (offsetof (struct _T, intAddress))
+		:
+	);
+}
+
+
+void _sphl() {
+	__asm(
+		"mov si, dx\t\n"
+	);
+}
+
+void _pchl() {
+	__asm(
+		"mov WORD PTR [rbp + %[off_pc]], dx \t\n"
+		:
+		:
+			[off_pc]  "i" (offsetof (struct _T, PC))
+		:
+	);
+}
+
+
 void _adi() {
 	__asm(
 		"add al, 0x13 \t\n"
+	);
+}
+
+void _aci() {
+	__asm(
+		"adc al, 0x13 \t\n"
 	);
 }
 

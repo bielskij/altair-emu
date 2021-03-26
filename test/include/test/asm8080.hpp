@@ -107,19 +107,41 @@ namespace asm8080 {
 			Compiler &add(const Reg8 &src);
 			Compiler &addM();
 			Compiler &adi(const Imm8 &imm);
-
-			Compiler &inx(const Reg16 &reg);
-			Compiler &dcr(const Reg8 &reg);
-
-			Compiler &push(const Reg16 &reg);
-			Compiler &pop(const Reg16 &reg);
-
-			Compiler &stc();
-			Compiler &rrc();
-
+			Compiler &adc(const Reg8 &src);
+			Compiler &adcM();
+			Compiler &aci(const Imm8 &imm);
+			Compiler &sub(const Reg8 &src);
+			Compiler &subM();
+			Compiler &sui(const Imm8 &imm);
 			Compiler &sbb(const Reg8 &src);
+			Compiler &sbbM();
+			Compiler &sbi(const Imm8 &imm);
+			Compiler &inr(const Reg8 &reg);
+			Compiler &inrM();
+			Compiler &dcr(const Reg8 &reg);
+			Compiler &dcrM();
+			Compiler &inx(const Reg16 &reg);
+			Compiler &dcx(const Reg16 &reg);
+			Compiler &dad(const Reg16 &reg);
+			//Compiler &daa(const Reg16 &reg);
+			Compiler &ana(const Reg8 &src);
+			Compiler &anaM();
+			Compiler &ani(const Imm8 &imm);
+			Compiler &xra(const Reg8 &src);
+			Compiler &xraM();
+			Compiler &xri(const Imm8 &imm);
+			Compiler &ora(const Reg8 &src);
+			Compiler &oraM();
+			Compiler &ori(const Imm8 &imm);
 			Compiler &cmp(const Reg8 &src);
-			Compiler &cpi(const Imm8 &imm);
+			Compiler &cmpM();
+			Compiler &rlc();
+			Compiler &rrc();
+			Compiler &ral();
+			Compiler &rar();
+			Compiler &cma();
+			Compiler &stc();
+
 
 			Compiler &call(const Imm16 &address);
 			Compiler &cc(const Imm16 &address);
@@ -130,7 +152,6 @@ namespace asm8080 {
 			Compiler &cm(const Imm16 &address);
 			Compiler &cpe(const Imm16 &address);
 			Compiler &cpo(const Imm16 &address);
-
 			Compiler &ret();
 			Compiler &rc();
 			Compiler &rnc();
@@ -140,7 +161,19 @@ namespace asm8080 {
 			Compiler &rm();
 			Compiler &rpe();
 			Compiler &rpo();
+			Compiler &pchl();
 
+
+			Compiler &push(const Reg16 &reg);
+			Compiler &pop(const Reg16 &reg);
+			Compiler &xthl();
+			Compiler &sphl();
+			Compiler &in(const Imm8 &port);
+			Compiler &out(const Imm8 &port);
+			Compiler &ei();
+			Compiler &di();
+
+			Compiler &cpi(const Imm8 &imm);
 			Compiler &jmp(const Imm16 &address);
 			Compiler &jc(const Imm16 &address);
 			Compiler &jnc(const Imm16 &address);
@@ -150,12 +183,6 @@ namespace asm8080 {
 			Compiler &jm(const Imm16 &address);
 			Compiler &jpe(const Imm16 &address);
 			Compiler &jpo(const Imm16 &address);
-
-			Compiler &in(const Imm8 &port);
-			Compiler &out(const Imm8 &port);
-
-			Compiler &ei();
-			Compiler &di();
 
 			Compiler &org(uint16_t address);
 			Compiler &label(const std::string &name);

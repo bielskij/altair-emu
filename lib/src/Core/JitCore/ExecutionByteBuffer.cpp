@@ -23,7 +23,7 @@ altair::JitCore::ExecutionByteBuffer::ExecutionByteBuffer(size_t initialSize) {
 		this->_bufferSize += this->_pageSize;
 
 	} else if (this->_bufferSize == 0) {
-		this->_bufferSize = this->_pageSize;
+		this->_bufferSize = this->_pageSize * 8;
 	}
 
 	this->_buffer        = (uint8_t *) mmap(nullptr, this->_bufferSize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);

@@ -25,36 +25,55 @@
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, xthl_clk) {
-	test::Pio  pio({
-		0xe3
-	});
+using namespace asm8080;
 
-	test::Core core(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 18);
+CUNIT_TEST(core_instruction, oram_clk) {
+	test::Pio  pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().oraM().toBin());
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 7);
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
-CUNIT_TEST(core_instruction, xthl_regs) {
-	// lxi sp,0x000e
-	// lxi h,0x1234
-	// xthl
-	test::Pio  pio({
-		0x31, 0x0E, 0x00, 0x21, 0x34, 0x12, 0xE3, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x45, 0x23
-	});
+CUNIT_TEST(core_instruction, oram_regs) {
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::H), 0x2345);
-	CUNIT_ASSERT_EQ(pio.mem(0x0e), 0x34);
-	CUNIT_ASSERT_EQ(pio.mem(0x0f), 0x12);
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			mvi(L, 0x07).
+			mvi(A, 0x47).
+			oraM().
+
+			org(0x0007).
+			db(0x18).
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.tick();
+		c.tick();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x5f);
+	}
 }

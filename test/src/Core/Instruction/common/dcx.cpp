@@ -25,51 +25,68 @@
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
+using namespace asm8080;
+
+
 CUNIT_TEST(core_instruction, dcx_clk) {
-	test::Pio  pio({
-		0x3b
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(pio.clkCount, 5);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().dcx(HL).toBin());
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 5);
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
 CUNIT_TEST(core_instruction, dcx_regs) {
-	// lxi b,0x1020
-	// lxi d,0x1021
-	// lxi h,0x1022
-	// lxi sp,0x1023
-	// inx b
-	// inx d
-	// inx h
-	// inx sp
-	test::Pio  pio({
-		0x01, 0x20,0x10, 0x11, 0x21,0x10, 0x21, 0x22,0x10, 0x31, 0x23,0x10, 0x0b, 0x1b, 0x2b, 0x3b
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.wRH(test::Core::WReg::B),  0x10);
-	CUNIT_ASSERT_EQ(core.wRL(test::Core::WReg::B),  0x1f);
-	CUNIT_ASSERT_EQ(core.wRH(test::Core::WReg::D),  0x10);
-	CUNIT_ASSERT_EQ(core.wRL(test::Core::WReg::D),  0x20);
-	CUNIT_ASSERT_EQ(core.wRH(test::Core::WReg::H),  0x10);
-	CUNIT_ASSERT_EQ(core.wRL(test::Core::WReg::H),  0x21);
-	CUNIT_ASSERT_EQ(core.wRH(test::Core::WReg::SP), 0x10);
-	CUNIT_ASSERT_EQ(core.wRL(test::Core::WReg::SP), 0x22);
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			lxi(BC, 0x1020).
+			lxi(DE, 0x1021).
+			lxi(HL, 0x1022).
+			lxi(SP, 0x1023).
+			dcx(BC).
+			dcx(DE).
+			dcx(HL).
+			dcx(SP).
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.wRH(test::Core::WReg::B),  0x10);
+		CUNIT_ASSERT_EQ(c.wRL(test::Core::WReg::B),  0x1f);
+		CUNIT_ASSERT_EQ(c.wRH(test::Core::WReg::D),  0x10);
+		CUNIT_ASSERT_EQ(c.wRL(test::Core::WReg::D),  0x20);
+		CUNIT_ASSERT_EQ(c.wRH(test::Core::WReg::H),  0x10);
+		CUNIT_ASSERT_EQ(c.wRL(test::Core::WReg::H),  0x21);
+		CUNIT_ASSERT_EQ(c.wRH(test::Core::WReg::SP), 0x10);
+		CUNIT_ASSERT_EQ(c.wRL(test::Core::WReg::SP), 0x22);
+	}
 }

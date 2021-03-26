@@ -92,6 +92,13 @@ uint32_t altair::card::Dcdd::Fd400::getTicksFromUs(uint32_t us) {
 }
 
 
+void altair::card::Dcdd::Fd400::tick(uint8_t ticks) {
+	while (ticks-- > 0) {
+		this->tick();
+	}
+}
+
+
 void altair::card::Dcdd::Fd400::tick() {
 	if (this->_state == State::LOADED) {
 		if (this->_moveHeadTicks == this->_moveHeadTotalTicks) {
@@ -355,6 +362,17 @@ void altair::card::Dcdd::onClk() {
 	}
 
 	this->Connector::onClk();
+}
+
+
+void altair::card::Dcdd::onClk(uint8_t ticks) {
+	for (auto &p : this->_drives) {
+		if (p.second != nullptr) {
+			p.second->tick(ticks);
+		}
+	}
+
+	this->Connector::onClk(ticks);
 }
 
 

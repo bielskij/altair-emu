@@ -85,6 +85,7 @@ namespace altair {
 						void    enable(bool enable);
 
 						void tick();
+						void tick(uint8_t ticks);
 
 					private:
 						static uint32_t getTicksFromMs(uint32_t ms);
@@ -147,6 +148,7 @@ namespace altair {
 				bool onIn(uint8_t number, uint8_t &val) override;
 				void onOut(uint8_t number, uint8_t data) override;
 				void onClk() override;
+				void onClk(uint8_t ticks) override;
 
 			private:
 				uint8_t                    _addr;

@@ -214,10 +214,81 @@ asm8080::Compiler &asm8080::Compiler::adi(const Imm8 &imm8) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::adc(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0x88 | src.getVal(true);
+
+	return *this;
+}
 
 
-asm8080::Compiler &asm8080::Compiler::inx(const Reg16 &reg) {
-	this->_memory[this->_addr++] = 0x03 | reg.getVal();
+asm8080::Compiler &asm8080::Compiler::adcM() {
+	this->_memory[this->_addr++] = 0x8e;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::aci(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xce;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sub(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0x90 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::subM() {
+	this->_memory[this->_addr++] = 0x96;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sui(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xd6;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sbb(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0x98 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sbbM() {
+	this->_memory[this->_addr++] = 0x9e;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sbi(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xde;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::inr(const Reg8 &reg) {
+	this->_memory[this->_addr++] = 0x04 | reg.getVal(false);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::inrM() {
+	this->_memory[this->_addr++] = 0x34;
 
 	return *this;
 }
@@ -228,6 +299,145 @@ asm8080::Compiler &asm8080::Compiler::dcr(const Reg8 &reg) {
 
 	return *this;
 }
+
+
+asm8080::Compiler &asm8080::Compiler::dcrM() {
+	this->_memory[this->_addr++] = 0x35;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::inx(const Reg16 &reg) {
+	this->_memory[this->_addr++] = 0x03 | reg.getVal();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::dcx(const Reg16 &reg) {
+	this->_memory[this->_addr++] = 0x0b | reg.getVal();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::dad(const Reg16 &reg) {
+	this->_memory[this->_addr++] = 0x09 | reg.getVal();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ana(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0xa0 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::anaM() {
+	this->_memory[this->_addr++] = 0xa6;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ani(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xe6;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::xra(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0xa8 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::xraM() {
+	this->_memory[this->_addr++] = 0xae;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::xri(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xee;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ora(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0xb0 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::oraM() {
+	this->_memory[this->_addr++] = 0xb6;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ori(const Imm8 &imm) {
+	this->_memory[this->_addr++] = 0xf6;
+	this->_memory[this->_addr++] = imm.val();
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cmp(const Reg8 &src) {
+	this->_memory[this->_addr++] = 0xb8 | src.getVal(true);
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cmpM() {
+	this->_memory[this->_addr++] = 0xbe;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rlc() {
+	this->_memory[this->_addr++] = 0x07;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rrc() {
+	this->_memory[this->_addr++] = 0x0f;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::ral() {
+	this->_memory[this->_addr++] = 0x17;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::rar() {
+	this->_memory[this->_addr++] = 0x1f;
+
+	return *this;
+}
+
+
+
 
 
 asm8080::Compiler &asm8080::Compiler::push(const Reg16 &reg) {
@@ -244,29 +454,29 @@ asm8080::Compiler &asm8080::Compiler::pop(const Reg16 &reg) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::xthl() {
+	this->_memory[this->_addr++] = 0xe3;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::sphl() {
+	this->_memory[this->_addr++] = 0xf9;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::cma() {
+	this->_memory[this->_addr++] = 0x2f;
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::stc() {
 	this->_memory[this->_addr++] = 0x37;
-
-	return *this;
-}
-
-
-asm8080::Compiler &asm8080::Compiler::rrc() {
-	this->_memory[this->_addr++] = 0x0f;
-
-	return *this;
-}
-
-
-asm8080::Compiler &asm8080::Compiler::sbb(const Reg8 &src) {
-	this->_memory[this->_addr++] = 0x98 | src.getVal(true);
-
-	return *this;
-}
-
-
-asm8080::Compiler &asm8080::Compiler::cmp(const Reg8 &src) {
-	this->_memory[this->_addr++] = 0xb8 | src.getVal(true);
 
 	return *this;
 }
@@ -419,6 +629,13 @@ asm8080::Compiler &asm8080::Compiler::rpe() {
 
 asm8080::Compiler &asm8080::Compiler::rpo() {
 	this->_memory[this->_addr++] = 0xe0;
+
+	return *this;
+}
+
+
+asm8080::Compiler &asm8080::Compiler::pchl() {
+	this->_memory[this->_addr++] = 0xe9;
 
 	return *this;
 }

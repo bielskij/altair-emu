@@ -25,36 +25,60 @@
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
-CUNIT_TEST(core_instruction, cma_clk) {\
-	test::Pio  pio({
-		0x2f
-	});
+using namespace asm8080;
 
-	test::Core core(pio);
 
-	core.nextInstruction();
+CUNIT_TEST(core_instruction, xthl_clk) {
+	test::Pio  pio;
 
-	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			xthl().
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 18);
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
-CUNIT_TEST(core_instruction, cma_reg) {
-	test::Pio  pio({
-		0x3e, 0xa5, 0x2f
-	});
+CUNIT_TEST(core_instruction, xthl_regs) {
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	core.nextInstruction();
-	CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x5a);
-	CUNIT_ASSERT_FALSE(core.alu()->fAC());
-	CUNIT_ASSERT_FALSE(core.alu()->fCY());
-	CUNIT_ASSERT_FALSE(core.alu()->fP());
-	CUNIT_ASSERT_FALSE(core.alu()->fS());
-	CUNIT_ASSERT_FALSE(core.alu()->fZ());
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			lxi(SP, 0x000e).
+			lxi(HL, 0x1234).
+			xthl().
+
+			org(0x000e).
+			db(0x45).
+			db(0x23).
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::H), 0x2345);
+		CUNIT_ASSERT_EQ(pio.mem(0x0e), 0x34);
+		CUNIT_ASSERT_EQ(pio.mem(0x0f), 0x12);
+	}
 }

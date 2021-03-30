@@ -1040,14 +1040,19 @@ int altair::JitCore::_opNop(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 
 
 int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	buffer->append(0x8a);
+
 	switch(_dstR(opcode)) {
-		case RegSingle::B: buffer->append(0xb7); break; // mov bh, imm
-		case RegSingle::C: buffer->append(0xb3); break; // mov bl, imm
-		case RegSingle::D: buffer->append(0xb5); break; // mov ch, imm
-		case RegSingle::E: buffer->append(0xb1); break; // mov cl, imm
-		case RegSingle::H: buffer->append(0xb6); break; // mov dh, imm
-		case RegSingle::L: buffer->append(0xb2); break; // mov dl, imm
-		case RegSingle::A: buffer->append(0xb0); break; // mov al, imm
+		case RegSingle::B: buffer->append(0x7d); break;
+		case RegSingle::C: buffer->append(0x5d); break;
+		case RegSingle::D: buffer->append(0x6d); break;
+		case RegSingle::E: buffer->append(0x4d); break;
+		case RegSingle::H: buffer->append(0x75); break;
+		case RegSingle::L: buffer->append(0x55); break;
+		case RegSingle::A: buffer->append(0x45); break;
 
 		default:
 			ERR(("%s(): Not supported src reg! (%02x)", __func__, _dstR(opcode)));
@@ -1055,7 +1060,7 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 			throw std::runtime_error("Not supported src reg! " + std::to_string(_dstR(opcode)));
 	}
 
-	buffer->append(core->_pio.memoryRead(pc + 1)); // imm
+	buffer->append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1064,8 +1069,10 @@ int altair::JitCore::_opMviR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opMviM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	core->addIntCodeLoadIntAddrFromReg (buffer, RegDouble::HL);
-	core->addIntCodeLoadIntValueFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	core->addIntCodeLoadIntAddrFromReg(buffer, RegDouble::HL);
 	core->addIntCodeCallMemoryWrite(buffer);
 
 	ticks = 10;
@@ -1398,9 +1405,14 @@ int altair::JitCore::_opAddM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opAdi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// add    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x04).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x02).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1444,9 +1456,14 @@ int altair::JitCore::_opAdcM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opAci (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// adc    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x14).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x12).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1490,9 +1507,14 @@ int altair::JitCore::_opSubM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opSui (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// sub    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x2c).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x2a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1536,9 +1558,14 @@ int altair::JitCore::_opSbbM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opSbi (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// sbb    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x1c).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x1a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1778,9 +1805,14 @@ int altair::JitCore::_opAnaM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opAni (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// and    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x24).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x22).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1824,9 +1856,14 @@ int altair::JitCore::_opXraM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opXri (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// xor    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x34).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x32).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1870,9 +1907,14 @@ int altair::JitCore::_opOraM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opOri (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	// xor    al,BYTE PTR [rbp+intValue]
 	buffer->
-		append(0x0c).
-		append(core->_pio.memoryRead(pc + 1));
+		append(0x0a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -1881,7 +1923,21 @@ int altair::JitCore::_opOri (JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	buffer->
+		// mov    dil,BYTE PTR [rbp+intValue]
+		append(0x40).
+		append(0x8a).
+		append(0x7d).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
+		// mov    BYTE PTR [rbp+intAddress],dil
+		append(0x40).
+		append(0x88).
+		append(0x7d).
+		append(offsetof(struct altair::JitCore::Regs, intAddress));
+
 	core->addIntCodeLoadIntValueFromReg(buffer, RegSingle::A);
 	core->addIntCodeCallIoWr(buffer);
 
@@ -1892,7 +1948,21 @@ int altair::JitCore::_opOut(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 
 
 int altair::JitCore::_opIn(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	core->addIntCodeLoadIntAddrFromImm(buffer, core->_pio.memoryRead(pc + 1));
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
+	buffer->
+		// mov    dil,BYTE PTR [rbp+intValue]
+		append(0x40).
+		append(0x8a).
+		append(0x7d).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
+		// mov    BYTE PTR [rbp+intAddress],dil
+		append(0x40).
+		append(0x88).
+		append(0x7d).
+		append(offsetof(struct altair::JitCore::Regs, intAddress));
+
 	core->addIntCodeCallIoRd(buffer);
 
 	buffer->
@@ -2514,12 +2584,16 @@ int altair::JitCore::_opCma (JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opCpi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
+	core->addIntCodeCallMemoryRead(buffer);
+
 	buffer->
 		// push rax
 		append(0x50).
-		// sub al, imm
-		append(0x2c).
-		append(core->_pio.memoryRead(pc + 1)).
+		// sub al, intValue
+		append(0x2a).
+		append(0x45).
+		append(offsetof(struct altair::JitCore::Regs, intValue)).
 		// pop rax
 		append(0x58);
 

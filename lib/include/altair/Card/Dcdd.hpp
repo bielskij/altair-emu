@@ -81,6 +81,7 @@ namespace altair {
 						uint8_t getStatus();
 						uint8_t getSectorPosition();
 						uint8_t getByte();
+						void    putByte(uint8_t data);
 						void    cmd(uint8_t cmd);
 						void    enable(bool enable);
 
@@ -91,18 +92,20 @@ namespace altair {
 						static uint32_t getTicksFromMs(uint32_t ms);
 						static uint32_t getTicksFromUs(uint32_t us);
 						void reset();
-						void bufferTrack(uint8_t trackNo);
 
 					private:
 						uint8_t      _address;
 						std::string  _filePath;
 						State        _state;
-						std::fstream _file;
+						int          _fileFd;
+						uint8_t     *_fileBuffer;
+						size_t       _fileBufferSize;
 
 						uint8_t  _track;
 						uint8_t  _sector;
 						uint8_t  _sectorByte;
 						bool     _enabled;
+						bool     _writeMode;
 
 						uint32_t _transitionTicks; // Remaining ticks required by transition (load/unload or step)
 
@@ -118,8 +121,6 @@ namespace altair {
 						uint32_t _sectorByteTrueTicks;
 						uint32_t _sectorByteTotalTicks;
 						bool     _sectorByteRead;
-
-						uint8_t _trackBuffer[TRACK_SECTORS * SECTOR_SIZE];
 				};
 
 			public:

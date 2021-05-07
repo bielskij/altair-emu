@@ -22,6 +22,12 @@
  * SOFTWARE.
  */
 #include <cinttypes>
+#include <cstdio>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "altair/Card/Dcdd.hpp"
 #include "altair/Config.hpp"
@@ -31,9 +37,10 @@
 
 
 altair::card::Dcdd::Fd400::Fd400(const std::string &filePath, uint8_t address) : _filePath(filePath) {
-	this->_address = address;
-	this->_state   = State::UNLOADED;
-	this->_enabled = false;
+	this->_address   = address;
+	this->_state     = State::UNLOADED;
+	this->_enabled   = false;
+	this->_writeMode = false;
 
 	this->_sector     = 0;
 	this->_track      = 0;
@@ -53,28 +60,46 @@ altair::card::Dcdd::Fd400::Fd400(const std::string &filePath, uint8_t address) :
 	this->_sectorByteTrueTicks  = 0;
 	this->_sectorByteRead       = false;
 
-	this->_file.open(filePath, std::ios::in | std::ios::binary);
+	this->_fileBufferSize = 0;
+	this->_fileBuffer     = nullptr;
+
+	this->_fileFd = open(this->_filePath.c_str(), O_RDWR);
+	if (this->_fileFd >= 0) {
+		struct stat stats;
+
+		fstat(this->_fileFd, &stats);
+
+		this->_fileBufferSize = stats.st_size;
+	}
+
+	if (this->_fileFd >= 0) {
+		this->_fileBuffer = reinterpret_cast<uint8_t *>(mmap(nullptr, this->_fileBufferSize, PROT_READ | PROT_WRITE, MAP_SHARED, this->_fileFd, 0));
+		if (this->_fileBuffer == MAP_FAILED) {
+			ERR(("%s(): Unable to map image file into memory!", __func__));
+
+			close(this->_fileFd);
+			this->_fileFd     = -1;
+			this->_fileBuffer = nullptr;
+		}
+	}
 }
 
 
 altair::card::Dcdd::Fd400::~Fd400() {
-	if (this->_file.is_open()) {
-		this->_file.close();
+	if (this->_fileBuffer != nullptr)  {
+		munmap(this->_fileBuffer, this->_fileBufferSize);
+
+		this->_fileBuffer = nullptr;
+	}
+
+	if (this->_fileFd >= 0) {
+		close(this->_fileFd);
 	}
 }
 
 
 void altair::card::Dcdd::Fd400::reset() {
 
-}
-
-
-void altair::card::Dcdd::Fd400::bufferTrack(uint8_t trackNo) {
-	if (this->_file.is_open()) {
-		this->_file.seekp(this->_track * TRACK_SECTORS * SECTOR_SIZE, std::ios_base::beg);
-
-		this->_file.read(reinterpret_cast<char *>(this->_trackBuffer), TRACK_SECTORS * SECTOR_SIZE);
-	}
 }
 
 
@@ -115,6 +140,8 @@ void altair::card::Dcdd::Fd400::tick() {
 			this->_sectorByteRead       = false;
 
 			this->_sector++;
+			this->_writeMode = false;
+
 			if (this->_sector == TRACK_SECTORS) {
 				this->_sector = 0;
 			}
@@ -127,7 +154,7 @@ void altair::card::Dcdd::Fd400::tick() {
 		} else if (this->_sectorTicks > this->_sectorDelayTicks) {
 			if (this->_sectorTicks == this->_sectorByteTotalTicks) {
 				// Sector byte
-				if (this->_sectorByte < SECTOR_SIZE) {
+				if (this->_sectorByte < SECTOR_SIZE || (this->_writeMode)) {
 					this->_sectorByteTrueTicks  = this->_sectorTicks + getTicksFromUs(16);
 					this->_sectorByteTotalTicks = this->_sectorTicks + getTicksFromUs(32);
 
@@ -155,8 +182,6 @@ void altair::card::Dcdd::Fd400::tick() {
 
 						this->_moveHeadTicks = 0;
 						this->_sectorTicks   = 0;
-
-						this->bufferTrack(this->_track);
 					}
 					break;
 
@@ -181,8 +206,6 @@ void altair::card::Dcdd::Fd400::tick() {
 						this->_sectorByteTrueTicks  = 0;
 						this->_sectorByteRead       = false;
 
-						this->bufferTrack(this->_track);
-
 						DBG(("STEP_IN(%u) -> LOADED", this->_track));
 					}
 					break;
@@ -200,8 +223,6 @@ void altair::card::Dcdd::Fd400::tick() {
 						this->_sectorByteTrueTicks  = 0;
 						this->_sectorByteRead       = false;
 
-						this->bufferTrack(this->_track);
-
 						DBG(("STEP_OUT(%u) -> LOADED", this->_track));
 					}
 					break;
@@ -215,7 +236,7 @@ void altair::card::Dcdd::Fd400::tick() {
 
 
 uint8_t altair::card::Dcdd::Fd400::getStatus() {
-	if (this->_file.good() && this->_enabled) {
+	if (this->_fileBuffer && this->_enabled) {
 		uint8_t ret = 0xe7; // 3 and 4 bit should be 0 when enabled
 
 		if (this->_state == State::LOADED || this->_state == State::LOADING) {
@@ -231,10 +252,17 @@ uint8_t altair::card::Dcdd::Fd400::getStatus() {
 				}
 
 				if (this->_sectorTicks > this->_sectorDelayTicks) {
-					if ((this->_sectorTicks < this->_sectorByteTrueTicks) && ! this->_sectorByteRead) {
-						DBG(("NRDA"));
+					if (this->_sectorTicks < this->_sectorByteTrueTicks) {
+						if (this->_writeMode) {
+							if (! this->_sectorByteRead) {
+								ret &= ~STATUS_ENWD;
+							}
 
-						ret &= ~STATUS_NRDA;
+						} else {
+							if (! this->_sectorByteRead) {
+								ret &= ~STATUS_NRDA;
+							}
+						}
 					}
 				}
 			}
@@ -248,7 +276,7 @@ uint8_t altair::card::Dcdd::Fd400::getStatus() {
 
 
 uint8_t altair::card::Dcdd::Fd400::getSectorPosition() {
-	if (this->_file.good() && this->_enabled) {
+	if (this->_fileBuffer && this->_enabled) {
 		uint8_t ret = 0;
 
 		ret |= (this->_sector << 1);
@@ -267,13 +295,28 @@ uint8_t altair::card::Dcdd::Fd400::getSectorPosition() {
 
 
 uint8_t altair::card::Dcdd::Fd400::getByte() {
-	if (this->_file.good() && this->_enabled) {
+	if (this->_fileBuffer && this->_enabled) {
 		this->_sectorByteRead = true;
 
-		return this->_trackBuffer[this->_sector * SECTOR_SIZE + this->_sectorByte];
+		return this->_fileBuffer[
+			this->_track * TRACK_SECTORS * SECTOR_SIZE + this->_sector * SECTOR_SIZE + this->_sectorByte
+		];
 	}
 
 	return 0;
+}
+
+
+void altair::card::Dcdd::Fd400::putByte(uint8_t data) {
+	if (this->_fileBuffer && this->_enabled) {
+		this->_sectorByteRead = true;
+
+		if (this->_sectorByte < SECTOR_SIZE) {
+			this->_fileBuffer[
+				this->_track * TRACK_SECTORS * SECTOR_SIZE + this->_sector * SECTOR_SIZE + this->_sectorByte
+			] = data;
+		}
+	}
 }
 
 
@@ -336,6 +379,8 @@ void altair::card::Dcdd::Fd400::cmd(uint8_t cmd) {
 
 	if (cmd & CTRL_WE) {
 		DBG(("WRITE ENABLE"));
+
+		this->_writeMode = true;
 	}
 }
 
@@ -390,7 +435,7 @@ bool altair::card::Dcdd::onIn(uint8_t number, uint8_t &val) {
 					val = drive->getStatus();
 				}
 
-				DBG(("[%u] STATUS %02x", this->_addr, val));
+//				DBG(("[%u] STATUS %02x", this->_addr, val));
 			}
 			break;
 
@@ -438,10 +483,10 @@ void altair::card::Dcdd::onOut(uint8_t number, uint8_t data) {
 					drive->enable(false);
 				}
 
+				DBG(("[%u] SELECTION %u", this->_addr, data & 0x0f));
+
 				// TODO: Handle clear control flag
 				this->_addr = data & 0x0f;
-
-				DBG(("SELECTION %u", this->_addr));
 
 				drive = this->_drives[this->_addr];
 				if (drive != nullptr) {
@@ -467,7 +512,11 @@ void altair::card::Dcdd::onOut(uint8_t number, uint8_t data) {
 
 		case 0x0a:
 			{
+				Fd400 *drive = this->_drives[this->_addr];
 
+				// DBG(("[%u] WRITE [%02x]", this->_addr, data));
+
+				drive->putByte(data);
 			}
 			break;
 	}

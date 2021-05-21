@@ -364,8 +364,9 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	// ROT TC
 	this->_opAddBit(0, 0, 0, 1, 0, 1, 1, 1, _opRal);
 	this->_opAddBit(0, 0, 0, 1, 1, 1, 1, 1, _opRar);
-	// CMA
+	// CMA/CMC
 	this->_opAddBit(0, 0, 1, 0, 1, 1, 1, 1, _opCma);
+	this->_opAddBit(0, 0, 1, 1, 1, 1, 1, 1, _opCmc);
 	// STC
 	this->_opAddBit(0, 0, 1, 1, 0, 1, 1, 1, _opStc);
 
@@ -2576,6 +2577,16 @@ int altair::JitCore::_opCma (JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 		append(0x34).append(0xff).
 		// popf
 		append(0x9d);
+
+	ticks = 4;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opCmc (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// CMC
+	buffer->append(0xf5);
 
 	ticks = 4;
 

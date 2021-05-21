@@ -141,6 +141,7 @@ namespace asm8080 {
 			Compiler &rar();
 			Compiler &cma();
 			Compiler &stc();
+			Compiler &cmc();
 
 
 			Compiler &call(const Imm16 &address);

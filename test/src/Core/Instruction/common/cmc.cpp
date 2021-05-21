@@ -21,37 +21,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 #include "cunit.h"
 
 #include "test/Core.hpp"
+#include "test/Context.hpp"
+#include "test/asm8080.hpp"
+
 #include "Core/Pio.hpp"
 
 
+using namespace asm8080;
+
+
 CUNIT_TEST(core_instruction, cmc_clk) {
-	test::Pio  pio({
-		0x3f
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
+	for (auto &core : cores) {
+		test::Core c(core.get());
 
-	CUNIT_ASSERT_EQ(pio.clkCount, 4);
-	CUNIT_ASSERT_EQ(core.wR(test::Core::WReg::PC), 1);
+		pio.setProgram(Compiler().
+			cmc().
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(pio.clkCount, 4);
+		CUNIT_ASSERT_EQ(c.wR(test::Core::WReg::PC), 1);
+	}
 }
 
 
 CUNIT_TEST(core_instruction, cmc_reg) {
-	test::Pio  pio({
-		0x3f, 0x3f
-	});
+	test::Pio  pio;
 
-	test::Core core(pio);
+	auto cores = getCores(pio);
 
-	core.nextInstruction();
-	CUNIT_ASSERT_TRUE(core.alu()->fCY());
+	for (auto &core : cores) {
+		test::Core c(core.get());
 
-	core.nextInstruction();
-	CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		pio.setProgram(
+			Compiler().
+				cmc().
+				cmc().
+				toBin()
+		);
+
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fP());
+		CUNIT_ASSERT_FALSE(c.alu()->fS());
+		CUNIT_ASSERT_FALSE(c.alu()->fZ());
+
+		c.nextInstruction();
+		CUNIT_ASSERT_TRUE(c.alu()->fCY());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fP());
+		CUNIT_ASSERT_FALSE(c.alu()->fS());
+		CUNIT_ASSERT_FALSE(c.alu()->fZ());
+
+		c.nextInstruction();
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fP());
+		CUNIT_ASSERT_FALSE(c.alu()->fS());
+		CUNIT_ASSERT_FALSE(c.alu()->fZ());
+	}
 }

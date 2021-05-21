@@ -343,6 +343,9 @@ void _dcr() {
 	);
 }
 
+void _ctc() {
+	__asm("cmc");
+}
 
 void _stc() {
 	__asm("stc");

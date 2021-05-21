@@ -482,6 +482,13 @@ asm8080::Compiler &asm8080::Compiler::stc() {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::cmc() {
+	this->_memory[this->_addr++] = 0x3f;
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::cpi(const Imm8 &imm) {
 	this->_memory[this->_addr++] = 0xfe;
 	this->_memory[this->_addr++] = imm.val();

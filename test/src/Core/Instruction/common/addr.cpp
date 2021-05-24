@@ -145,3 +145,36 @@ CUNIT_TEST(core_instruction, addr_regs) {
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x07);
 	}
 }
+
+
+CUNIT_TEST(core_instruction, addr_flags) {
+	test::Pio  pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			mvi(A, 0x7f).
+			mvi(B, 0x01).
+			stc().
+			add(B).
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.nextInstruction();
+		c.tick();
+		c.tick();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x80);
+		CUNIT_ASSERT_TRUE (c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
+		CUNIT_ASSERT_FALSE(c.alu()->fP());
+		CUNIT_ASSERT_TRUE (c.alu()->fS());
+		CUNIT_ASSERT_FALSE(c.alu()->fZ());
+	}
+}

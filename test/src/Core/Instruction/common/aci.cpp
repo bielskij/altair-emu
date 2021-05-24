@@ -77,3 +77,62 @@ CUNIT_TEST(core_instruction, aci_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x11);
 	}
 }
+
+
+CUNIT_TEST(core_instruction, aci_flags) {
+	test::Pio  pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			mvi(A, 0xff).
+			aci(0x1).
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.tick();
+		c.tick();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x00);
+		CUNIT_ASSERT_TRUE (c.alu()->fAC());
+		CUNIT_ASSERT_TRUE (c.alu()->fCY());
+		CUNIT_ASSERT_TRUE (c.alu()->fP());
+		CUNIT_ASSERT_FALSE(c.alu()->fS());
+		CUNIT_ASSERT_TRUE (c.alu()->fZ());
+	}
+}
+
+
+CUNIT_TEST(core_instruction, aci_flags_2) {
+	test::Pio  pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(Compiler().
+			mvi(A, 0x7f).
+			aci(0x1).
+
+			toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		c.tick();
+		c.tick();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x80);
+		CUNIT_ASSERT_TRUE (c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
+		CUNIT_ASSERT_FALSE(c.alu()->fP());
+		CUNIT_ASSERT_TRUE (c.alu()->fS());
+		CUNIT_ASSERT_FALSE(c.alu()->fZ());
+	}
+}
+

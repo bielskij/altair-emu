@@ -25,4 +25,5 @@
 #include "altair/Config.hpp"
 
 
-uint32_t altair::Config::_clkFrequency = 2000000;
+uint32_t altair::Config::_clkFrequency  = 2000000;
+uint32_t altair::Config::_clkMultiplier = 1;

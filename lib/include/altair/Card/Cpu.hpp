@@ -39,8 +39,10 @@ namespace altair {
 							this->_cpu             = cpu;
 							this->_stop            = false;
 							this->_frequency       = Config::getClkFrequency();
-							this->_tickNanoseconds = 1000000000 / this->_frequency;
+							this->_tickNanoseconds = (1000000000 / this->_frequency) / Config::getClkMultiplier();
 							this->_ticksTurn       = 0;
+
+							printf("nano: %u\n", this->_tickNanoseconds);
 						}
 
 						virtual ~ClkSource() {

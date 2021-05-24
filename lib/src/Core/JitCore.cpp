@@ -312,6 +312,8 @@ altair::JitCore::JitCore(Pio &pio, uint16_t pc) : Core(), _pio(pio) {
 	this->_opAddRp(0, 0, DE, 1, 0, 0, 1, _opDad);
 	this->_opAddRp(0, 0, HL, 1, 0, 0, 1, _opDad);
 	this->_opAddRp(0, 0, SP, 1, 0, 0, 1, _opDad);
+	// DAA
+	this->_opAddBit(0, 0, 1, 0, 0, 1, 1, 1, _opDaa);
 	// ANA R
 	this->_opAddSSS(1, 0, 1, 0, 0, B, _opAnaR);
 	this->_opAddSSS(1, 0, 1, 0, 0, C, _opAnaR);
@@ -1765,6 +1767,14 @@ int altair::JitCore::_opDad (JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 	buffer->append(0x9d);
 
 	ticks = 10;
+
+	return 1;
+}
+
+
+int altair::JitCore::_opDaa (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
+	// TODO:
+	ticks = 4;
 
 	return 1;
 }

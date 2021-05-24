@@ -243,6 +243,12 @@ int main(int argc, char *argv[]) {
 					);
 				}
 
+				if (global->contains("multiplier")) {
+					altair::Config::setClkMultiplier(
+						common::Utils::toUint32(global->getValue("multiplier"))
+					);
+				}
+
 				if (global->contains("mode")) {
 					const std::string &mode = global->getValue("mode");
 

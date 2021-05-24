@@ -37,12 +37,21 @@ namespace altair {
 				_clkFrequency = freq;
 			}
 
+			static uint32_t getClkMultiplier() {
+				return _clkMultiplier;
+			}
+
+			static void setClkMultiplier(uint32_t multiplier) {
+				_clkMultiplier = multiplier;
+			}
+
 		private:
 			Config() = delete;
 			Config(const Config &) = delete;
 
 		private:
 			static uint32_t _clkFrequency;
+			static uint32_t _clkMultiplier;
 	};
 }
 

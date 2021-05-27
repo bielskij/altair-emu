@@ -123,7 +123,7 @@ namespace asm8080 {
 			Compiler &inx(const Reg16 &reg);
 			Compiler &dcx(const Reg16 &reg);
 			Compiler &dad(const Reg16 &reg);
-			//Compiler &daa(const Reg16 &reg);
+			Compiler &daa();
 			Compiler &ana(const Reg8 &src);
 			Compiler &anaM();
 			Compiler &ani(const Imm8 &imm);

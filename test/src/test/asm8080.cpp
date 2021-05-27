@@ -329,6 +329,13 @@ asm8080::Compiler &asm8080::Compiler::dad(const Reg16 &reg) {
 }
 
 
+asm8080::Compiler &asm8080::Compiler::daa() {
+	this->_memory[this->_addr++] = 0x27;
+
+	return *this;
+}
+
+
 asm8080::Compiler &asm8080::Compiler::ana(const Reg8 &src) {
 	this->_memory[this->_addr++] = 0xa0 | src.getVal(true);
 

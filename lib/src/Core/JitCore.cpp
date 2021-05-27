@@ -1773,7 +1773,51 @@ int altair::JitCore::_opDad (JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opDaa (JitCore *core, ExecutionByteBuffer *buffer, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	// TODO:
+	buffer->append(0x66).append(0x53);
+	buffer->append(0x66).append(0x51);
+	buffer->append(0x66).append(0x52);
+	buffer->append(0x66).append(0x9c);
+	buffer->append(0x66).append(0x5b);
+	buffer->append(0x66).append(0x31).append(0xc9);
+	buffer->append(0x88).append(0xc1);
+	buffer->append(0x88).append(0xda);
+	buffer->append(0x40).append(0x88).append(0xc7);
+	buffer->append(0x40).append(0x80).append(0xe7).append(0x0f);
+	buffer->append(0x40).append(0x80).append(0xff).append(0x09);
+	buffer->append(0x7f).append(0x07);
+	buffer->append(0xf6).append(0xc3).append(0x10);
+	buffer->append(0x75).append(0x02);
+	buffer->append(0xeb).append(0x12);
+
+	buffer->append(0x04).append(0x06);
+	buffer->append(0x66).append(0x9c);
+	buffer->append(0x66).append(0x5f);
+	buffer->append(0x40).append(0x80).append(0xe7).append(0x01);
+	buffer->append(0x40).append(0x08).append(0xfa);
+	buffer->append(0x80).append(0xca).append(0x10);
+	buffer->append(0xeb).append(0x03);
+
+	buffer->append(0x80).append(0xe2).append(0xef);
+
+	buffer->append(0x66).append(0x81).append(0xf9).append(0x99).append(0x00);
+	buffer->append(0x7f).append(0x07);
+	buffer->append(0xf6).append(0xc3).append(0x01);
+	buffer->append(0x75).append(0x02);
+	buffer->append(0xeb).append(0x07);
+
+	buffer->append(0x04).append(0x60);
+	buffer->append(0x80).append(0xca).append(0x01);
+	buffer->append(0xeb).append(0x03);
+
+	buffer->append(0x80).append(0xe2).append(0xfe);
+
+	buffer->append(0x88).append(0xd3);
+	buffer->append(0x66).append(0x53);
+	buffer->append(0x66).append(0x9d);
+	buffer->append(0x66).append(0x5a);
+	buffer->append(0x66).append(0x59);
+	buffer->append(0x66).append(0x5b);
+
 	ticks = 4;
 
 	return 1;
@@ -1894,6 +1938,17 @@ int altair::JitCore::_opOraR(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 		case L: buffer->append(0xd0); break;
 		case A: buffer->append(0xc0); break;
 	}
+
+	buffer->
+		// pushf
+		append(0x9c).
+		// and    BYTE PTR [rsp],0xee ; clear CF, AF
+		append(0x80).
+		append(0x24).
+		append(0x24).
+		append(0xee).
+		// popf
+		append(0x9d);
 
 	ticks = 4;
 

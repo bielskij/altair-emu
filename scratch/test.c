@@ -343,6 +343,60 @@ void _dcr() {
 	);
 }
 
+void _daa() {
+	__asm(
+		"push bx \t\n"
+		"push cx \t\n"
+		"push dx \t\n"
+
+		"pushf      \t\n"
+		"pop bx     \t\n" // BX old flags
+		"xor cx, cx \t\n"
+		"mov cl, al \t\n" // CL copy of AL
+		"mov dl, bl \t\n" // DL new flags
+
+		"mov dil, al    \t\n"
+		"and dil, 0x0f  \t\n"
+		"cmp dil, 0x09  \t\n"
+		"jg lo_ovf      \t\n"
+		"test bl, 0x10  \t\n" // AF check
+		"jnz lo_ovf     \t\n"
+		"jmp lo_not_ovf \t\n"
+		"lo_ovf:        \t\n"
+		"  add al, 0x06 \t\n"
+		"  pushf        \t\n"
+		"  pop di       \t\n"
+		"  and dil, 0x01 \t\n" // extract CF
+		"  or dl, dil   \t\n" // old_CF | CF
+		"  or dl, 0x10  \t\n" // AF = 1
+		"  jmp hi_check \t\n"
+		"lo_not_ovf:    \t\n"
+		"  and dl, 0xef \t\n" // AF = 0
+
+		"hi_check:"
+		"  cmp cx, 0x99   \t\n"
+		"  jg hi_ovf      \t\n"
+		"  test bl, 0x01  \t\n"
+		"  jnz hi_ovf     \t\n"
+		"  jmp hi_not_ovf \t\n"
+		"hi_ovf:          \t\n"
+		"  add al, 0x60   \t\n"
+		"  or dl, 0x01    \t\n" // CF = 1
+		"  jmp finished   \t\n"
+		"hi_not_ovf:      \t\n"
+		"  and dl, 0xfe   \t\n"
+
+		"finished:      \t\n"
+		"  mov bl, dl   \t\n"
+		"  push bx      \t\n"
+		"  popf         \t\n"
+		"  pop dx       \t\n"
+		"  pop cx       \t\n"
+		"  pop bx       \t\n"
+	);
+}
+
+
 void _ctc() {
 	__asm("cmc");
 }
@@ -450,6 +504,14 @@ void _pushpop() {
 	);
 }
 
+
+void _clrCarry() {
+	__asm(
+		"pushf \t\n"
+		"and    BYTE PTR [rsp],0xee \t\n"
+		"popf  \t\n"
+	);
+}
 
 void _lxi() {
 	__asm(

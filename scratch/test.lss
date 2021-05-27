@@ -13,253 +13,1695 @@ Idx Name          Size      VMA               LMA               File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   4 .gnu.hash     00000024  00000000000003a0  00000000000003a0  000003a0  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .dynsym       00000090  00000000000003c8  00000000000003c8  000003c8  2**3
+  5 .dynsym       000000c0  00000000000003c8  00000000000003c8  000003c8  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  6 .dynstr       0000007d  0000000000000458  0000000000000458  00000458  2**0
+  6 .dynstr       0000009f  0000000000000488  0000000000000488  00000488  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .gnu.version  0000000c  00000000000004d6  00000000000004d6  000004d6  2**1
+  7 .gnu.version  00000010  0000000000000528  0000000000000528  00000528  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .gnu.version_r 00000020  00000000000004e8  00000000000004e8  000004e8  2**3
+  8 .gnu.version_r 00000030  0000000000000538  0000000000000538  00000538  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  9 .rela.dyn     000000c0  0000000000000508  0000000000000508  00000508  2**3
+  9 .rela.dyn     000000c0  0000000000000568  0000000000000568  00000568  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 10 .init         0000001b  0000000000001000  0000000000001000  00001000  2**2
+ 10 .rela.plt     00000030  0000000000000628  0000000000000628  00000628  2**3
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+ 11 .init         0000001b  0000000000001000  0000000000001000  00001000  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 11 .plt          00000010  0000000000001020  0000000000001020  00001020  2**4
+ 12 .plt          00000030  0000000000001020  0000000000001020  00001020  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 12 .plt.got      00000010  0000000000001030  0000000000001030  00001030  2**4
+ 13 .plt.got      00000010  0000000000001050  0000000000001050  00001050  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 13 .text         00000205  0000000000001040  0000000000001040  00001040  2**4
+ 14 .plt.sec      00000020  0000000000001060  0000000000001060  00001060  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 14 .fini         0000000d  0000000000001248  0000000000001248  00001248  2**2
+ 15 .text         000007e5  0000000000001080  0000000000001080  00001080  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 15 .rodata       00000004  0000000000002000  0000000000002000  00002000  2**2
+ 16 .fini         0000000d  0000000000001868  0000000000001868  00001868  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+ 17 .rodata       0000000c  0000000000002000  0000000000002000  00002000  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 16 .eh_frame_hdr 00000054  0000000000002004  0000000000002004  00002004  2**2
+ 18 .eh_frame_hdr 0000021c  000000000000200c  000000000000200c  0000200c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 17 .eh_frame     00000150  0000000000002058  0000000000002058  00002058  2**3
+ 19 .eh_frame     00000868  0000000000002228  0000000000002228  00002228  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
- 18 .init_array   00000008  0000000000003df0  0000000000003df0  00002df0  2**3
+ 20 .init_array   00000008  0000000000003db0  0000000000003db0  00002db0  2**3
                   CONTENTS, ALLOC, LOAD, DATA
- 19 .fini_array   00000008  0000000000003df8  0000000000003df8  00002df8  2**3
+ 21 .fini_array   00000008  0000000000003db8  0000000000003db8  00002db8  2**3
                   CONTENTS, ALLOC, LOAD, DATA
- 20 .dynamic      000001c0  0000000000003e00  0000000000003e00  00002e00  2**3
+ 22 .dynamic      000001f0  0000000000003dc0  0000000000003dc0  00002dc0  2**3
                   CONTENTS, ALLOC, LOAD, DATA
- 21 .got          00000040  0000000000003fc0  0000000000003fc0  00002fc0  2**3
+ 23 .got          00000050  0000000000003fb0  0000000000003fb0  00002fb0  2**3
                   CONTENTS, ALLOC, LOAD, DATA
- 22 .data         00000010  0000000000004000  0000000000004000  00003000  2**3
+ 24 .data         00000010  0000000000004000  0000000000004000  00003000  2**3
                   CONTENTS, ALLOC, LOAD, DATA
- 23 .bss          00000008  0000000000004010  0000000000004010  00003010  2**0
+ 25 .bss          00000008  0000000000004010  0000000000004010  00003010  2**0
                   ALLOC
- 24 .comment      0000002a  0000000000000000  0000000000000000  00003010  2**0
+ 26 .comment      0000002a  0000000000000000  0000000000000000  00003010  2**0
                   CONTENTS, READONLY
+ 27 .debug_aranges 00000030  0000000000000000  0000000000000000  0000303a  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 28 .debug_info   00000b7c  0000000000000000  0000000000000000  0000306a  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 29 .debug_abbrev 000001dc  0000000000000000  0000000000000000  00003be6  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 30 .debug_line   000003a2  0000000000000000  0000000000000000  00003dc2  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 31 .debug_str    000004ca  0000000000000000  0000000000000000  00004164  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .init:
 
 0000000000001000 <_init>:
     1000:	f3 0f 1e fa          	endbr64 
-    1004:	48 83 ec 08          	sub    $0x8,%rsp
-    1008:	48 8b 05 d9 2f 00 00 	mov    0x2fd9(%rip),%rax        # 3fe8 <__gmon_start__>
-    100f:	48 85 c0             	test   %rax,%rax
+    1004:	48 83 ec 08          	sub    rsp,0x8
+    1008:	48 8b 05 d9 2f 00 00 	mov    rax,QWORD PTR [rip+0x2fd9]        # 3fe8 <__gmon_start__>
+    100f:	48 85 c0             	test   rax,rax
     1012:	74 02                	je     1016 <_init+0x16>
-    1014:	ff d0                	callq  *%rax
-    1016:	48 83 c4 08          	add    $0x8,%rsp
-    101a:	c3                   	retq   
+    1014:	ff d0                	call   rax
+    1016:	48 83 c4 08          	add    rsp,0x8
+    101a:	c3                   	ret    
 
 Disassembly of section .plt:
 
 0000000000001020 <.plt>:
-    1020:	ff 35 a2 2f 00 00    	pushq  0x2fa2(%rip)        # 3fc8 <_GLOBAL_OFFSET_TABLE_+0x8>
-    1026:	f2 ff 25 a3 2f 00 00 	bnd jmpq *0x2fa3(%rip)        # 3fd0 <_GLOBAL_OFFSET_TABLE_+0x10>
-    102d:	0f 1f 00             	nopl   (%rax)
+    1020:	ff 35 92 2f 00 00    	push   QWORD PTR [rip+0x2f92]        # 3fb8 <_GLOBAL_OFFSET_TABLE_+0x8>
+    1026:	f2 ff 25 93 2f 00 00 	bnd jmp QWORD PTR [rip+0x2f93]        # 3fc0 <_GLOBAL_OFFSET_TABLE_+0x10>
+    102d:	0f 1f 00             	nop    DWORD PTR [rax]
+    1030:	f3 0f 1e fa          	endbr64 
+    1034:	68 00 00 00 00       	push   0x0
+    1039:	f2 e9 e1 ff ff ff    	bnd jmp 1020 <.plt>
+    103f:	90                   	nop
+    1040:	f3 0f 1e fa          	endbr64 
+    1044:	68 01 00 00 00       	push   0x1
+    1049:	f2 e9 d1 ff ff ff    	bnd jmp 1020 <.plt>
+    104f:	90                   	nop
 
 Disassembly of section .plt.got:
 
-0000000000001030 <__cxa_finalize@plt>:
-    1030:	f3 0f 1e fa          	endbr64 
-    1034:	f2 ff 25 bd 2f 00 00 	bnd jmpq *0x2fbd(%rip)        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
-    103b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+0000000000001050 <__cxa_finalize@plt>:
+    1050:	f3 0f 1e fa          	endbr64 
+    1054:	f2 ff 25 9d 2f 00 00 	bnd jmp QWORD PTR [rip+0x2f9d]        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
+    105b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+
+Disassembly of section .plt.sec:
+
+0000000000001060 <__stack_chk_fail@plt>:
+    1060:	f3 0f 1e fa          	endbr64 
+    1064:	f2 ff 25 5d 2f 00 00 	bnd jmp QWORD PTR [rip+0x2f5d]        # 3fc8 <__stack_chk_fail@GLIBC_2.4>
+    106b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+
+0000000000001070 <printf@plt>:
+    1070:	f3 0f 1e fa          	endbr64 
+    1074:	f2 ff 25 55 2f 00 00 	bnd jmp QWORD PTR [rip+0x2f55]        # 3fd0 <printf@GLIBC_2.2.5>
+    107b:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
 
 Disassembly of section .text:
 
-0000000000001040 <_start>:
-    1040:	f3 0f 1e fa          	endbr64 
-    1044:	31 ed                	xor    %ebp,%ebp
-    1046:	49 89 d1             	mov    %rdx,%r9
-    1049:	5e                   	pop    %rsi
-    104a:	48 89 e2             	mov    %rsp,%rdx
-    104d:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp
-    1051:	50                   	push   %rax
-    1052:	54                   	push   %rsp
-    1053:	4c 8d 05 e6 01 00 00 	lea    0x1e6(%rip),%r8        # 1240 <__libc_csu_fini>
-    105a:	48 8d 0d 6f 01 00 00 	lea    0x16f(%rip),%rcx        # 11d0 <__libc_csu_init>
-    1061:	48 8d 3d 2d 01 00 00 	lea    0x12d(%rip),%rdi        # 1195 <main>
-    1068:	ff 15 72 2f 00 00    	callq  *0x2f72(%rip)        # 3fe0 <__libc_start_main@GLIBC_2.2.5>
-    106e:	f4                   	hlt    
-    106f:	90                   	nop
+0000000000001080 <_start>:
+    1080:	f3 0f 1e fa          	endbr64 
+    1084:	31 ed                	xor    ebp,ebp
+    1086:	49 89 d1             	mov    r9,rdx
+    1089:	5e                   	pop    rsi
+    108a:	48 89 e2             	mov    rdx,rsp
+    108d:	48 83 e4 f0          	and    rsp,0xfffffffffffffff0
+    1091:	50                   	push   rax
+    1092:	54                   	push   rsp
+    1093:	4c 8d 05 c6 07 00 00 	lea    r8,[rip+0x7c6]        # 1860 <__libc_csu_fini>
+    109a:	48 8d 0d 4f 07 00 00 	lea    rcx,[rip+0x74f]        # 17f0 <__libc_csu_init>
+    10a1:	48 8d 3d c4 06 00 00 	lea    rdi,[rip+0x6c4]        # 176c <main>
+    10a8:	ff 15 32 2f 00 00    	call   QWORD PTR [rip+0x2f32]        # 3fe0 <__libc_start_main@GLIBC_2.2.5>
+    10ae:	f4                   	hlt    
+    10af:	90                   	nop
 
-0000000000001070 <deregister_tm_clones>:
-    1070:	48 8d 3d 99 2f 00 00 	lea    0x2f99(%rip),%rdi        # 4010 <__TMC_END__>
-    1077:	48 8d 05 92 2f 00 00 	lea    0x2f92(%rip),%rax        # 4010 <__TMC_END__>
-    107e:	48 39 f8             	cmp    %rdi,%rax
-    1081:	74 15                	je     1098 <deregister_tm_clones+0x28>
-    1083:	48 8b 05 4e 2f 00 00 	mov    0x2f4e(%rip),%rax        # 3fd8 <_ITM_deregisterTMCloneTable>
-    108a:	48 85 c0             	test   %rax,%rax
-    108d:	74 09                	je     1098 <deregister_tm_clones+0x28>
-    108f:	ff e0                	jmpq   *%rax
-    1091:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    1098:	c3                   	retq   
-    1099:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+00000000000010b0 <deregister_tm_clones>:
+    10b0:	48 8d 3d 59 2f 00 00 	lea    rdi,[rip+0x2f59]        # 4010 <__TMC_END__>
+    10b7:	48 8d 05 52 2f 00 00 	lea    rax,[rip+0x2f52]        # 4010 <__TMC_END__>
+    10be:	48 39 f8             	cmp    rax,rdi
+    10c1:	74 15                	je     10d8 <deregister_tm_clones+0x28>
+    10c3:	48 8b 05 0e 2f 00 00 	mov    rax,QWORD PTR [rip+0x2f0e]        # 3fd8 <_ITM_deregisterTMCloneTable>
+    10ca:	48 85 c0             	test   rax,rax
+    10cd:	74 09                	je     10d8 <deregister_tm_clones+0x28>
+    10cf:	ff e0                	jmp    rax
+    10d1:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+    10d8:	c3                   	ret    
+    10d9:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
 
-00000000000010a0 <register_tm_clones>:
-    10a0:	48 8d 3d 69 2f 00 00 	lea    0x2f69(%rip),%rdi        # 4010 <__TMC_END__>
-    10a7:	48 8d 35 62 2f 00 00 	lea    0x2f62(%rip),%rsi        # 4010 <__TMC_END__>
-    10ae:	48 29 fe             	sub    %rdi,%rsi
-    10b1:	48 89 f0             	mov    %rsi,%rax
-    10b4:	48 c1 ee 3f          	shr    $0x3f,%rsi
-    10b8:	48 c1 f8 03          	sar    $0x3,%rax
-    10bc:	48 01 c6             	add    %rax,%rsi
-    10bf:	48 d1 fe             	sar    %rsi
-    10c2:	74 14                	je     10d8 <register_tm_clones+0x38>
-    10c4:	48 8b 05 25 2f 00 00 	mov    0x2f25(%rip),%rax        # 3ff0 <_ITM_registerTMCloneTable>
-    10cb:	48 85 c0             	test   %rax,%rax
-    10ce:	74 08                	je     10d8 <register_tm_clones+0x38>
-    10d0:	ff e0                	jmpq   *%rax
-    10d2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-    10d8:	c3                   	retq   
-    10d9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+00000000000010e0 <register_tm_clones>:
+    10e0:	48 8d 3d 29 2f 00 00 	lea    rdi,[rip+0x2f29]        # 4010 <__TMC_END__>
+    10e7:	48 8d 35 22 2f 00 00 	lea    rsi,[rip+0x2f22]        # 4010 <__TMC_END__>
+    10ee:	48 29 fe             	sub    rsi,rdi
+    10f1:	48 89 f0             	mov    rax,rsi
+    10f4:	48 c1 ee 3f          	shr    rsi,0x3f
+    10f8:	48 c1 f8 03          	sar    rax,0x3
+    10fc:	48 01 c6             	add    rsi,rax
+    10ff:	48 d1 fe             	sar    rsi,1
+    1102:	74 14                	je     1118 <register_tm_clones+0x38>
+    1104:	48 8b 05 e5 2e 00 00 	mov    rax,QWORD PTR [rip+0x2ee5]        # 3ff0 <_ITM_registerTMCloneTable>
+    110b:	48 85 c0             	test   rax,rax
+    110e:	74 08                	je     1118 <register_tm_clones+0x38>
+    1110:	ff e0                	jmp    rax
+    1112:	66 0f 1f 44 00 00    	nop    WORD PTR [rax+rax*1+0x0]
+    1118:	c3                   	ret    
+    1119:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
 
-00000000000010e0 <__do_global_dtors_aux>:
-    10e0:	f3 0f 1e fa          	endbr64 
-    10e4:	80 3d 25 2f 00 00 00 	cmpb   $0x0,0x2f25(%rip)        # 4010 <__TMC_END__>
-    10eb:	75 2b                	jne    1118 <__do_global_dtors_aux+0x38>
-    10ed:	55                   	push   %rbp
-    10ee:	48 83 3d 02 2f 00 00 	cmpq   $0x0,0x2f02(%rip)        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
-    10f5:	00 
-    10f6:	48 89 e5             	mov    %rsp,%rbp
-    10f9:	74 0c                	je     1107 <__do_global_dtors_aux+0x27>
-    10fb:	48 8b 3d 06 2f 00 00 	mov    0x2f06(%rip),%rdi        # 4008 <__dso_handle>
-    1102:	e8 29 ff ff ff       	callq  1030 <__cxa_finalize@plt>
-    1107:	e8 64 ff ff ff       	callq  1070 <deregister_tm_clones>
-    110c:	c6 05 fd 2e 00 00 01 	movb   $0x1,0x2efd(%rip)        # 4010 <__TMC_END__>
-    1113:	5d                   	pop    %rbp
-    1114:	c3                   	retq   
-    1115:	0f 1f 00             	nopl   (%rax)
-    1118:	c3                   	retq   
-    1119:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-
-0000000000001120 <frame_dummy>:
+0000000000001120 <__do_global_dtors_aux>:
     1120:	f3 0f 1e fa          	endbr64 
-    1124:	e9 77 ff ff ff       	jmpq   10a0 <register_tm_clones>
+    1124:	80 3d e5 2e 00 00 00 	cmp    BYTE PTR [rip+0x2ee5],0x0        # 4010 <__TMC_END__>
+    112b:	75 2b                	jne    1158 <__do_global_dtors_aux+0x38>
+    112d:	55                   	push   rbp
+    112e:	48 83 3d c2 2e 00 00 	cmp    QWORD PTR [rip+0x2ec2],0x0        # 3ff8 <__cxa_finalize@GLIBC_2.2.5>
+    1135:	00 
+    1136:	48 89 e5             	mov    rbp,rsp
+    1139:	74 0c                	je     1147 <__do_global_dtors_aux+0x27>
+    113b:	48 8b 3d c6 2e 00 00 	mov    rdi,QWORD PTR [rip+0x2ec6]        # 4008 <__dso_handle>
+    1142:	e8 09 ff ff ff       	call   1050 <__cxa_finalize@plt>
+    1147:	e8 64 ff ff ff       	call   10b0 <deregister_tm_clones>
+    114c:	c6 05 bd 2e 00 00 01 	mov    BYTE PTR [rip+0x2ebd],0x1        # 4010 <__TMC_END__>
+    1153:	5d                   	pop    rbp
+    1154:	c3                   	ret    
+    1155:	0f 1f 00             	nop    DWORD PTR [rax]
+    1158:	c3                   	ret    
+    1159:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
 
-0000000000001129 <nexti>:
-    1129:	f3 0f 1e fa          	endbr64 
-    112d:	55                   	push   %rbp
-    112e:	48 89 e5             	mov    %rsp,%rbp
-    1131:	48 89 7d f8          	mov    %rdi,-0x8(%rbp)
-    1135:	89 f0                	mov    %esi,%eax
-    1137:	88 45 f4             	mov    %al,-0xc(%rbp)
-    113a:	90                   	nop
-    113b:	5d                   	pop    %rbp
-    113c:	c3                   	retq   
+0000000000001160 <frame_dummy>:
+    1160:	f3 0f 1e fa          	endbr64 
+    1164:	e9 77 ff ff ff       	jmp    10e0 <register_tm_clones>
 
-000000000000113d <readByte>:
-    113d:	f3 0f 1e fa          	endbr64 
-    1141:	55                   	push   %rbp
-    1142:	48 89 e5             	mov    %rsp,%rbp
-    1145:	48 89 7d f8          	mov    %rdi,-0x8(%rbp)
-    1149:	89 f0                	mov    %esi,%eax
-    114b:	66 89 45 f4          	mov    %ax,-0xc(%rbp)
-    114f:	b8 7b 00 00 00       	mov    $0x7b,%eax
-    1154:	5d                   	pop    %rbp
-    1155:	c3                   	retq   
+0000000000001169 <_onInt>:
+typedef struct _Ctx {
+	uint8_t flag;
+} Ctx;
 
-0000000000001156 <runCode>:
-    1156:	f3 0f 1e fa          	endbr64 
-    115a:	55                   	push   %rbp
-    115b:	48 89 e5             	mov    %rsp,%rbp
-    115e:	48 83 ec 30          	sub    $0x30,%rsp
-    1162:	48 89 7d e8          	mov    %rdi,-0x18(%rbp)
-    1166:	48 89 75 e0          	mov    %rsi,-0x20(%rbp)
-    116a:	48 89 55 d8          	mov    %rdx,-0x28(%rbp)
-    116e:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
-    1172:	0f b7 00             	movzwl (%rax),%eax
-    1175:	66 89 45 fc          	mov    %ax,-0x4(%rbp)
-    1179:	48 8b 45 e8          	mov    -0x18(%rbp),%rax
-    117d:	0f b7 40 02          	movzwl 0x2(%rax),%eax
-    1181:	66 89 45 fe          	mov    %ax,-0x2(%rbp)
-    1185:	48 8b 45 d8          	mov    -0x28(%rbp),%rax
-    1189:	48 8b 55 e0          	mov    -0x20(%rbp),%rdx
-    118d:	48 89 c7             	mov    %rax,%rdi
-    1190:	ff d2                	callq  *%rdx
-    1192:	90                   	nop
-    1193:	c9                   	leaveq 
-    1194:	c3                   	retq   
 
-0000000000001195 <main>:
-    1195:	f3 0f 1e fa          	endbr64 
-    1199:	55                   	push   %rbp
-    119a:	48 89 e5             	mov    %rsp,%rbp
-    119d:	48 83 ec 10          	sub    $0x10,%rsp
-    11a1:	89 7d fc             	mov    %edi,-0x4(%rbp)
-    11a4:	48 89 75 f0          	mov    %rsi,-0x10(%rbp)
-    11a8:	be 02 00 00 00       	mov    $0x2,%esi
-    11ad:	bf 00 00 00 00       	mov    $0x0,%edi
-    11b2:	e8 72 ff ff ff       	callq  1129 <nexti>
-    11b7:	be 88 00 00 00       	mov    $0x88,%esi
-    11bc:	bf 00 00 00 00       	mov    $0x0,%edi
-    11c1:	e8 77 ff ff ff       	callq  113d <readByte>
-    11c6:	b8 00 00 00 00       	mov    $0x0,%eax
-    11cb:	c9                   	leaveq 
-    11cc:	c3                   	retq   
-    11cd:	0f 1f 00             	nopl   (%rax)
+void _onInt(void *ctx) {
+    1169:	f3 0f 1e fa          	endbr64 
+    116d:	55                   	push   rbp
+    116e:	48 89 e5             	mov    rbp,rsp
+    1171:	48 89 7d f8          	mov    QWORD PTR [rbp-0x8],rdi
 
-00000000000011d0 <__libc_csu_init>:
-    11d0:	f3 0f 1e fa          	endbr64 
-    11d4:	41 57                	push   %r15
-    11d6:	4c 8d 3d 13 2c 00 00 	lea    0x2c13(%rip),%r15        # 3df0 <__frame_dummy_init_array_entry>
-    11dd:	41 56                	push   %r14
-    11df:	49 89 d6             	mov    %rdx,%r14
-    11e2:	41 55                	push   %r13
-    11e4:	49 89 f5             	mov    %rsi,%r13
-    11e7:	41 54                	push   %r12
-    11e9:	41 89 fc             	mov    %edi,%r12d
-    11ec:	55                   	push   %rbp
-    11ed:	48 8d 2d 04 2c 00 00 	lea    0x2c04(%rip),%rbp        # 3df8 <__do_global_dtors_aux_fini_array_entry>
-    11f4:	53                   	push   %rbx
-    11f5:	4c 29 fd             	sub    %r15,%rbp
-    11f8:	48 83 ec 08          	sub    $0x8,%rsp
-    11fc:	e8 ff fd ff ff       	callq  1000 <_init>
-    1201:	48 c1 fd 03          	sar    $0x3,%rbp
-    1205:	74 1f                	je     1226 <__libc_csu_init+0x56>
-    1207:	31 db                	xor    %ebx,%ebx
-    1209:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    1210:	4c 89 f2             	mov    %r14,%rdx
-    1213:	4c 89 ee             	mov    %r13,%rsi
-    1216:	44 89 e7             	mov    %r12d,%edi
-    1219:	41 ff 14 df          	callq  *(%r15,%rbx,8)
-    121d:	48 83 c3 01          	add    $0x1,%rbx
-    1221:	48 39 dd             	cmp    %rbx,%rbp
-    1224:	75 ea                	jne    1210 <__libc_csu_init+0x40>
-    1226:	48 83 c4 08          	add    $0x8,%rsp
-    122a:	5b                   	pop    %rbx
-    122b:	5d                   	pop    %rbp
-    122c:	41 5c                	pop    %r12
-    122e:	41 5d                	pop    %r13
-    1230:	41 5e                	pop    %r14
-    1232:	41 5f                	pop    %r15
-    1234:	c3                   	retq   
-    1235:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
-    123c:	00 00 00 00 
+}
+    1175:	90                   	nop
+    1176:	5d                   	pop    rbp
+    1177:	c3                   	ret    
 
-0000000000001240 <__libc_csu_fini>:
-    1240:	f3 0f 1e fa          	endbr64 
-    1244:	c3                   	retq   
+0000000000001178 <_anaR>:
+	uint8_t   intValue;
+	void    (*intHandler)(void *);
+} T;
+
+
+void _anaR() {
+    1178:	f3 0f 1e fa          	endbr64 
+    117c:	55                   	push   rbp
+    117d:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1180:	20 f8                	and    al,bh
+    1182:	20 d8                	and    al,bl
+    1184:	20 e8                	and    al,ch
+    1186:	20 c8                	and    al,cl
+    1188:	20 f0                	and    al,dh
+    118a:	20 d0                	and    al,dl
+    118c:	20 c0                	and    al,al
+		"and al, cl \t\n"
+		"and al, dh \t\n"
+		"and al, dl \t\n"
+		"and al, al \t\n"
+	);
+}
+    118e:	90                   	nop
+    118f:	5d                   	pop    rbp
+    1190:	c3                   	ret    
+
+0000000000001191 <_anaM>:
+
+
+void _anaM() {
+    1191:	f3 0f 1e fa          	endbr64 
+    1195:	55                   	push   rbp
+    1196:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1199:	22 45 24             	and    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    119c:	90                   	nop
+    119d:	5d                   	pop    rbp
+    119e:	c3                   	ret    
+
+000000000000119f <_ani>:
+
+
+void _ani() {
+    119f:	f3 0f 1e fa          	endbr64 
+    11a3:	55                   	push   rbp
+    11a4:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    11a7:	24 13                	and    al,0x13
+		"and al, 0x13 \t\n"
+	);
+}
+    11a9:	90                   	nop
+    11aa:	5d                   	pop    rbp
+    11ab:	c3                   	ret    
+
+00000000000011ac <_xraR>:
+
+
+void _xraR() {
+    11ac:	f3 0f 1e fa          	endbr64 
+    11b0:	55                   	push   rbp
+    11b1:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    11b4:	30 f8                	xor    al,bh
+    11b6:	30 d8                	xor    al,bl
+    11b8:	30 e8                	xor    al,ch
+    11ba:	30 c8                	xor    al,cl
+    11bc:	30 f0                	xor    al,dh
+    11be:	30 d0                	xor    al,dl
+    11c0:	30 c0                	xor    al,al
+		"xor al, cl \t\n"
+		"xor al, dh \t\n"
+		"xor al, dl \t\n"
+		"xor al, al \t\n"
+	);
+}
+    11c2:	90                   	nop
+    11c3:	5d                   	pop    rbp
+    11c4:	c3                   	ret    
+
+00000000000011c5 <_xraM>:
+
+
+void _xraM() {
+    11c5:	f3 0f 1e fa          	endbr64 
+    11c9:	55                   	push   rbp
+    11ca:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    11cd:	32 45 24             	xor    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    11d0:	90                   	nop
+    11d1:	5d                   	pop    rbp
+    11d2:	c3                   	ret    
+
+00000000000011d3 <_xri>:
+
+
+void _xri() {
+    11d3:	f3 0f 1e fa          	endbr64 
+    11d7:	55                   	push   rbp
+    11d8:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    11db:	34 13                	xor    al,0x13
+		"xor al, 0x13 \t\n"
+	);
+}
+    11dd:	90                   	nop
+    11de:	5d                   	pop    rbp
+    11df:	c3                   	ret    
+
+00000000000011e0 <_oraR>:
+
+void _oraR() {
+    11e0:	f3 0f 1e fa          	endbr64 
+    11e4:	55                   	push   rbp
+    11e5:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    11e8:	08 f8                	or     al,bh
+    11ea:	08 d8                	or     al,bl
+    11ec:	08 e8                	or     al,ch
+    11ee:	08 c8                	or     al,cl
+    11f0:	08 f0                	or     al,dh
+    11f2:	08 d0                	or     al,dl
+    11f4:	08 c0                	or     al,al
+		"or al, cl \t\n"
+		"or al, dh \t\n"
+		"or al, dl \t\n"
+		"or al, al \t\n"
+	);
+}
+    11f6:	90                   	nop
+    11f7:	5d                   	pop    rbp
+    11f8:	c3                   	ret    
+
+00000000000011f9 <_oraM>:
+
+
+void _oraM() {
+    11f9:	f3 0f 1e fa          	endbr64 
+    11fd:	55                   	push   rbp
+    11fe:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1201:	0a 45 24             	or     al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1204:	90                   	nop
+    1205:	5d                   	pop    rbp
+    1206:	c3                   	ret    
+
+0000000000001207 <_ori>:
+
+
+void _ori() {
+    1207:	f3 0f 1e fa          	endbr64 
+    120b:	55                   	push   rbp
+    120c:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    120f:	0c 13                	or     al,0x13
+		"or al, 0x13 \t\n"
+	);
+}
+    1211:	90                   	nop
+    1212:	5d                   	pop    rbp
+    1213:	c3                   	ret    
+
+0000000000001214 <_subR>:
+
+
+void _subR() {
+    1214:	f3 0f 1e fa          	endbr64 
+    1218:	55                   	push   rbp
+    1219:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    121c:	28 f8                	sub    al,bh
+    121e:	28 d8                	sub    al,bl
+    1220:	28 e8                	sub    al,ch
+    1222:	28 c8                	sub    al,cl
+    1224:	28 f0                	sub    al,dh
+    1226:	28 d0                	sub    al,dl
+    1228:	28 c0                	sub    al,al
+		"sub al, cl \t\n"
+		"sub al, dh \t\n"
+		"sub al, dl \t\n"
+		"sub al, al \t\n"
+	);
+}
+    122a:	90                   	nop
+    122b:	5d                   	pop    rbp
+    122c:	c3                   	ret    
+
+000000000000122d <_subM>:
+
+void _subM() {
+    122d:	f3 0f 1e fa          	endbr64 
+    1231:	55                   	push   rbp
+    1232:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1235:	2a 45 24             	sub    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1238:	90                   	nop
+    1239:	5d                   	pop    rbp
+    123a:	c3                   	ret    
+
+000000000000123b <_sui>:
+
+
+void _sui() {
+    123b:	f3 0f 1e fa          	endbr64 
+    123f:	55                   	push   rbp
+    1240:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1243:	2c 13                	sub    al,0x13
+		"sub al, 0x13 \t\n"
+	);
+}
+    1245:	90                   	nop
+    1246:	5d                   	pop    rbp
+    1247:	c3                   	ret    
+
+0000000000001248 <_sbbR>:
+
+
+void _sbbR() {
+    1248:	f3 0f 1e fa          	endbr64 
+    124c:	55                   	push   rbp
+    124d:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1250:	18 f8                	sbb    al,bh
+    1252:	18 d8                	sbb    al,bl
+    1254:	18 e8                	sbb    al,ch
+    1256:	18 c8                	sbb    al,cl
+    1258:	18 f0                	sbb    al,dh
+    125a:	18 d0                	sbb    al,dl
+    125c:	18 c0                	sbb    al,al
+		"sbb al, cl \t\n"
+		"sbb al, dh \t\n"
+		"sbb al, dl \t\n"
+		"sbb al, al \t\n"
+	);
+}
+    125e:	90                   	nop
+    125f:	5d                   	pop    rbp
+    1260:	c3                   	ret    
+
+0000000000001261 <_sbbM>:
+
+void _sbbM() {
+    1261:	f3 0f 1e fa          	endbr64 
+    1265:	55                   	push   rbp
+    1266:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1269:	1a 45 24             	sbb    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    126c:	90                   	nop
+    126d:	5d                   	pop    rbp
+    126e:	c3                   	ret    
+
+000000000000126f <_sbi>:
+
+
+void _sbi() {
+    126f:	f3 0f 1e fa          	endbr64 
+    1273:	55                   	push   rbp
+    1274:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1277:	1c 13                	sbb    al,0x13
+		"sbb al, 0x13 \t\n"
+	);
+}
+    1279:	90                   	nop
+    127a:	5d                   	pop    rbp
+    127b:	c3                   	ret    
+
+000000000000127c <_adcM>:
+
+
+void _adcM() {
+    127c:	f3 0f 1e fa          	endbr64 
+    1280:	55                   	push   rbp
+    1281:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1284:	12 45 24             	adc    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1287:	90                   	nop
+    1288:	5d                   	pop    rbp
+    1289:	c3                   	ret    
+
+000000000000128a <_addM>:
+
+
+void _addM() {
+    128a:	f3 0f 1e fa          	endbr64 
+    128e:	55                   	push   rbp
+    128f:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1292:	02 45 24             	add    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1295:	90                   	nop
+    1296:	5d                   	pop    rbp
+    1297:	c3                   	ret    
+
+0000000000001298 <_addR>:
+
+void _addR() {
+    1298:	f3 0f 1e fa          	endbr64 
+    129c:	55                   	push   rbp
+    129d:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    12a0:	00 f8                	add    al,bh
+    12a2:	00 d8                	add    al,bl
+    12a4:	00 e8                	add    al,ch
+    12a6:	00 c8                	add    al,cl
+    12a8:	00 f0                	add    al,dh
+    12aa:	00 d0                	add    al,dl
+    12ac:	00 c0                	add    al,al
+		"add al, cl \t\n"
+		"add al, dh \t\n"
+		"add al, dl \t\n"
+		"add al, al \t\n"
+	);
+}
+    12ae:	90                   	nop
+    12af:	5d                   	pop    rbp
+    12b0:	c3                   	ret    
+
+00000000000012b1 <_adcR>:
+
+
+void _adcR() {
+    12b1:	f3 0f 1e fa          	endbr64 
+    12b5:	55                   	push   rbp
+    12b6:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    12b9:	10 f8                	adc    al,bh
+    12bb:	10 d8                	adc    al,bl
+    12bd:	10 e8                	adc    al,ch
+    12bf:	10 c8                	adc    al,cl
+    12c1:	10 f0                	adc    al,dh
+    12c3:	10 d0                	adc    al,dl
+    12c5:	10 c0                	adc    al,al
+		"adc al, cl \t\n"
+		"adc al, dh \t\n"
+		"adc al, dl \t\n"
+		"adc al, al \t\n"
+	);
+}
+    12c7:	90                   	nop
+    12c8:	5d                   	pop    rbp
+    12c9:	c3                   	ret    
+
+00000000000012ca <_xchg>:
+
+
+void _xchg() {
+    12ca:	f3 0f 1e fa          	endbr64 
+    12ce:	55                   	push   rbp
+    12cf:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    12d2:	9c                   	pushf  
+    12d3:	30 ee                	xor    dh,ch
+    12d5:	30 f5                	xor    ch,dh
+    12d7:	30 ee                	xor    dh,ch
+    12d9:	30 ca                	xor    dl,cl
+    12db:	30 d1                	xor    cl,dl
+    12dd:	30 ca                	xor    dl,cl
+    12df:	9d                   	popf   
+		"xor dl, cl \t\n"
+		"xor cl, dl \t\n"
+		"xor dl, cl \t\n"
+		"popf       \t\n"
+	);
+}
+    12e0:	90                   	nop
+    12e1:	5d                   	pop    rbp
+    12e2:	c3                   	ret    
+
+00000000000012e3 <_inrM>:
+
+void _inrM() {
+    12e3:	f3 0f 1e fa          	endbr64 
+    12e7:	55                   	push   rbp
+    12e8:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    12eb:	fe 45 24             	inc    BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    12ee:	90                   	nop
+    12ef:	5d                   	pop    rbp
+    12f0:	c3                   	ret    
+
+00000000000012f1 <_dcrM>:
+
+void _dcrM() {
+    12f1:	f3 0f 1e fa          	endbr64 
+    12f5:	55                   	push   rbp
+    12f6:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    12f9:	fe 4d 24             	dec    BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    12fc:	90                   	nop
+    12fd:	5d                   	pop    rbp
+    12fe:	c3                   	ret    
+
+00000000000012ff <_lhld>:
+
+
+void _lhld() {
+    12ff:	f3 0f 1e fa          	endbr64 
+    1303:	55                   	push   rbp
+    1304:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1307:	8a 75 24             	mov    dh,BYTE PTR [rbp+0x24]
+    130a:	8a 55 24             	mov    dl,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    130d:	90                   	nop
+    130e:	5d                   	pop    rbp
+    130f:	c3                   	ret    
+
+0000000000001310 <_cpi>:
+
+void _cpi() {
+    1310:	f3 0f 1e fa          	endbr64 
+    1314:	55                   	push   rbp
+    1315:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1318:	50                   	push   rax
+    1319:	2c 0c                	sub    al,0xc
+    131b:	58                   	pop    rax
+		"push rax \t\n"
+		"sub al, 12 \t\n"
+		"pop rax \t\n"
+	);
+}
+    131c:	90                   	nop
+    131d:	5d                   	pop    rbp
+    131e:	c3                   	ret    
+
+000000000000131f <_cmp>:
+
+void _cmp() {
+    131f:	f3 0f 1e fa          	endbr64 
+    1323:	55                   	push   rbp
+    1324:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1327:	50                   	push   rax
+    1328:	28 f8                	sub    al,bh
+    132a:	28 d8                	sub    al,bl
+    132c:	28 e8                	sub    al,ch
+    132e:	28 c8                	sub    al,cl
+    1330:	28 f0                	sub    al,dh
+    1332:	28 d0                	sub    al,dl
+    1334:	28 c0                	sub    al,al
+    1336:	58                   	pop    rax
+		"sub al, dh \t\n"
+		"sub al, dl \t\n"
+		"sub al, al \t\n"
+		"pop rax \t\n"
+	);
+}
+    1337:	90                   	nop
+    1338:	5d                   	pop    rbp
+    1339:	c3                   	ret    
+
+000000000000133a <_sbb>:
+
+
+void _sbb() {
+    133a:	f3 0f 1e fa          	endbr64 
+    133e:	55                   	push   rbp
+    133f:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1342:	18 f8                	sbb    al,bh
+    1344:	18 d8                	sbb    al,bl
+    1346:	18 e8                	sbb    al,ch
+    1348:	18 c8                	sbb    al,cl
+    134a:	18 f0                	sbb    al,dh
+    134c:	18 d0                	sbb    al,dl
+    134e:	18 c0                	sbb    al,al
+		"sbb al, cl \t\n"
+		"sbb al, dh \t\n"
+		"sbb al, dl \t\n"
+		"sbb al, al \t\n"
+	);
+}
+    1350:	90                   	nop
+    1351:	5d                   	pop    rbp
+    1352:	c3                   	ret    
+
+0000000000001353 <_incR>:
+
+void _incR() {
+    1353:	f3 0f 1e fa          	endbr64 
+    1357:	55                   	push   rbp
+    1358:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    135b:	fe c7                	inc    bh
+    135d:	fe c3                	inc    bl
+    135f:	fe c5                	inc    ch
+    1361:	fe c1                	inc    cl
+    1363:	fe c6                	inc    dh
+    1365:	fe c2                	inc    dl
+    1367:	fe c0                	inc    al
+		"inc al \t\n"
+		:
+		:
+		:
+	);
+}
+    1369:	90                   	nop
+    136a:	5d                   	pop    rbp
+    136b:	c3                   	ret    
+
+000000000000136c <_dcr>:
+
+void _dcr() {
+    136c:	f3 0f 1e fa          	endbr64 
+    1370:	55                   	push   rbp
+    1371:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1374:	fe cf                	dec    bh
+    1376:	fe cb                	dec    bl
+    1378:	fe cd                	dec    ch
+    137a:	fe c9                	dec    cl
+    137c:	fe ce                	dec    dh
+    137e:	fe ca                	dec    dl
+    1380:	fe c8                	dec    al
+		"dec al \t\n"
+		:
+		:
+		:
+	);
+}
+    1382:	90                   	nop
+    1383:	5d                   	pop    rbp
+    1384:	c3                   	ret    
+
+0000000000001385 <_daa>:
+
+// Nowe flagi musza byc w oddzielnym rejestrze!
+void _daa() {
+    1385:	f3 0f 1e fa          	endbr64 
+    1389:	55                   	push   rbp
+    138a:	48 89 e5             	mov    rbp,rsp
+		"  pop dx       \t\n"
+		"  pop cx       \t\n"
+		"  pop bx       \t\n"
+	);
+#endif
+}
+    138d:	90                   	nop
+    138e:	5d                   	pop    rbp
+    138f:	c3                   	ret    
+
+0000000000001390 <_ctc>:
+
+
+void _ctc() {
+    1390:	f3 0f 1e fa          	endbr64 
+    1394:	55                   	push   rbp
+    1395:	48 89 e5             	mov    rbp,rsp
+	__asm("cmc");
+    1398:	f5                   	cmc    
+}
+    1399:	90                   	nop
+    139a:	5d                   	pop    rbp
+    139b:	c3                   	ret    
+
+000000000000139c <_stc>:
+
+void _stc() {
+    139c:	f3 0f 1e fa          	endbr64 
+    13a0:	55                   	push   rbp
+    13a1:	48 89 e5             	mov    rbp,rsp
+	__asm("stc");
+    13a4:	f9                   	stc    
+}
+    13a5:	90                   	nop
+    13a6:	5d                   	pop    rbp
+    13a7:	c3                   	ret    
+
+00000000000013a8 <_inx>:
+
+void _inx() {
+    13a8:	f3 0f 1e fa          	endbr64 
+    13ac:	55                   	push   rbp
+    13ad:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    13b0:	66 ff c3             	inc    bx
+    13b3:	66 ff c1             	inc    cx
+    13b6:	66 ff c2             	inc    dx
+    13b9:	66 ff c6             	inc    si
+		"inc bx \t\n"
+		"inc cx \t\n"
+		"inc dx \t\n"
+		"inc si \t\n"
+	);
+}
+    13bc:	90                   	nop
+    13bd:	5d                   	pop    rbp
+    13be:	c3                   	ret    
+
+00000000000013bf <_dcx>:
+
+
+void _dcx() {
+    13bf:	f3 0f 1e fa          	endbr64 
+    13c3:	55                   	push   rbp
+    13c4:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    13c7:	66 ff cb             	dec    bx
+    13ca:	66 ff c9             	dec    cx
+    13cd:	66 ff ca             	dec    dx
+    13d0:	66 ff ce             	dec    si
+		"dec bx \t\n"
+		"dec cx \t\n"
+		"dec dx \t\n"
+		"dec si \t\n"
+	);
+}
+    13d3:	90                   	nop
+    13d4:	5d                   	pop    rbp
+    13d5:	c3                   	ret    
+
+00000000000013d6 <_dad>:
+
+
+void _dad() {
+    13d6:	f3 0f 1e fa          	endbr64 
+    13da:	55                   	push   rbp
+    13db:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    13de:	9c                   	pushf  
+    13df:	66 01 da             	add    dx,bx
+    13e2:	66 01 ca             	add    dx,cx
+    13e5:	66 01 d2             	add    dx,dx
+    13e8:	66 01 f2             	add    dx,si
+    13eb:	9c                   	pushf  
+    13ec:	40 b7 01             	mov    dil,0x1
+    13ef:	40 22 3c 24          	and    dil,BYTE PTR [rsp]
+    13f3:	9d                   	popf   
+    13f4:	80 24 24 fe          	and    BYTE PTR [rsp],0xfe
+    13f8:	40 08 3c 24          	or     BYTE PTR [rsp],dil
+    13fc:	9d                   	popf   
+		"and byte ptr [rsp], 0xfe \t\n"
+		"or  byte ptr [rsp], dil   \t\n"
+
+		"popf  \t\n"
+	);
+}
+    13fd:	90                   	nop
+    13fe:	5d                   	pop    rbp
+    13ff:	c3                   	ret    
+
+0000000000001400 <_ret>:
+
+
+void _ret() {
+    1400:	f3 0f 1e fa          	endbr64 
+    1404:	55                   	push   rbp
+    1405:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1408:	9c                   	pushf  
+    1409:	50                   	push   rax
+    140a:	8a 45 24             	mov    al,BYTE PTR [rbp+0x24]
+    140d:	66 ff c6             	inc    si
+    1410:	8a 65 24             	mov    ah,BYTE PTR [rbp+0x24]
+    1413:	66 ff c6             	inc    si
+    1416:	66 89 45 0c          	mov    WORD PTR [rbp+0xc],ax
+    141a:	58                   	pop    rax
+    141b:	9d                   	popf   
+    141c:	40 b7 0a             	mov    dil,0xa
+			:
+				[off_value]  "i" (offsetof (struct _T, intValue)),
+				[off_pc]  "i" (offsetof (struct _T, PC))
+			:
+		);
+}
+    141f:	90                   	nop
+    1420:	5d                   	pop    rbp
+    1421:	c3                   	ret    
+
+0000000000001422 <_pushpop>:
+
+
+void _pushpop() {
+    1422:	f3 0f 1e fa          	endbr64 
+    1426:	55                   	push   rbp
+    1427:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    142a:	8a 7d 24             	mov    bh,BYTE PTR [rbp+0x24]
+    142d:	8a 5d 24             	mov    bl,BYTE PTR [rbp+0x24]
+    1430:	8a 6d 24             	mov    ch,BYTE PTR [rbp+0x24]
+    1433:	8a 4d 24             	mov    cl,BYTE PTR [rbp+0x24]
+    1436:	8a 75 24             	mov    dh,BYTE PTR [rbp+0x24]
+    1439:	8a 55 24             	mov    dl,BYTE PTR [rbp+0x24]
+    143c:	8a 45 24             	mov    al,BYTE PTR [rbp+0x24]
+    143f:	66 ff ce             	dec    si
+    1442:	66 ff c6             	inc    si
+    1445:	9c                   	pushf  
+    1446:	40 8a 7d 24          	mov    dil,BYTE PTR [rbp+0x24]
+    144a:	80 24 24 d5          	and    BYTE PTR [rsp],0xd5
+    144e:	40 08 3c 24          	or     BYTE PTR [rsp],dil
+    1452:	9d                   	popf   
+    1453:	40 88 7d 04          	mov    BYTE PTR [rbp+0x4],dil
+    1457:	40 8a 7d 04          	mov    dil,BYTE PTR [rbp+0x4]
+    145b:	40 88 7d 24          	mov    BYTE PTR [rbp+0x24],dil
+		:
+			[off_value]  "i" (offsetof (struct _T, intValue)),
+			[off_f]      "i" (offsetof (struct _T, F))
+		:
+	);
+}
+    145f:	90                   	nop
+    1460:	5d                   	pop    rbp
+    1461:	c3                   	ret    
+
+0000000000001462 <_clrCarry>:
+
+
+void _clrCarry() {
+    1462:	f3 0f 1e fa          	endbr64 
+    1466:	55                   	push   rbp
+    1467:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    146a:	9c                   	pushf  
+    146b:	80 24 24 ee          	and    BYTE PTR [rsp],0xee
+    146f:	9d                   	popf   
+		"pushf \t\n"
+		"and    BYTE PTR [rsp],0xee \t\n"
+		"popf  \t\n"
+	);
+}
+    1470:	90                   	nop
+    1471:	5d                   	pop    rbp
+    1472:	c3                   	ret    
+
+0000000000001473 <_lxi>:
+
+void _lxi() {
+    1473:	f3 0f 1e fa          	endbr64 
+    1477:	55                   	push   rbp
+    1478:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    147b:	66 bb 34 12          	mov    bx,0x1234
+    147f:	66 b9 34 12          	mov    cx,0x1234
+    1483:	66 ba 34 12          	mov    dx,0x1234
+    1487:	66 be 34 12          	mov    si,0x1234
+		"mov bx, 0x1234 \t\n"
+		"mov cx, 0x1234 \t\n"
+		"mov dx, 0x1234 \t\n"
+		"mov si, 0x1234 \t\n"
+	);
+}
+    148b:	90                   	nop
+    148c:	5d                   	pop    rbp
+    148d:	c3                   	ret    
+
+000000000000148e <_checkint>:
+
+void _checkint() {
+    148e:	f3 0f 1e fa          	endbr64 
+    1492:	55                   	push   rbp
+    1493:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1496:	f6 45 10 01          	test   BYTE PTR [rbp+0x10],0x1
+    149a:	74 01                	je     149d <noint>
+    149c:	c3                   	ret    
+
+000000000000149d <noint>:
+    149d:	90                   	nop
+		:
+		:
+			[off_int]  "i" (offsetof (struct _T, intFF))
+		:
+	);
+}
+    149e:	90                   	nop
+    149f:	5d                   	pop    rbp
+    14a0:	c3                   	ret    
+
+00000000000014a1 <_io>:
+
+
+void _io() {
+    14a1:	f3 0f 1e fa          	endbr64 
+    14a5:	55                   	push   rbp
+    14a6:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    14a9:	40 8a 7d 24          	mov    dil,BYTE PTR [rbp+0x24]
+    14ad:	40 88 7d 22          	mov    BYTE PTR [rbp+0x22],dil
+    14b1:	66 c7 45 22 34 12    	mov    WORD PTR [rbp+0x22],0x1234
+    14b7:	8a 45 22             	mov    al,BYTE PTR [rbp+0x22]
+		:
+			[off_address]  "i" (offsetof (struct _T, intAddress)),
+			[off_value]    "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    14ba:	90                   	nop
+    14bb:	5d                   	pop    rbp
+    14bc:	c3                   	ret    
+
+00000000000014bd <_saveFlags>:
+
+
+void _saveFlags() {
+    14bd:	f3 0f 1e fa          	endbr64 
+    14c1:	55                   	push   rbp
+    14c2:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    14c5:	9c                   	pushf  
+    14c6:	66 58                	pop    ax
+    14c8:	24 d5                	and    al,0xd5
+    14ca:	88 45 04             	mov    BYTE PTR [rbp+0x4],al
+    14cd:	48 83 c4 06          	add    rsp,0x6
+		:
+		:
+			[off_f]  "i" (offsetof (struct _T, F))
+		:
+	);
+}
+    14d1:	90                   	nop
+    14d2:	5d                   	pop    rbp
+    14d3:	c3                   	ret    
+
+00000000000014d4 <_loadFlags>:
+
+
+void _loadFlags() {
+    14d4:	f3 0f 1e fa          	endbr64 
+    14d8:	55                   	push   rbp
+    14d9:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    14dc:	9c                   	pushf  
+    14dd:	66 58                	pop    ax
+    14df:	66 25 2a ff          	and    ax,0xff2a
+    14e3:	0a 45 04             	or     al,BYTE PTR [rbp+0x4]
+    14e6:	66 50                	push   ax
+    14e8:	9d                   	popf   
+		:
+		:
+			[off_f]  "i" (offsetof (struct _T, F))
+		:
+	);
+}
+    14e9:	90                   	nop
+    14ea:	5d                   	pop    rbp
+    14eb:	c3                   	ret    
+
+00000000000014ec <_rrc>:
+
+
+void _rrc() {
+    14ec:	f3 0f 1e fa          	endbr64 
+    14f0:	55                   	push   rbp
+    14f1:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    14f4:	9c                   	pushf  
+    14f5:	d0 c8                	ror    al,1
+    14f7:	a8 80                	test   al,0x80
+    14f9:	75 06                	jne    1501 <isset>
+    14fb:	80 24 24 fe          	and    BYTE PTR [rsp],0xfe
+    14ff:	eb 04                	jmp    1505 <done>
+
+0000000000001501 <isset>:
+    1501:	80 0c 24 01          	or     BYTE PTR [rsp],0x1
+
+0000000000001505 <done>:
+    1505:	9d                   	popf   
+		"isset:                     \t\n"
+		"  or byte ptr [rsp], 0x01  \t\n"
+		"done:                      \t\n"
+		"popfq                      \t\n"
+	);
+}
+    1506:	90                   	nop
+    1507:	5d                   	pop    rbp
+    1508:	c3                   	ret    
+
+0000000000001509 <_rrl>:
+
+void _rrl() {
+    1509:	f3 0f 1e fa          	endbr64 
+    150d:	55                   	push   rbp
+    150e:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1511:	9c                   	pushf  
+    1512:	d0 c0                	rol    al,1
+    1514:	a8 80                	test   al,0x80
+    1516:	75 06                	jne    151e <isset_rrl>
+    1518:	80 24 24 fe          	and    BYTE PTR [rsp],0xfe
+    151c:	eb 04                	jmp    1522 <done_rrl>
+
+000000000000151e <isset_rrl>:
+    151e:	80 0c 24 01          	or     BYTE PTR [rsp],0x1
+
+0000000000001522 <done_rrl>:
+    1522:	9d                   	popf   
+		"isset_rrl:                 \t\n"
+		"  or byte ptr [rsp], 0x01  \t\n"
+		"done_rrl:                  \t\n"
+		"popfq                      \t\n"
+	);
+}
+    1523:	90                   	nop
+    1524:	5d                   	pop    rbp
+    1525:	c3                   	ret    
+
+0000000000001526 <ralr>:
+
+void ralr() {
+    1526:	f3 0f 1e fa          	endbr64 
+    152a:	55                   	push   rbp
+    152b:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    152e:	d0 d8                	rcr    al,1
+    1530:	d0 d0                	rcl    al,1
+		"rcr al, 1 \t\n"
+		"rcl al, 1 \t\n"
+	);
+}
+    1532:	90                   	nop
+    1533:	5d                   	pop    rbp
+    1534:	c3                   	ret    
+
+0000000000001535 <cma>:
+
+void cma() {
+    1535:	f3 0f 1e fa          	endbr64 
+    1539:	55                   	push   rbp
+    153a:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    153d:	9c                   	pushf  
+    153e:	34 ff                	xor    al,0xff
+    1540:	9d                   	popf   
+		"pushf \t\n"
+		"xor al, 0xff \t\n"
+		"popf \t\n"
+	);
+}
+    1541:	90                   	nop
+    1542:	5d                   	pop    rbp
+    1543:	c3                   	ret    
+
+0000000000001544 <_xthl>:
+
+
+void _xthl() {
+    1544:	f3 0f 1e fa          	endbr64 
+    1548:	55                   	push   rbp
+    1549:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    154c:	66 89 d7             	mov    di,dx
+    154f:	40 88 7d 24          	mov    BYTE PTR [rbp+0x24],dil
+    1553:	66 ff 45 22          	inc    WORD PTR [rbp+0x22]
+    1557:	8a 75 24             	mov    dh,BYTE PTR [rbp+0x24]
+    155a:	8a 55 24             	mov    dl,BYTE PTR [rbp+0x24]
+    155d:	66 c1 cf 08          	ror    di,0x8
+		:
+			[off_intValue]    "i" (offsetof (struct _T, intValue)),
+			[off_intAddress]  "i" (offsetof (struct _T, intAddress))
+		:
+	);
+}
+    1561:	90                   	nop
+    1562:	5d                   	pop    rbp
+    1563:	c3                   	ret    
+
+0000000000001564 <_sphl>:
+
+
+void _sphl() {
+    1564:	f3 0f 1e fa          	endbr64 
+    1568:	55                   	push   rbp
+    1569:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    156c:	66 89 d6             	mov    si,dx
+		"mov si, dx\t\n"
+	);
+}
+    156f:	90                   	nop
+    1570:	5d                   	pop    rbp
+    1571:	c3                   	ret    
+
+0000000000001572 <_pchl>:
+
+void _pchl() {
+    1572:	f3 0f 1e fa          	endbr64 
+    1576:	55                   	push   rbp
+    1577:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    157a:	66 89 55 0c          	mov    WORD PTR [rbp+0xc],dx
+		:
+		:
+			[off_pc]  "i" (offsetof (struct _T, PC))
+		:
+	);
+}
+    157e:	90                   	nop
+    157f:	5d                   	pop    rbp
+    1580:	c3                   	ret    
+
+0000000000001581 <_adi>:
+
+
+void _adi() {
+    1581:	f3 0f 1e fa          	endbr64 
+    1585:	55                   	push   rbp
+    1586:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1589:	04 13                	add    al,0x13
+		"add al, 0x13 \t\n"
+	);
+}
+    158b:	90                   	nop
+    158c:	5d                   	pop    rbp
+    158d:	c3                   	ret    
+
+000000000000158e <_aci>:
+
+void _aci() {
+    158e:	f3 0f 1e fa          	endbr64 
+    1592:	55                   	push   rbp
+    1593:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    1596:	14 13                	adc    al,0x13
+		"adc al, 0x13 \t\n"
+	);
+}
+    1598:	90                   	nop
+    1599:	5d                   	pop    rbp
+    159a:	c3                   	ret    
+
+000000000000159b <_movrr>:
+
+void _movrr() {
+    159b:	f3 0f 1e fa          	endbr64 
+    159f:	55                   	push   rbp
+    15a0:	48 89 e5             	mov    rbp,rsp
+	__asm(
+    15a3:	88 ff                	mov    bh,bh
+    15a5:	88 df                	mov    bh,bl
+    15a7:	88 ef                	mov    bh,ch
+    15a9:	88 cf                	mov    bh,cl
+    15ab:	88 f7                	mov    bh,dh
+    15ad:	88 d7                	mov    bh,dl
+    15af:	88 c7                	mov    bh,al
+    15b1:	88 fb                	mov    bl,bh
+    15b3:	88 db                	mov    bl,bl
+    15b5:	88 eb                	mov    bl,ch
+    15b7:	88 cb                	mov    bl,cl
+    15b9:	88 f3                	mov    bl,dh
+    15bb:	88 d3                	mov    bl,dl
+    15bd:	88 c3                	mov    bl,al
+    15bf:	88 fd                	mov    ch,bh
+    15c1:	88 dd                	mov    ch,bl
+    15c3:	88 ed                	mov    ch,ch
+    15c5:	88 cd                	mov    ch,cl
+    15c7:	88 f5                	mov    ch,dh
+    15c9:	88 d5                	mov    ch,dl
+    15cb:	88 c5                	mov    ch,al
+    15cd:	88 f9                	mov    cl,bh
+    15cf:	88 d9                	mov    cl,bl
+    15d1:	88 e9                	mov    cl,ch
+    15d3:	88 c9                	mov    cl,cl
+    15d5:	88 f1                	mov    cl,dh
+    15d7:	88 d1                	mov    cl,dl
+    15d9:	88 c1                	mov    cl,al
+    15db:	88 fe                	mov    dh,bh
+    15dd:	88 de                	mov    dh,bl
+    15df:	88 ee                	mov    dh,ch
+    15e1:	88 ce                	mov    dh,cl
+    15e3:	88 f6                	mov    dh,dh
+    15e5:	88 d6                	mov    dh,dl
+    15e7:	88 c6                	mov    dh,al
+    15e9:	88 fa                	mov    dl,bh
+    15eb:	88 da                	mov    dl,bl
+    15ed:	88 ea                	mov    dl,ch
+    15ef:	88 ca                	mov    dl,cl
+    15f1:	88 f2                	mov    dl,dh
+    15f3:	88 d2                	mov    dl,dl
+    15f5:	88 c2                	mov    dl,al
+    15f7:	88 f8                	mov    al,bh
+    15f9:	88 d8                	mov    al,bl
+    15fb:	88 e8                	mov    al,ch
+    15fd:	88 c8                	mov    al,cl
+    15ff:	88 f0                	mov    al,dh
+    1601:	88 d0                	mov    al,dl
+    1603:	88 c0                	mov    al,al
+		"mov al,cl  \t\n"
+		"mov al,dh  \t\n"
+		"mov al,dl  \t\n"
+		"mov al,al  \t\n"
+	);
+}
+    1605:	90                   	nop
+    1606:	5d                   	pop    rbp
+    1607:	c3                   	ret    
+
+0000000000001608 <movRM>:
+
+
+void movRM() {
+    1608:	f3 0f 1e fa          	endbr64 
+    160c:	55                   	push   rbp
+    160d:	48 89 e5             	mov    rbp,rsp
+	__asm (
+    1610:	8a 7d 24             	mov    bh,BYTE PTR [rbp+0x24]
+    1613:	8a 5d 24             	mov    bl,BYTE PTR [rbp+0x24]
+    1616:	8a 6d 24             	mov    ch,BYTE PTR [rbp+0x24]
+    1619:	8a 4d 24             	mov    cl,BYTE PTR [rbp+0x24]
+    161c:	8a 75 24             	mov    dh,BYTE PTR [rbp+0x24]
+    161f:	8a 55 24             	mov    dl,BYTE PTR [rbp+0x24]
+    1622:	8a 45 24             	mov    al,BYTE PTR [rbp+0x24]
+		:
+		:
+			[off_value]  "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1625:	90                   	nop
+    1626:	5d                   	pop    rbp
+    1627:	c3                   	ret    
+
+0000000000001628 <movMR>:
+
+void movMR() {
+    1628:	f3 0f 1e fa          	endbr64 
+    162c:	55                   	push   rbp
+    162d:	48 89 e5             	mov    rbp,rsp
+	__asm (
+    1630:	88 7d 24             	mov    BYTE PTR [rbp+0x24],bh
+    1633:	88 5d 24             	mov    BYTE PTR [rbp+0x24],bl
+    1636:	88 6d 24             	mov    BYTE PTR [rbp+0x24],ch
+    1639:	88 4d 24             	mov    BYTE PTR [rbp+0x24],cl
+    163c:	88 75 24             	mov    BYTE PTR [rbp+0x24],dh
+    163f:	88 55 24             	mov    BYTE PTR [rbp+0x24],dl
+    1642:	88 45 24             	mov    BYTE PTR [rbp+0x24],al
+		:
+		:
+			[off_value]  "i" (offsetof (struct _T, intValue))
+		:
+	);
+}
+    1645:	90                   	nop
+    1646:	5d                   	pop    rbp
+    1647:	c3                   	ret    
+
+0000000000001648 <_jmp>:
+
+
+void _jmp() {
+    1648:	f3 0f 1e fa          	endbr64 
+    164c:	55                   	push   rbp
+    164d:	48 89 e5             	mov    rbp,rsp
+	__asm (
+    1650:	72 08                	jb     165a <z_false>
+    1652:	66 c7 45 0c 34 12    	mov    WORD PTR [rbp+0xc],0x1234
+    1658:	eb 07                	jmp    1661 <done_jmp>
+
+000000000000165a <z_false>:
+    165a:	9c                   	pushf  
+    165b:	66 83 45 0c 03       	add    WORD PTR [rbp+0xc],0x3
+    1660:	9d                   	popf   
+
+0000000000001661 <done_jmp>:
+    1661:	90                   	nop
+		:
+		:
+			[off_pc] "i" (offsetof (struct _T, PC))
+		:
+	);
+}
+    1662:	90                   	nop
+    1663:	5d                   	pop    rbp
+    1664:	c3                   	ret    
+
+0000000000001665 <nexti>:
+
+void nexti(void *data, uint8_t ticks) {
+    1665:	f3 0f 1e fa          	endbr64 
+    1669:	55                   	push   rbp
+    166a:	48 89 e5             	mov    rbp,rsp
+    166d:	48 83 ec 50          	sub    rsp,0x50
+    1671:	48 89 7d b8          	mov    QWORD PTR [rbp-0x48],rdi
+    1675:	89 f0                	mov    eax,esi
+    1677:	88 45 b4             	mov    BYTE PTR [rbp-0x4c],al
+    167a:	64 48 8b 04 25 28 00 	mov    rax,QWORD PTR fs:0x28
+    1681:	00 00 
+    1683:	48 89 45 f8          	mov    QWORD PTR [rbp-0x8],rax
+    1687:	31 c0                	xor    eax,eax
+	// execute int callback
+	{
+		__asm(
+    1689:	66 89 5d 22          	mov    WORD PTR [rbp+0x22],bx
+    168d:	66 89 4d 22          	mov    WORD PTR [rbp+0x22],cx
+    1691:	66 89 55 22          	mov    WORD PTR [rbp+0x22],dx
+    1695:	66 89 75 22          	mov    WORD PTR [rbp+0x22],si
+		);
+
+//		[off_address]  "i" (offsetof (struct _T, intAddress)),
+//		[off_value]    "i" (offsetof (struct _T, intValue)),
+
+		__asm(
+    1699:	50                   	push   rax
+    169a:	b0 02                	mov    al,0x2
+    169c:	88 45 20             	mov    BYTE PTR [rbp+0x20],al
+    169f:	48 8b 45 28          	mov    rax,QWORD PTR [rbp+0x28]
+    16a3:	51                   	push   rcx
+    16a4:	52                   	push   rdx
+    16a5:	56                   	push   rsi
+    16a6:	57                   	push   rdi
+    16a7:	41 50                	push   r8
+    16a9:	41 51                	push   r9
+    16ab:	41 52                	push   r10
+    16ad:	41 53                	push   r11
+    16af:	48 89 ef             	mov    rdi,rbp
+    16b2:	ff d0                	call   rax
+    16b4:	41 5b                	pop    r11
+    16b6:	41 5a                	pop    r10
+    16b8:	41 59                	pop    r9
+    16ba:	41 58                	pop    r8
+    16bc:	5f                   	pop    rdi
+    16bd:	5e                   	pop    rsi
+    16be:	5a                   	pop    rdx
+    16bf:	59                   	pop    rcx
+    16c0:	58                   	pop    rax
+				[off_hndlr]    "i" (offsetof (struct _T, intHandler))
+			:
+		);
+	}
+
+	__asm(
+    16c1:	57                   	push   rdi
+    16c2:	48 89 ef             	mov    rdi,rbp
+    16c5:	5f                   	pop    rdi
+
+	// PC = PC + 2
+	{
+		T t;
+
+		t.PC = 2;
+    16c6:	66 c7 45 cc 02 00    	mov    WORD PTR [rbp-0x34],0x2
+
+		__asm (
+    16cc:	48 8d 45 c0          	lea    rax,[rbp-0x40]
+    16d0:	55                   	push   rbp
+    16d1:	48 89 c5             	mov    rbp,rax
+    16d4:	50                   	push   rax
+    16d5:	66 8b 45 0c          	mov    ax,WORD PTR [rbp+0xc]
+    16d9:	66 83 c0 02          	add    ax,0x2
+    16dd:	66 89 45 0c          	mov    WORD PTR [rbp+0xc],ax
+    16e1:	58                   	pop    rax
+    16e2:	5d                   	pop    rbp
+				"a" (&t),
+				[off_pc] "i" (offsetof (struct _T, PC))
+			:
+		);
+
+		printf("PC: %u\n", t.PC);
+    16e3:	0f b7 45 cc          	movzx  eax,WORD PTR [rbp-0x34]
+    16e7:	0f b7 c0             	movzx  eax,ax
+    16ea:	89 c6                	mov    esi,eax
+    16ec:	48 8d 3d 11 09 00 00 	lea    rdi,[rip+0x911]        # 2004 <_IO_stdin_used+0x4>
+    16f3:	b8 00 00 00 00       	mov    eax,0x0
+    16f8:	e8 73 f9 ff ff       	call   1070 <printf@plt>
+	}
+}
+    16fd:	90                   	nop
+    16fe:	48 8b 45 f8          	mov    rax,QWORD PTR [rbp-0x8]
+    1702:	64 48 33 04 25 28 00 	xor    rax,QWORD PTR fs:0x28
+    1709:	00 00 
+    170b:	74 05                	je     1712 <nexti+0xad>
+    170d:	e8 4e f9 ff ff       	call   1060 <__stack_chk_fail@plt>
+    1712:	c9                   	leave  
+    1713:	c3                   	ret    
+
+0000000000001714 <readByte>:
+
+
+uint8_t readByte(void *data, uint16_t address) {
+    1714:	f3 0f 1e fa          	endbr64 
+    1718:	55                   	push   rbp
+    1719:	48 89 e5             	mov    rbp,rsp
+    171c:	48 89 7d f8          	mov    QWORD PTR [rbp-0x8],rdi
+    1720:	89 f0                	mov    eax,esi
+    1722:	66 89 45 f4          	mov    WORD PTR [rbp-0xc],ax
+	return 123;
+    1726:	b8 7b 00 00 00       	mov    eax,0x7b
+}
+    172b:	5d                   	pop    rbp
+    172c:	c3                   	ret    
+
+000000000000172d <runCode>:
+
+void runCode(uint16_t *regs, void (*tickCallback)(void *data), void *data) {
+    172d:	f3 0f 1e fa          	endbr64 
+    1731:	55                   	push   rbp
+    1732:	48 89 e5             	mov    rbp,rsp
+    1735:	48 83 ec 30          	sub    rsp,0x30
+    1739:	48 89 7d e8          	mov    QWORD PTR [rbp-0x18],rdi
+    173d:	48 89 75 e0          	mov    QWORD PTR [rbp-0x20],rsi
+    1741:	48 89 55 d8          	mov    QWORD PTR [rbp-0x28],rdx
+	uint16_t first  = regs[0];
+    1745:	48 8b 45 e8          	mov    rax,QWORD PTR [rbp-0x18]
+    1749:	0f b7 00             	movzx  eax,WORD PTR [rax]
+    174c:	66 89 45 fc          	mov    WORD PTR [rbp-0x4],ax
+	uint16_t second = regs[1];
+    1750:	48 8b 45 e8          	mov    rax,QWORD PTR [rbp-0x18]
+    1754:	0f b7 40 02          	movzx  eax,WORD PTR [rax+0x2]
+    1758:	66 89 45 fe          	mov    WORD PTR [rbp-0x2],ax
+
+	tickCallback(data);
+    175c:	48 8b 45 d8          	mov    rax,QWORD PTR [rbp-0x28]
+    1760:	48 8b 55 e0          	mov    rdx,QWORD PTR [rbp-0x20]
+    1764:	48 89 c7             	mov    rdi,rax
+    1767:	ff d2                	call   rdx
+}
+    1769:	90                   	nop
+    176a:	c9                   	leave  
+    176b:	c3                   	ret    
+
+000000000000176c <main>:
+
+
+int main(int argc, char *argv[]) {
+    176c:	f3 0f 1e fa          	endbr64 
+    1770:	55                   	push   rbp
+    1771:	48 89 e5             	mov    rbp,rsp
+    1774:	89 7d fc             	mov    DWORD PTR [rbp-0x4],edi
+    1777:	48 89 75 f0          	mov    QWORD PTR [rbp-0x10],rsi
+//	nexti(NULL, 2);
+//
+//	readByte(NULL, 0x88);
+
+#if 1
+	__asm(
+    177b:	b0 88                	mov    al,0x88
+    177d:	00 c0                	add    al,al
+    177f:	66 53                	push   bx
+    1781:	66 51                	push   cx
+    1783:	66 52                	push   dx
+    1785:	9c                   	pushf  
+    1786:	66 5b                	pop    bx
+    1788:	66 31 c9             	xor    cx,cx
+    178b:	88 c1                	mov    cl,al
+    178d:	88 da                	mov    dl,bl
+    178f:	40 88 c7             	mov    dil,al
+    1792:	40 80 e7 0f          	and    dil,0xf
+    1796:	40 80 ff 09          	cmp    dil,0x9
+    179a:	7f 07                	jg     17a3 <lo_ovf>
+    179c:	f6 c3 10             	test   bl,0x10
+    179f:	75 02                	jne    17a3 <lo_ovf>
+    17a1:	eb 11                	jmp    17b4 <lo_not_ovf>
+
+00000000000017a3 <lo_ovf>:
+    17a3:	04 06                	add    al,0x6
+    17a5:	9c                   	pushf  
+    17a6:	66 5f                	pop    di
+    17a8:	40 80 e7 01          	and    dil,0x1
+    17ac:	40 08 fa             	or     dl,dil
+    17af:	80 ca 10             	or     dl,0x10
+    17b2:	eb 03                	jmp    17b7 <hi_check>
+
+00000000000017b4 <lo_not_ovf>:
+    17b4:	80 e2 ef             	and    dl,0xef
+
+00000000000017b7 <hi_check>:
+    17b7:	66 81 f9 99 00       	cmp    cx,0x99
+    17bc:	7f 07                	jg     17c5 <hi_ovf>
+    17be:	f6 c3 01             	test   bl,0x1
+    17c1:	75 02                	jne    17c5 <hi_ovf>
+    17c3:	eb 07                	jmp    17cc <hi_not_ovf>
+
+00000000000017c5 <hi_ovf>:
+    17c5:	04 60                	add    al,0x60
+    17c7:	80 ca 01             	or     dl,0x1
+    17ca:	eb 03                	jmp    17cf <finished>
+
+00000000000017cc <hi_not_ovf>:
+    17cc:	80 e2 fe             	and    dl,0xfe
+
+00000000000017cf <finished>:
+    17cf:	88 d3                	mov    bl,dl
+    17d1:	66 53                	push   bx
+    17d3:	9d                   	popf   
+    17d4:	66 5a                	pop    dx
+    17d6:	66 59                	pop    cx
+    17d8:	66 5b                	pop    bx
+    17da:	b8 00 00 00 00       	mov    eax,0x0
+		"  pop dx       \t\n"
+		"  pop cx       \t\n"
+		"  pop bx       \t\n"
+	);
+#endif
+}
+    17df:	5d                   	pop    rbp
+    17e0:	c3                   	ret    
+    17e1:	66 2e 0f 1f 84 00 00 	nop    WORD PTR cs:[rax+rax*1+0x0]
+    17e8:	00 00 00 
+    17eb:	0f 1f 44 00 00       	nop    DWORD PTR [rax+rax*1+0x0]
+
+00000000000017f0 <__libc_csu_init>:
+    17f0:	f3 0f 1e fa          	endbr64 
+    17f4:	41 57                	push   r15
+    17f6:	4c 8d 3d b3 25 00 00 	lea    r15,[rip+0x25b3]        # 3db0 <__frame_dummy_init_array_entry>
+    17fd:	41 56                	push   r14
+    17ff:	49 89 d6             	mov    r14,rdx
+    1802:	41 55                	push   r13
+    1804:	49 89 f5             	mov    r13,rsi
+    1807:	41 54                	push   r12
+    1809:	41 89 fc             	mov    r12d,edi
+    180c:	55                   	push   rbp
+    180d:	48 8d 2d a4 25 00 00 	lea    rbp,[rip+0x25a4]        # 3db8 <__do_global_dtors_aux_fini_array_entry>
+    1814:	53                   	push   rbx
+    1815:	4c 29 fd             	sub    rbp,r15
+    1818:	48 83 ec 08          	sub    rsp,0x8
+    181c:	e8 df f7 ff ff       	call   1000 <_init>
+    1821:	48 c1 fd 03          	sar    rbp,0x3
+    1825:	74 1f                	je     1846 <__libc_csu_init+0x56>
+    1827:	31 db                	xor    ebx,ebx
+    1829:	0f 1f 80 00 00 00 00 	nop    DWORD PTR [rax+0x0]
+    1830:	4c 89 f2             	mov    rdx,r14
+    1833:	4c 89 ee             	mov    rsi,r13
+    1836:	44 89 e7             	mov    edi,r12d
+    1839:	41 ff 14 df          	call   QWORD PTR [r15+rbx*8]
+    183d:	48 83 c3 01          	add    rbx,0x1
+    1841:	48 39 dd             	cmp    rbp,rbx
+    1844:	75 ea                	jne    1830 <__libc_csu_init+0x40>
+    1846:	48 83 c4 08          	add    rsp,0x8
+    184a:	5b                   	pop    rbx
+    184b:	5d                   	pop    rbp
+    184c:	41 5c                	pop    r12
+    184e:	41 5d                	pop    r13
+    1850:	41 5e                	pop    r14
+    1852:	41 5f                	pop    r15
+    1854:	c3                   	ret    
+    1855:	66 66 2e 0f 1f 84 00 	data16 nop WORD PTR cs:[rax+rax*1+0x0]
+    185c:	00 00 00 00 
+
+0000000000001860 <__libc_csu_fini>:
+    1860:	f3 0f 1e fa          	endbr64 
+    1864:	c3                   	ret    
 
 Disassembly of section .fini:
 
-0000000000001248 <_fini>:
-    1248:	f3 0f 1e fa          	endbr64 
-    124c:	48 83 ec 08          	sub    $0x8,%rsp
-    1250:	48 83 c4 08          	add    $0x8,%rsp
-    1254:	c3                   	retq   
+0000000000001868 <_fini>:
+    1868:	f3 0f 1e fa          	endbr64 
+    186c:	48 83 ec 08          	sub    rsp,0x8
+    1870:	48 83 c4 08          	add    rsp,0x8
+    1874:	c3                   	ret    

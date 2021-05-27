@@ -36,6 +36,19 @@ typedef struct _T {
 
 void _anaR() {
 	__asm(
+		"push ax      \t\n"
+		"or al, bh    \t\n"
+		"or al, bl    \t\n"
+		"or al, ch    \t\n"
+		"or al, cl    \t\n"
+		"or al, dh    \t\n"
+		"or al, dl    \t\n"
+		"or al, al    \t\n"
+		"and al, 0x08 \t\n"
+		"rol al,1     \t\n"
+		"mov dil, al  \t\n"
+		"pop ax       \t\n"
+
 		"and al, bh \t\n"
 		"and al, bl \t\n"
 		"and al, ch \t\n"
@@ -43,6 +56,9 @@ void _anaR() {
 		"and al, dh \t\n"
 		"and al, dl \t\n"
 		"and al, al \t\n"
+		"pushf                 \t\n"
+		"or BYTE PTR [rsp],dil \t\n"
+		"popf                  \t\n"
 	);
 }
 
@@ -50,6 +66,7 @@ void _anaR() {
 void _anaM() {
 	__asm(
 		"and al, BYTE PTR [rbp + %[off_value]] \t\n"
+		"or  al, BYTE PTR [rbp + %[off_value]] \t\n"
 		:
 		:
 			[off_value] "i" (offsetof (struct _T, intValue))

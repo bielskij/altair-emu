@@ -68,11 +68,18 @@ CUNIT_TEST(core_instruction, inrr_regs) {
 			mvi(H, 0xff).
 			mvi(L, 0xff).
 			inr(A).
+			inr(A).
+			inr(B).
 			inr(B).
 			inr(C).
+			inr(C).
+			inr(D).
 			inr(D).
 			inr(E).
+			inr(E).
 			inr(H).
+			inr(H).
+			inr(L).
 			inr(L).
 
 			toBin()
@@ -93,6 +100,7 @@ CUNIT_TEST(core_instruction, inrr_regs) {
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_FALSE(core.alu()->fZ());
 
 		core.nextInstruction();
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
@@ -103,9 +111,13 @@ CUNIT_TEST(core_instruction, inrr_regs) {
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0xff);
@@ -113,55 +125,73 @@ CUNIT_TEST(core_instruction, inrr_regs) {
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x01);
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x01);
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x00);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x01);
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0xff);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0x01);
 
 		core.nextInstruction();
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x00);
-		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0x00);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::A), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::B), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::C), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::D), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::E), 0x01);
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::H), 0x01);
 		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0x00);
 		CUNIT_ASSERT_FALSE(core.alu()->fCY());
+		CUNIT_ASSERT_TRUE (core.alu()->fZ());
+		core.nextInstruction();
+		CUNIT_ASSERT_EQ(core.bR(test::Core::BReg::L), 0x01);
 	}
 }

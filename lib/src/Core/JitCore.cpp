@@ -1612,17 +1612,32 @@ int altair::JitCore::_opInrM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 
 
 int altair::JitCore::_opDcrR(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	b->append(0xfe);
+	b->append(0x9c); // pushf
+	b->append(0x40).append(0x8a).append(0x3c).append(0x24); // mov    dil,BYTE PTR [rsp]
+	b->append(0x9d); // popf
+	b->append(0x40).append(0x80).append(0xe7).append(0x01); // and    dil,0x1
 
-	switch (_dstR(opcode)) {
-		case B: b->append(0xcf); break;
-		case C: b->append(0xcb); break;
-		case D: b->append(0xcd); break;
-		case E: b->append(0xc9); break;
-		case H: b->append(0xce); break;
-		case L: b->append(0xca); break;
-		case A: b->append(0xc8); break;
+	if (_dstR(opcode) == A) {
+		b->append(0x04);
+
+	} else {
+		b->append(0x80); // add x, 0xff
+		switch (_dstR(opcode)) {
+			case B: b->append(0xc7); break;
+			case C: b->append(0xc3); break;
+			case D: b->append(0xc5); break;
+			case E: b->append(0xc1); break;
+			case H: b->append(0xc6); break;
+			case L: b->append(0xc2); break;
+		}
 	}
+
+	b->append(0xff);
+
+	b->append(0x9c); // pushf
+	b->append(0x80).append(0x24).append(0x24).append(0xfe); // and    BYTE PTR [rsp],0xfe
+	b->append(0x40).append(0x08).append(0x3c).append(0x24); // or     BYTE PTR [rsp],dil
+	b->append(0x9d); // popf
 
 	ticks = 5;
 
@@ -2625,10 +2640,7 @@ int altair::JitCore::_opCall(JitCore *core, ExecutionByteBuffer *b, uint8_t opco
 
 
 int altair::JitCore::_opCmpR(JitCore *core, ExecutionByteBuffer *b, uint8_t opcode, uint16_t pc, uint8_t &ticks, bool &stop) {
-	// push rax
-	b->append(0x50);
-
-	b->append(0x28); // sub
+	b->append(0x38); // cmp al,X
 	switch (_srcR(opcode)) {
 		case B: b->append(0xf8); break;
 		case C: b->append(0xd8); break;
@@ -2638,9 +2650,6 @@ int altair::JitCore::_opCmpR(JitCore *core, ExecutionByteBuffer *b, uint8_t opco
 		case L: b->append(0xd0); break;
 		case A: b->append(0xc0); break;
 	}
-
-	// pop rax
-	b->append(0x58);
 
 	ticks = 4;
 
@@ -2652,17 +2661,8 @@ int altair::JitCore::_opCmpM(JitCore *core, ExecutionByteBuffer *buffer, uint8_t
 	core->addIntCodeLoadIntAddrFromReg(buffer, HL);
 	core->addIntCodeCallMemoryRead(buffer);
 
-	// push rax
-	buffer->append(0x50);
-
-	// sub    al,BYTE PTR [rbp+intValue]
-	buffer->
-		append(0x2a).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intValue));
-
-	// pop rax
-	buffer->append(0x58);
+	// cmp al, BYTE PTR [rbp+intValue]
+	buffer->append(0x3a).append(0x45).append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 
@@ -2772,15 +2772,8 @@ int altair::JitCore::_opCpi(JitCore *core, ExecutionByteBuffer *buffer, uint8_t 
 	core->addIntCodeLoadIntAddrFromImm(buffer, pc + 1);
 	core->addIntCodeCallMemoryRead(buffer);
 
-	buffer->
-		// push rax
-		append(0x50).
-		// sub al, intValue
-		append(0x2a).
-		append(0x45).
-		append(offsetof(struct altair::JitCore::Regs, intValue)).
-		// pop rax
-		append(0x58);
+	// cmp al, BYTE PTR [rbp+intValue]
+	buffer->append(0x3a).append(0x45).append(offsetof(struct altair::JitCore::Regs, intValue));
 
 	ticks = 7;
 

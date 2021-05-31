@@ -109,7 +109,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x01);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_TRUE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_TRUE (c.alu()->fP());
 		CUNIT_ASSERT_TRUE (c.alu()->fZ());
@@ -122,7 +122,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x01);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_TRUE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_FALSE(c.alu()->fZ());
 
@@ -134,7 +134,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x01);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_TRUE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_TRUE (c.alu()->fZ());
 
@@ -146,7 +146,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x01);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_TRUE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_FALSE(c.alu()->fZ());
 
@@ -158,7 +158,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_TRUE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_TRUE (c.alu()->fZ());
 
@@ -170,7 +170,7 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x01);
-		CUNIT_ASSERT_TRUE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_FALSE(c.alu()->fZ());
 
@@ -182,8 +182,38 @@ CUNIT_TEST(core_instruction, dcrr_regs) {
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::E), 0x00);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::H), 0xff);
 		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::L), 0x00);
-		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_TRUE (c.alu()->fAC());
 		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 		CUNIT_ASSERT_TRUE (c.alu()->fZ());
+	}
+}
+
+
+CUNIT_TEST(core_instruction, dcr_flags_ac) {
+	test::Pio pio;
+
+	auto cores = getCores(pio);
+
+	for (auto &core : cores) {
+		test::Core c(core.get());
+
+		pio.setProgram(
+			Compiler().
+				mvi(A, 0x10).
+				dcr(A).
+				dcr(A).
+
+				toBin()
+		);
+
+		c.nextInstruction();
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x0f);
+		CUNIT_ASSERT_FALSE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
+		c.nextInstruction();
+		CUNIT_ASSERT_EQ(c.bR(test::Core::BReg::A), 0x0e);
+		CUNIT_ASSERT_TRUE(c.alu()->fAC());
+		CUNIT_ASSERT_FALSE(c.alu()->fCY());
 	}
 }

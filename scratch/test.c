@@ -297,23 +297,23 @@ void _lhld() {
 
 void _cpi() {
 	__asm(
-		"push rax \t\n"
-		"sub al, 12 \t\n"
-		"pop rax \t\n"
+		"cmp al, BYTE PTR [rbp + %[off_value]] \t\n"
+		:
+		:
+			[off_value] "i" (offsetof (struct _T, intValue))
+		:
 	);
 }
 
 void _cmp() {
 	__asm(
-		"push rax \t\n"
-		"sub al, bh \t\n"
-		"sub al, bl \t\n"
-		"sub al, ch \t\n"
-		"sub al, cl \t\n"
-		"sub al, dh \t\n"
-		"sub al, dl \t\n"
-		"sub al, al \t\n"
-		"pop rax \t\n"
+		"cmp al, bh \t\n"
+		"cmp al, bl \t\n"
+		"cmp al, ch \t\n"
+		"cmp al, cl \t\n"
+		"cmp al, dh \t\n"
+		"cmp al, dl \t\n"
+		"cmp al, al \t\n"
 	);
 }
 
@@ -347,17 +347,37 @@ void _incR() {
 
 void _dcr() {
 	__asm(
-		"dec bh \t\n"
-		"dec bl \t\n"
-		"dec ch \t\n"
-		"dec cl \t\n"
-		"dec dh \t\n"
-		"dec dl \t\n"
-		"dec al \t\n"
-		:
-		:
-		:
+		"pushf                   \t\n"
+		"mov dil, BYTE PTR [rsp] \t\n"
+		"popf                    \t\n"
+		"and dil, 0x01           \t\n" // extract CF
+
+		"add bh, 0xff \t\n"
+		"add bl, 0xff \t\n"
+		"add ch, 0xff \t\n"
+		"add cl, 0xff \t\n"
+		"add dh, 0xff \t\n"
+		"add dl, 0xff \t\n"
+		"add al, 0xff \t\n"
+
+		"pushf \t\n"
+		"and BYTE PTR [rsp], 0xfe \t\n"
+		"or  BYTE PTR [rsp], dil  \t\n"
+		"popf  \t\n"
 	);
+//
+//	__asm(
+//		"dec bh \t\n"
+//		"dec bl \t\n"
+//		"dec ch \t\n"
+//		"dec cl \t\n"
+//		"dec dh \t\n"
+//		"dec dl \t\n"
+//		"dec al \t\n"
+//		:
+//		:
+//		:
+//	);
 }
 
 void _daa() {
